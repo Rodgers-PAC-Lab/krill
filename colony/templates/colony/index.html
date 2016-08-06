@@ -1,0 +1,115 @@
+{# specifies the overall style #}
+<style type="text/css">
+tr
+{
+    font-family: Sans;
+    font-size: 10;
+}
+td
+{
+    padding:2px 8px 2px 8px; {# space between rows and columns #}
+    font-family: Sans;
+    font-size: 10;
+}
+</style>
+
+{# big table of cages #}
+<table border="0" style="text-align: center; border-collapse: collapse">
+    {# header row #}
+    <tr>
+        <th>cage</th>
+        <th>mouse</th>
+        <th>sex</th>
+        <th>genotype</th>
+        <th>DOB</th>
+        <th>age</th>
+        <th>notes</th>
+    </tr>
+    
+    {# iterate over every cage #}
+    {% for cage in object_list %}
+        {% if not cage.defunct %}
+            {# loop over mice in the cage, with a border above the first one #}
+            {% for mouse in cage.mouse_set.all %}
+            <tr {% if forloop.counter0 == 0%} style="border-top: thin solid" {% endif %}>
+                {# The first column is Cage Detail, and it has a certain #}
+                {# number of lines of info regardless of the number of mice #}
+                {% if forloop.counter0 == 0 %}
+                    <td rowspan="3"> 
+                        {# First line: cage name and proprietor #}
+                            <b>{{ cage.name }}</b> [{{cage.proprietor }}]
+                        <br>
+                        {# Second line: litter info, if any #}
+                        {% if cage.litter and not cage.litter.date_weaned %} 
+                            Litter {{ cage.litter }} 
+                        {% endif %}   
+                        <br>
+                        {# Third line: target genotype, if any #}
+                        {% if cage.target_genotype %}
+                            {{ cage.target_genotype }} 
+                        {% endif %}                       
+                    </td>
+                {% endif %}
+                {# Insert empty details for additional rows #}
+                {% if forloop.counter0 >= 3 %}
+                    <td />
+                {% endif %}
+                
+                {# These columns are specific to each mouse #}
+                
+                {# mouse's name #}
+                <td>
+                {# Colorize the mouse name for breeding mothers and fathers #}                
+                {% if mouse.can_be_breeding_mother or cage.litter.mother == mouse %}
+                    <font color='red'>
+                {% elif mouse.can_be_breeding_father or cage.litter.father == father %}
+                    <font color='blue'>
+                {% else %}
+                    <font>
+                {% endif %}
+                {{ mouse.name }}
+                {% if mouse.user %}[{{ mouse.user }}]{% endif %}
+                </font></td>
+                
+                {# print sex, genotype, dob #}
+                <td>{{ mouse.get_sex_display }}</td>
+                <td>{{ mouse.genotype }}</td>
+                <td>{{ mouse.dob|date:"Y-m-d" }}</td>
+                <td>{% if mouse.age %} {{ mouse.age }} {% endif %}</td>
+                
+                {# Combine the Notes and Needs into one td of rowspan 3 #}
+                {% if forloop.counter0 == 0 %}
+                    <td rowspan="3"</td>
+                    {% if cage.needs %}
+                        Needs {{ cage.needs }} on {{ cage.need_date|date:"m-d" }}.
+                        <br>
+                    {% endif %}
+                    {{ cage.notes_first_half }}
+                    <br>
+                    {{ cage.notes_second_half }}
+                {% elif forlooop.counter0 >= 3 %}
+                    <td />
+                {% endif %}
+            </tr>
+            {% endfor %} {# for mouse in cage.mouse_set.all #}
+
+
+            {# This is kind of a hack: #}
+            {# If there are fewer mice in the cage than there are lines #}
+            {# of cage detail in the first column, then add empty rows here #}
+            {# because the mouse_set iteration will have finished too soon. #}
+            {# Then we always have 3 rows of 8 columns #}
+            {% if cage.n_mice == 0 %}
+                <tr><td /><td /><td /><td /><td /><td /></tr>
+            {% endif %} 
+            {% if cage.n_mice <= 1 %}
+                <tr><td /><td /><td /><td /><td /><td /></tr>
+            {% endif %} 
+            {% if cage.n_mice <= 2 %}
+                <tr><td /><td /><td /><td /><td /><td /></tr>
+            {% endif %} 
+
+        {% endif %} {# if not cage.defunct #}
+    {% endfor %} {# for cage in object.list #}
+</table>
+    
