@@ -28,7 +28,7 @@ class LitterAdmin(admin.ModelAdmin):
     list_display = ('breeding_cage', 'proprietor', 'info', 'target_genotype',
         'date_mated', 'age', 'father', 'mother', 'notes',)
     inlines = [MouseInline] 
-    list_editable = ('notes', 'date_checked')
+    list_editable = ('notes',)
     list_filter = ('proprietor__name',)
     readonly_fields = ('target_genotype', 'info',)
     ordering = ('breeding_cage__name', )
