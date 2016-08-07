@@ -12,6 +12,13 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import dj_database_url
 
+# import local_settings if the file exists
+# this will set the DATABASE_URL and SECRET_KEY environment variables
+try:
+    from .local_settings import *
+except:
+    pass
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
