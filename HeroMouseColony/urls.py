@@ -20,3 +20,6 @@ urlpatterns = [
     url(r'^colony/', include('colony.urls')),
     url(r'^admin/', admin.site.urls),
 ]
+
+# http://stackoverflow.com/questions/4938491/django-admin-change-header-django-administration-text
+admin.site.site_header = 'Bruno Lab Mouse Colony'
