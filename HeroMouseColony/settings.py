@@ -67,9 +67,7 @@ ROOT_URLCONF = 'HeroMouseColony.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
-        ],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -140,6 +138,14 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, 'static'),
 ]
+
+# Workaround for a bug where nested_inline looks for static files
+# in a place where they no longer are for django 1.9
+import shutil
+shutil.copyfile(
+    os.path.join(STATIC_ROOT, 'admin/js/vendor/jquery/jquery.min.js'),
+    os.path.join(STATIC_ROOT, 'admin/js/jquery.min.js'))
+
 
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
