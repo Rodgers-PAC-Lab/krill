@@ -142,9 +142,10 @@ STATICFILES_DIRS = [
 # Workaround for a bug where nested_inline looks for static files
 # in a place where they no longer are for django 1.9
 import shutil
-shutil.copyfile(
-    os.path.join(STATIC_ROOT, 'admin/js/vendor/jquery/jquery.min.js'),
-    os.path.join(STATIC_ROOT, 'admin/js/jquery.min.js'))
+srcf = os.path.join(STATIC_ROOT, 'admin/js/vendor/jquery/jquery.min.js')
+dstf = os.path.join(STATIC_ROOT, 'admin/js/jquery.min.js')
+if os.path.exists(srcf) and not os.path.exists(dstf):
+    shutil.copyfile(srcf, dstf)
 
 
 # Simplified static file serving.
