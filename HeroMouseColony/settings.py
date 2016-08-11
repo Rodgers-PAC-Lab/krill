@@ -168,3 +168,7 @@ LOGGING = {
         },
     },
 }
+
+
+# Where users go if they are not logged in and try to view the census
+LOGIN_URL = '/admin/login/'
