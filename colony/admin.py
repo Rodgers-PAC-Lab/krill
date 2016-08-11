@@ -120,7 +120,7 @@ class MouseAdmin(admin.ModelAdmin):
     
     # This controls the columns that show up on the Admin page for Mouse
     list_display = ('name', 'user', 'dob', 'age', 'sacked', 'sex', 'cage', 
-        'breeder', 'genotype', 'notes', 'progeny',)
+        'breeder', 'genotype', 'notes',)
     list_editable = ('notes',)
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
         'link_to_mother', 'link_to_father', 'link_to_progeny',)
