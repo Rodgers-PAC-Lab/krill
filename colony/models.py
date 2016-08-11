@@ -293,6 +293,21 @@ class Mouse(models.Model):
         res += ')'
         return res
 
+    @property
+    def progeny(self):
+        """Queries database to return all children of this mouse"""
+        # Check for mice that have self as a mother or as a father
+        # We don't want to want to assume based on self.sex because that
+        # may be '?' or set incorrectly
+        res1 = Mouse.objects.filter(litter__father=self)
+        res2 = Mouse.objects.filter(litter__mother=self)
+
+        if len(res1) > 0 and len(res2) > 0:
+            raise ValueError("mouse is both a father and a mother")
+        elif len(res1) == 0:
+            return res2
+        else:
+            return res1
     
     def age(self):
         if self.dob is None:
@@ -546,4 +561,3 @@ class Litter(models.Model):
             self.proprietor = self.breeding_cage.proprietor
         return super(Litter, self).save(*args, **kwargs)
 
-    
