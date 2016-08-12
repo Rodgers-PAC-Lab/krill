@@ -78,25 +78,61 @@ class DefunctFilter(admin.SimpleListFilter):
         return value
 
 class CageAdmin(nested_inline.admin.NestedModelAdmin):
-    # This is an example of how to put a traversal in the table
-    # Can add 'get_target_genotype' to list_display
-    # But I implemented it as a method on Cage instead
-    #~ def get_target_genotype(self, obj):
-        #~ """Helper function to traverse litter to get target genotype"""
-        #~ return obj.litter.target_genotype
-    #~ get_target_genotype.admin_order_field = 'target_genotype'
-    #~ get_target_genotype.short_description = 'Target'
-    
+    """Admin page for the Cage object.
+
+    """
+    # Columns in the list page
     list_display = ('name', 'proprietor', 'litter', 
         'target_genotype', 'infos', 
         'needs', 'need_date', 'defunct', 'notes',)
+    
+    # The ones that are editable
     list_editable = ('notes', )
     
+    # This allows filtering by proprietor name and defunctness
     list_filter = ('proprietor__name', DefunctFilter,)
     
+    # Sorting in the list page
     ordering = ('defunct', 'name',)
-    readonly_fields = ('infos', 'needs', 'need_date',)
+    
+    # The readonly fields
+    readonly_fields = ('infos', 'needs', 'need_date', 'target_genotype', 
+        'link_to_mice',)
+    
+    # Litter is an inline
     inlines = [LitterInline]
+
+    ## Define what shows up on the individual cage admin page
+    # Clickable links to every mouse in the cage
+    def link_to_mice(self, obj):
+        """Generate HTML links for every mouse in the cage"""
+        link_html_code = ''
+        for child in obj.mouse_set.order_by('name').all():
+            child_link = urlresolvers.reverse("admin:colony_mouse_change", 
+                args=[child.id])
+            child_info = child.info()
+            if child_info is None or child_info == '':
+                child_info = 'mouse'
+            link_html_code += u'<a href="%s">%s</a><br />' % (
+                child_link, child_info)
+        return link_html_code
+    link_to_mice.allow_tags=True        
+    
+    # Arrangement of fields on individual cage admin page
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'location', 'proprietor',),
+            'description': 'Required properties',
+        }),
+        (None, {
+            'fields': ('notes', 'defunct',),
+            'description': 'Optional properties',
+        }),        
+        (None, {
+            'fields': ('target_genotype', 'infos', 'needs', 'need_date', 'link_to_mice',),
+            'description': 'Readonly properties',
+        }),                     
+    )
 
 class SackFilter(admin.SimpleListFilter):
     title = 'Sacked'
