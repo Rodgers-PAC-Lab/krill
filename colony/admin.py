@@ -83,7 +83,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     """
     # Columns in the list page
     list_display = ('name', 'proprietor', 'litter', 
-        'target_genotype', 'infos', 
+        'target_genotype', 'link_to_mice', 
         'needs', 'need_date', 'defunct', 'notes',)
     
     # The ones that are editable
@@ -116,7 +116,8 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
             link_html_code += u'<a href="%s">%s</a><br />' % (
                 child_link, child_info)
         return link_html_code
-    link_to_mice.allow_tags=True        
+    link_to_mice.allow_tags = True        
+    link_to_mice.short_description = 'Mice in this cage'
     
     # Arrangement of fields on individual cage admin page
     fieldsets = (
