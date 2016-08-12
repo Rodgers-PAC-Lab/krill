@@ -464,18 +464,18 @@ class Litter(models.Model):
     
     @property
     def info(self):
-        """Returns a string like 3000: 10@P19"""
+        """Returns a string like 10@P19"""
         bc_name = self.breeding_cage.name
         n_pups = len(self.mouse_set.all())
         pup_age = self.age()
         pup_embryonic_age = self.days_since_mating()
         if pup_age is None:
             if pup_embryonic_age is None:
-                return '%s: %d pups' % (bc_name, n_pups)
+                return '%d pups' % (n_pups)
             else:
-                return '%s: E%s' % (bc_name, pup_embryonic_age)
+                return 'E%s' % (pup_embryonic_age)
         else:
-            return '%s: %d@P%s' % (bc_name, n_pups, pup_age)
+            return '%d@P%s' % (n_pups, pup_age)
     
     @property
     def needs(self):
