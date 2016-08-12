@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 import datetime
+from django.core import urlresolvers
 
 # Create your models here.
 
@@ -131,6 +132,13 @@ class Cage(models.Model):
         if self.litter and not self.litter.date_weaned:
             return self.litter.target_genotype
     
+    def change_link(self):
+        """Get a link to the change page
+        
+        Probably doesn't belong in models.py
+        """
+        return urlresolvers.reverse("admin:colony_cage_change", args=[self.id])        
+    
     @property
     def contains_mother_of_this_litter(self):
         """Returns True if the mother of this cage's litter is still present.
@@ -229,6 +237,10 @@ class Mouse(models.Model):
 
     # This field is almost always set at the time of creation of a new Litter
     litter = models.ForeignKey('Litter', null=True, blank=True)
+    
+    # To always sort mice within a cage by name, eg in census view
+    class Meta:
+        ordering = ['name']
     
     @property
     def sacked(self):

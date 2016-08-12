@@ -38,7 +38,8 @@ td
                 {% if forloop.counter0 == 0 %}
                     <td rowspan="3" style="width:100px;"> 
                         {# First line: cage name and proprietor #}
-                            <b>{{ cage.name }}</b> [{{cage.proprietor }}]
+                            <a href={{ cage.change_link }}>
+                            <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
                         <br>
                         {# Second line: litter info, if any #}
                         {% if cage.litter and not cage.litter.date_weaned %} 
