@@ -84,7 +84,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     # Columns in the list page
     list_display = ('name', 'proprietor', 'litter', 
         'target_genotype', 'link_to_mice', 
-        'needs', 'need_date', 'defunct', 'notes',)
+        'needs', 'need_date', 'notes',)
     
     # The ones that are editable
     list_editable = ('notes', )
