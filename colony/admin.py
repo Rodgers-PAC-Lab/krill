@@ -129,9 +129,13 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
             'description': 'Optional properties',
         }),        
         (None, {
-            'fields': ('target_genotype', 'infos', 'needs', 'need_date', 'link_to_mice',),
-            'description': 'Readonly properties',
+            'fields': ('link_to_mice',),
+            'description': 'Mice in this cage',
         }),                     
+        (None, {
+            'fields': ('target_genotype', 'needs', 'need_date',),
+            'description': 'Litter husbandry information',
+        }),
     )
 
 class SackFilter(admin.SimpleListFilter):
@@ -159,7 +163,8 @@ class MouseAdmin(admin.ModelAdmin):
         'breeder', 'genotype', 'notes',)
     list_editable = ('notes',)
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
-        'link_to_mother', 'link_to_father', 'link_to_progeny',)
+        'link_to_mother', 'link_to_father', 'link_to_progeny',
+        'link_to_cage',)
     #~ list_display_links = ('name', 'litter', 'cage')
     list_filter = ['cage__proprietor', 'breeder', SackFilter, 
         'genotype__name', ]
@@ -180,7 +185,13 @@ class MouseAdmin(admin.ModelAdmin):
             args=[obj.father.id])
         return u'<a href="%s">%s</a>' % (link, obj.father.name)
     link_to_father.allow_tags=True    
-    
+
+    def link_to_cage(self, obj):
+        link = urlresolvers.reverse("admin:colony_cage_change", 
+            args=[obj.cage.id])
+        return u'<a href="%s">%s</a>' % (link, obj.cage.name)
+    link_to_cage.allow_tags=True    
+
     def link_to_progeny(self, obj):
         """Generate HTML links for every child"""
         link_html_code = ''
@@ -202,8 +213,8 @@ class MouseAdmin(admin.ModelAdmin):
             'description': 'Required properties',
         }),
         (None, {
-            'fields': ('cage', 'sack_date', 'breeder', 'user', 'notes', 
-                'litter',),
+            'fields': ('cage', 'link_to_cage', 'sack_date', 
+                'breeder', 'user', 'notes', 'litter',),
             'description': 'Optional properties',
         }),        
         (None, {
