@@ -239,6 +239,19 @@ class MouseAdmin(admin.ModelAdmin):
 class GenotypeAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
+    ## Define what shows up on the individual mouse admin page
+    fieldsets = (
+        (None, {
+            'fields': ('name',),
+            'description': 'ANY CHANGE YOU MAKE HERE WILL AFFECT EVERY '
+                'MOUSE WITH THIS GENOTYPE! This is almost never what you '
+                'want to do. If you just want to change one mouse\'s '
+                'genotype, then close this window, and choose a different '
+                'genotype from the dropdown list, or click the plus button '
+                'to create a new one.',
+        }),
+    )
+
 class PersonAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
