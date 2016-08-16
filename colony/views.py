@@ -12,8 +12,14 @@ class IndexView(generic.ListView):
     """
     template_name = 'colony/index.html'
     model = Cage
+
     def get_queryset(self):
-        return Cage.objects.order_by('name').all()
+        proprietor = self.request.GET.get('proprietor')
+        
+        if proprietor:
+            return Cage.objects.order_by('name').filter(proprietor__name=proprietor) 
+        else:
+            return Cage.objects.order_by('name').all()
 
 def cages(request):
     """Return view of cages for django_tables2
