@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 import datetime
+from django.core import urlresolvers
 
 # Create your models here.
 
@@ -131,6 +132,13 @@ class Cage(models.Model):
         if self.litter and not self.litter.date_weaned:
             return self.litter.target_genotype
     
+    def change_link(self):
+        """Get a link to the change page
+        
+        Probably doesn't belong in models.py
+        """
+        return urlresolvers.reverse("admin:colony_cage_change", args=[self.id])        
+    
     @property
     def contains_mother_of_this_litter(self):
         """Returns True if the mother of this cage's litter is still present.
@@ -230,6 +238,10 @@ class Mouse(models.Model):
     # This field is almost always set at the time of creation of a new Litter
     litter = models.ForeignKey('Litter', null=True, blank=True)
     
+    # To always sort mice within a cage by name, eg in census view
+    class Meta:
+        ordering = ['name']
+    
     @property
     def sacked(self):
         return self.sack_date is not None
@@ -293,6 +305,21 @@ class Mouse(models.Model):
         res += ')'
         return res
 
+    @property
+    def progeny(self):
+        """Queries database to return all children of this mouse"""
+        # Check for mice that have self as a mother or as a father
+        # We don't want to want to assume based on self.sex because that
+        # may be '?' or set incorrectly
+        res1 = Mouse.objects.filter(litter__father=self)
+        res2 = Mouse.objects.filter(litter__mother=self)
+
+        if len(res1) > 0 and len(res2) > 0:
+            raise ValueError("mouse is both a father and a mother")
+        elif len(res1) == 0:
+            return res2
+        else:
+            return res1
     
     def age(self):
         if self.dob is None:
@@ -449,18 +476,18 @@ class Litter(models.Model):
     
     @property
     def info(self):
-        """Returns a string like 3000: 10@P19"""
+        """Returns a string like 10@P19"""
         bc_name = self.breeding_cage.name
         n_pups = len(self.mouse_set.all())
         pup_age = self.age()
         pup_embryonic_age = self.days_since_mating()
         if pup_age is None:
             if pup_embryonic_age is None:
-                return '%s: %d pups' % (bc_name, n_pups)
+                return '%d pups' % (n_pups)
             else:
-                return '%s: E%s' % (bc_name, pup_embryonic_age)
+                return 'E%s' % (pup_embryonic_age)
         else:
-            return '%s: %d@P%s' % (bc_name, n_pups, pup_age)
+            return '%d@P%s' % (n_pups, pup_age)
     
     @property
     def needs(self):
@@ -546,4 +573,3 @@ class Litter(models.Model):
             self.proprietor = self.breeding_cage.proprietor
         return super(Litter, self).save(*args, **kwargs)
 
-    

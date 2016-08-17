@@ -139,6 +139,15 @@ STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, 'static'),
 ]
 
+# Workaround for a bug where nested_inline looks for static files
+# in a place where they no longer are for django 1.9
+import shutil
+srcf = os.path.join(STATIC_ROOT, 'admin/js/vendor/jquery/jquery.min.js')
+dstf = os.path.join(STATIC_ROOT, 'admin/js/jquery.min.js')
+if os.path.exists(srcf) and not os.path.exists(dstf):
+    shutil.copyfile(srcf, dstf)
+
+
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -159,3 +168,7 @@ LOGGING = {
         },
     },
 }
+
+
+# Where users go if they are not logged in and try to view the census
+LOGIN_URL = '/admin/login/'

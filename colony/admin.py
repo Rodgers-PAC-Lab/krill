@@ -4,6 +4,7 @@ from .models import (Mouse, Genotype, Litter,
 # Register your models here.
 from django.db.models import Count
 import nested_inline.admin
+from django.core import urlresolvers
 
 class MouseInline(nested_inline.admin.NestedTabularInline):
     """Nested within Litter, so this is for adding pups"""
@@ -77,25 +78,66 @@ class DefunctFilter(admin.SimpleListFilter):
         return value
 
 class CageAdmin(nested_inline.admin.NestedModelAdmin):
-    # This is an example of how to put a traversal in the table
-    # Can add 'get_target_genotype' to list_display
-    # But I implemented it as a method on Cage instead
-    #~ def get_target_genotype(self, obj):
-        #~ """Helper function to traverse litter to get target genotype"""
-        #~ return obj.litter.target_genotype
-    #~ get_target_genotype.admin_order_field = 'target_genotype'
-    #~ get_target_genotype.short_description = 'Target'
-    
+    """Admin page for the Cage object.
+
+    """
+    # Columns in the list page
     list_display = ('name', 'proprietor', 'litter', 
-        'target_genotype', 'infos', 
-        'needs', 'need_date', 'defunct', 'notes',)
+        'target_genotype', 'link_to_mice', 
+        'needs', 'need_date', 'notes',)
+    
+    # The ones that are editable
     list_editable = ('notes', )
     
+    # This allows filtering by proprietor name and defunctness
     list_filter = ('proprietor__name', DefunctFilter,)
     
+    # Sorting in the list page
     ordering = ('defunct', 'name',)
-    readonly_fields = ('infos', 'needs', 'need_date',)
+    
+    # The readonly fields
+    readonly_fields = ('infos', 'needs', 'need_date', 'target_genotype', 
+        'link_to_mice',)
+    
+    # Litter is an inline
     inlines = [LitterInline]
+
+    ## Define what shows up on the individual cage admin page
+    # Clickable links to every mouse in the cage
+    def link_to_mice(self, obj):
+        """Generate HTML links for every mouse in the cage"""
+        link_html_code = ''
+        for child in obj.mouse_set.order_by('name').all():
+            child_link = urlresolvers.reverse("admin:colony_mouse_change", 
+                args=[child.id])
+            child_info = child.info()
+            if child_info is None or child_info == '':
+                child_info = 'mouse'
+            link_html_code += u'<a href="%s">%s</a><br />' % (
+                child_link, child_info)
+        return link_html_code
+    link_to_mice.allow_tags = True        
+    link_to_mice.short_description = 'Mice in this cage'
+    
+    # Arrangement of fields on individual cage admin page
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'location', 'proprietor',),
+            'description': 'Required properties',
+        }),
+        (None, {
+            'fields': ('notes', 'defunct',),
+            'description': 'Optional properties',
+        }),        
+        (None, {
+            'fields': ('link_to_mice',),
+            'description': 'Mice in this cage',
+        }),                     
+        (None, {
+            'fields': ('target_genotype', 'needs', 'need_date',),
+            'description': 'Litter husbandry information',
+        }),
+    )
 
 class SackFilter(admin.SimpleListFilter):
     title = 'Sacked'
@@ -119,9 +161,11 @@ class MouseAdmin(admin.ModelAdmin):
     
     # This controls the columns that show up on the Admin page for Mouse
     list_display = ('name', 'user', 'dob', 'age', 'sacked', 'sex', 'cage', 
-        'breeder', 'genotype', 'notes')
+        'breeder', 'genotype', 'notes',)
     list_editable = ('notes',)
-    readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked',)
+    readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
+        'link_to_mother', 'link_to_father', 'link_to_progeny',
+        'link_to_cage',)
     #~ list_display_links = ('name', 'litter', 'cage')
     list_filter = ['cage__proprietor', 'breeder', SackFilter, 
         'genotype__name', ]
@@ -129,17 +173,62 @@ class MouseAdmin(admin.ModelAdmin):
     # How it is sorted by default
     ordering = ('name',)
     
-    # This controls what you see on the individual mouse page
-    # Would be better to break this up into sections
-    #~ fieldsets = (
-        #~ (None, {
-            #~ 'fields': ('name', 'dob', 'father', 'mother', 
-            #~ 'manual_dob', 'manual_father', 'manual_mother',
-            #~ 'age', 'sack_date', 'sex', 'cage', 'genotype', 'litter', 'notes', 'info'),
-            #~ 'description': 'Specify manual_dob, manual_father, and manual_mother only if not available in litter info',
-        #~ }),
-    #~ )
-    #ordering = ['dob']
+    ## Create fields that are HTML links to other mice
+    # http://stackoverflow.com/questions/28832897/link-in-django-admin-to-foreign-key-object
+    def link_to_mother(self, obj):
+        link = urlresolvers.reverse("admin:colony_mouse_change", 
+            args=[obj.mother.id])
+        return u'<a href="%s">%s</a>' % (link, obj.mother.name)
+    link_to_mother.allow_tags=True    
+    
+    def link_to_father(self, obj):
+        link = urlresolvers.reverse("admin:colony_mouse_change", 
+            args=[obj.father.id])
+        return u'<a href="%s">%s</a>' % (link, obj.father.name)
+    link_to_father.allow_tags=True    
+
+    def link_to_cage(self, obj):
+        link = urlresolvers.reverse("admin:colony_cage_change", 
+            args=[obj.cage.id])
+        return u'<a href="%s">%s</a>' % (link, obj.cage.name)
+    link_to_cage.allow_tags=True    
+
+    def link_to_progeny(self, obj):
+        """Generate HTML links for every child"""
+        link_html_code = ''
+        for child in obj.progeny:
+            child_link = urlresolvers.reverse("admin:colony_mouse_change", 
+                args=[child.id])
+            child_info = child.info()
+            if child_info is None or child_info == '':
+                child_info = 'pup'
+            link_html_code += u'<a href="%s">%s</a><br />' % (
+                child_link, child_info)
+        return link_html_code
+    link_to_progeny.allow_tags=True    
+
+    ## Define what shows up on the individual mouse admin page
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'sex', 'genotype',),
+            'description': 'Required properties',
+        }),
+        (None, {
+            'fields': ('cage', 'link_to_cage', 'sack_date', 
+                'breeder', 'user', 'notes', 'litter',),
+            'description': 'Optional properties',
+        }),        
+        (None, {
+            'fields': ('link_to_mother', 'link_to_father', 'link_to_progeny'),
+            'description': 'Genealogy',
+        }),                
+        (None, {
+            'fields': ('age', 'manual_father', 'manual_mother', 'manual_dob',),
+            'description': (
+                'These properties are normally derived from the litter. '
+                'Override mother, father, and DOB here if necessary.'),
+        }),        
+    )
 
     #~ # Was hoping to get filtering by sacked working, but doesn't seem to
     #~ def get_queryset(self, request):
@@ -149,6 +238,19 @@ class MouseAdmin(admin.ModelAdmin):
 
 class GenotypeAdmin(admin.ModelAdmin):
     ordering = ('name',)
+
+    ## Define what shows up on the individual mouse admin page
+    fieldsets = (
+        (None, {
+            'fields': ('name',),
+            'description': 'ANY CHANGE YOU MAKE HERE WILL AFFECT EVERY '
+                'MOUSE WITH THIS GENOTYPE! This is almost never what you '
+                'want to do. If you just want to change one mouse\'s '
+                'genotype, then close this window, and choose a different '
+                'genotype from the dropdown list, or click the plus button '
+                'to create a new one.',
+        }),
+    )
 
 class PersonAdmin(admin.ModelAdmin):
     ordering = ('name',)
