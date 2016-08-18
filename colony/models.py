@@ -627,3 +627,8 @@ class Litter(models.Model):
             self.proprietor = self.breeding_cage.proprietor
         return super(Litter, self).save(*args, **kwargs)
 
+class SpecialRequest(models.Model):
+    cage = models.ForeignKey(Cage)
+    message = models.CharField(max_length=150
+    requester = models.ForeignKey(Person, null=True, blank=True)
+    requestee = models.ForeignKey(Person, null=True, blank=True)
