@@ -494,6 +494,22 @@ class Litter(models.Model):
         """Returns string: the father's genotype x the mother's."""
         return str(self.father.genotype) + ' x ' + str(self.mother.genotype)
     
+    def needs_date_mated(self):
+        """Returns message if litter has no date_mated.
+        
+        If the litter does not have a date mated: returns None
+        Otherwise: Like all need_* methods, returns dict with 
+            trigger, target, and warn dates; as well as a message.
+        """
+        if self.date_mated or self.dob:
+            return None
+        
+        reference_date = datetime.date.today()
+
+        return {'message': 'specify date mated',
+            'trigger': reference_date, 'target': reference_date, 
+            'warn': reference_date + datetime.timedelta(days=1)}
+    
     def needs_pup_check(self):
         """Returns information about when pup check is needed.
         
@@ -574,6 +590,7 @@ class Litter(models.Model):
         """
         results_s_l = []
         meth_l = [
+            self.needs_date_mated,
             self.needs_pup_check,
             self.needs_toe_clip,
             #~ self.needs_genotype,
