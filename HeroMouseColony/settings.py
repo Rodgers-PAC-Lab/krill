@@ -16,7 +16,7 @@ import dj_database_url
 # this will set the DATABASE_URL and SECRET_KEY environment variables
 try:
     from .local_settings import *
-except:
+except ImportError:
     pass
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
