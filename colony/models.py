@@ -629,6 +629,8 @@ class Litter(models.Model):
 
 class SpecialRequest(models.Model):
     cage = models.ForeignKey(Cage)
-    message = models.CharField(max_length=150
-    requester = models.ForeignKey(Person, null=True, blank=True)
-    requestee = models.ForeignKey(Person, null=True, blank=True)
+    message = models.CharField(max_length=150)
+    requester = models.ForeignKey(Person, null=True, blank=True,
+        related_name='requests_from_me')
+    requestee = models.ForeignKey(Person, null=True, blank=True,
+        related_name='requests_for_me')
