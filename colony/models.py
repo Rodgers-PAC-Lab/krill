@@ -89,7 +89,8 @@ class Cage(models.Model):
     def get_special_request_message(self):
         res_l = []
         for sr in self.specialrequest_set.all():
-            res_l.append("<b>%s: %s</b>" % (sr.requestee, sr.message))
+            if sr.date_completed is None:
+                res_l.append("<b>%s: %s</b>" % (sr.requestee, sr.message))
         return '<br>'.join(res_l)
 
     def n_mice(self):
@@ -649,3 +650,5 @@ class SpecialRequest(models.Model):
         related_name='requests_from_me')
     requestee = models.ForeignKey(Person, null=True, blank=True,
         related_name='requests_for_me')
+    date_requested = models.DateField('date requested', null=True, blank=True)
+    date_completed = models.DateField('date completed', null=True, blank=True)

@@ -261,7 +261,8 @@ class PersonAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 class SpecialRequestAdmin(admin.ModelAdmin):
-    list_display = ('cage', 'requester', 'requestee', 'message',)
+    list_display = ('cage', 'requester', 'requestee', 'date_requested', 
+        'date_completed', 'message',)
 
 admin.site.register(Mouse, MouseAdmin)
 admin.site.register(Genotype, GenotypeAdmin)
