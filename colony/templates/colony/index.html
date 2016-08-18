@@ -84,9 +84,7 @@ td
                 {# auto needs: one td with rowspan 3 #}
                 {% if forloop.counter0 == 0 %}
                     <td style="width:150px;" rowspan="3">
-                        {% if cage.needs %}
-                            {{ cage.needs }} on {{ cage.need_date|date:"m-d" }}.
-                        {% endif %}
+                        {{ cage.litter.auto_needs_message | safe }}
                     </td>
                 {% elif forlooop.counter0 >= 3 %}
                     <td />

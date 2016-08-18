@@ -51,7 +51,10 @@ class Cage(models.Model):
     proprietor = models.ForeignKey('Person')
 
     def notes_first_half(self, okay_line_length=25):
-        """Return the first half of the notes. For CensusView display"""
+        """Return the first half of the notes. For CensusView display
+        
+        Deprecated since we started specifying CensusView column widths.
+        """
         s = str(self.notes)
         if len(s) < okay_line_length or ' ' not in s:
             return s
@@ -478,7 +481,10 @@ class Litter(models.Model):
     def info(self):
         """Returns a string like 10@P19"""
         bc_name = self.breeding_cage.name
-        n_pups = len(self.mouse_set.all())
+        try:
+            n_pups = len(self.mouse_set.all())
+        except AttributeError:
+            n_pups = 0
         pup_age = self.age()
         pup_embryonic_age = self.days_since_mating()
         if pup_age is None:
@@ -505,6 +511,117 @@ class Litter(models.Model):
     def target_genotype(self):
         """Returns string: the father's genotype x the mother's."""
         return str(self.father.genotype) + ' x ' + str(self.mother.genotype)
+    
+    def needs_pup_check(self):
+        """Returns information about when pup check is needed.
+        
+        If the litter does not have a date mated: returns None
+        Otherwise: Like all need_* methods, returns dict with 
+            trigger, target, and warn dates; as well as a message.
+        """
+        if not self.date_mated or self.dob:
+            return None
+        
+        reference_date = self.date_mated
+        trigger = reference_date + datetime.timedelta(days=20)
+        target = reference_date + datetime.timedelta(days=25)
+        warn = reference_date + datetime.timedelta(days=35)
+        
+        return {'message': 'pup check',
+            'trigger': trigger, 'target': target, 'warn': warn}
+
+    def needs_toe_clip(self):
+        """Returns information about when toe clip is needed.
+        
+        If the litter does not have a date of birth: returns None
+        Otherwise: Like all need_* methods, returns dict with 
+            trigger, target, and warn dates; as well as a message.
+        """        
+        if not self.dob or self.date_toeclipped:
+            return None
+        
+        reference_date = self.dob
+        trigger = reference_date + datetime.timedelta(days=0)
+        target = reference_date + datetime.timedelta(days=7)
+        warn = reference_date + datetime.timedelta(days=14)
+        
+        return {'message': 'toe clip',
+            'trigger': trigger, 'target': target, 'warn': warn}
+
+    def needs_genotype(self):
+        """Returns information about when genotyping is needed.
+        
+        If the litter does not have a date of birth: returns None
+        Otherwise: Like all need_* methods, returns dict with 
+            trigger, target, and warn dates; as well as a message.
+        """         
+        if not self.dob or self.date_toeclipped:
+            return None
+        
+        reference_date = self.dob
+        trigger = reference_date + datetime.timedelta(days=0)
+        target = reference_date + datetime.timedelta(days=17)
+        warn = reference_date + datetime.timedelta(days=20)
+        
+        return {'message': 'genotype',
+            'trigger': trigger, 'target': target, 'warn': warn}
+
+    def needs_wean(self):
+        """Returns information about when weaning is needed.
+        
+        If the litter does not have a date of birth: returns None
+        Otherwise: Like all need_* methods, returns dict with 
+            trigger, target, and warn dates; as well as a message.
+        """         
+        if not self.dob or self.date_weaned:
+            return None
+        
+        reference_date = self.dob
+        trigger = reference_date + datetime.timedelta(days=17)
+        target = reference_date + datetime.timedelta(days=20)
+        warn = reference_date + datetime.timedelta(days=20)
+        
+        return {'message': 'wean',
+            'trigger': trigger, 'target': target, 'warn': warn}
+
+    @property
+    def auto_needs_message(self):
+        """Generates an HTML string with all of the litter auto-needs.
+        
+        Iterates through all of the needs_* methods and generates
+        an HTML string with all of them. Displayed in census view.        
+        """
+        results_s_l = []
+        meth_l = [
+            self.needs_pup_check,
+            self.needs_toe_clip,
+            #~ self.needs_genotype,
+            self.needs_wean,
+        ]
+        today = datetime.date.today()
+        
+        # Iterate over needs methods
+        for meth in meth_l:
+            meth_res = meth()
+            
+            # Continue if no result or not triggered
+            if meth_res is None:
+                continue
+            if meth_res['trigger'] > today:
+                continue
+            
+            # Form the message
+            target_date_s = meth_res['target'].strftime('%m/%d')
+            full_message_s = '%s on %s' % (meth_res['message'], target_date_s)
+            
+            # Append with warn tags
+            if meth_res['warn'] <= today:
+                results_s_l.append('<b>' + full_message_s + '</b>')
+            else:
+                results_s_l.append(full_message_s)
+        
+        result_s = '<br />'.join(results_s_l)
+        return result_s
 
     def update_needs(self):
         """Automatically determine next needed action and date.
