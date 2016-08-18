@@ -86,6 +86,12 @@ class Cage(models.Model):
         
         return s[split_idx:]
 
+    def get_special_request_message(self):
+        res_l = []
+        for sr in self.specialrequest_set.all():
+            res_l.append("<b>%s: %s</b>" % (sr.requestee, sr.message))
+        return '<br>'.join(res_l)
+
     def n_mice(self):
         return len(self.mouse_set.all())
     
@@ -125,7 +131,16 @@ class Cage(models.Model):
         return self.name
     
     def auto_needs_message(self):
-        return self.litter.auto_needs_message()
+        srm = self.get_special_request_message()
+        try:
+            lanm = self.litter.auto_needs_message()
+        except Litter.DoesNotExist:
+            lanm = ''
+        
+        if srm != '' and lanm != '':
+            return srm + '<br />' + lanm
+        else:
+            return srm + lanm
     auto_needs_message.allow_tags = True
     
     def target_genotype(self):

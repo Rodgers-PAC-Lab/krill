@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Mouse, Genotype, Litter, 
-    Cage, Person, Task)
+    Cage, Person, Task, SpecialRequest)
 # Register your models here.
 from django.db.models import Count
 import nested_inline.admin
@@ -255,13 +255,12 @@ class GenotypeAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ('assigned_to', 'created_by', 'notes', 'cage_names',)
-    list_editable = ('notes',)
+class SpecialRequestAdmin(admin.ModelAdmin):
+    list_display = ('cage', 'requester', 'requestee', 'message',)
 
 admin.site.register(Mouse, MouseAdmin)
 admin.site.register(Genotype, GenotypeAdmin)
 admin.site.register(Litter, LitterAdmin)
 admin.site.register(Cage, CageAdmin)
 admin.site.register(Person, PersonAdmin)
-admin.site.register(Task, TaskAdmin)
+admin.site.register(SpecialRequest, SpecialRequestAdmin)
