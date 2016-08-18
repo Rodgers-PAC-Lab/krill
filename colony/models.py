@@ -90,9 +90,9 @@ class Cage(models.Model):
         res_l = []
         for sr in self.specialrequest_set.all():
             if sr.date_completed is None:
-                res_l.append("<b>%s: %s</b>" % (sr.requestee, sr.message))
+                res_l.append("<b>@%s: %s</b>" % (sr.requestee, sr.message))
             else:
-                res_l.append("<strike>%s: %s</strike>" % (sr.requestee, sr.message))
+                res_l.append("<strike>@%s: %s</strike>" % (sr.requestee, sr.message))
         return '<br>'.join(res_l)
 
     def n_mice(self):
