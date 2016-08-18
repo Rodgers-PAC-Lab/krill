@@ -25,6 +25,11 @@ class LitterInline(nested_inline.admin.NestedStackedInline):
     show_change_link = True
     inlines = [MouseInline]
 
+class SpecialRequestInline(admin.TabularInline):
+    model = SpecialRequest
+    extra = 1
+    show_change_link = True
+
 class LitterAdmin(admin.ModelAdmin):
     list_display = ('breeding_cage', 'proprietor', 'info', 'target_genotype',
         'date_mated', 'age', 'father', 'mother', 'notes',)
@@ -100,7 +105,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
         'link_to_mice', 'auto_needs_message')
     
     # Litter is an inline
-    inlines = [LitterInline]
+    inlines = [LitterInline, SpecialRequestInline]
 
     ## Define what shows up on the individual cage admin page
     # Clickable links to every mouse in the cage
