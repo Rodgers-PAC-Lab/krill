@@ -124,11 +124,9 @@ class Cage(models.Model):
     def __str__(self):
         return self.name
     
-    def needs(self):
-        return self.litter.needs
-    
-    def need_date(self):
-        return self.litter.need_date
+    def auto_needs_message(self):
+        return self.litter.auto_needs_message()
+    auto_needs_message.allow_tags = True
     
     def target_genotype(self):
         """If contains a non-weaned Litter, return target genotype of it"""
@@ -457,10 +455,6 @@ class Litter(models.Model):
     # Other optional fields
     notes = models.CharField(max_length=100, null=True, blank=True)
     pcr_info = models.CharField(max_length=50, null=True, blank=True)
-
-    # These will be set upon request for properties needs and need_date
-    cached_needs = None
-    cached_need_date = None
     
     def days_since_mating(self):
         if self.date_mated is None:
@@ -494,18 +488,6 @@ class Litter(models.Model):
                 return 'E%s' % (pup_embryonic_age)
         else:
             return '%d@P%s' % (n_pups, pup_age)
-    
-    @property
-    def needs(self):
-        """Next thing that is needed by this litter"""
-        self.update_needs()
-        return self.cached_needs
-    
-    @property
-    def need_date(self):
-        """Date of next thing this litter needs"""
-        self.update_needs()
-        return self.cached_need_date
 
     @property
     def target_genotype(self):
@@ -584,7 +566,6 @@ class Litter(models.Model):
         return {'message': 'wean',
             'trigger': trigger, 'target': target, 'warn': warn}
 
-    @property
     def auto_needs_message(self):
         """Generates an HTML string with all of the litter auto-needs.
         
@@ -622,68 +603,7 @@ class Litter(models.Model):
         
         result_s = '<br />'.join(results_s_l)
         return result_s
-
-    def update_needs(self):
-        """Automatically determine next needed action and date.
-        
-        Sets the fields "cached_needs" and "cached_need_date".
-        
-        Here is the order of things to check:
-        2. No DOB: check for pups
-        3. Litter >P18 and no wean: wean by P21
-        4. Litter >P7 and no toe clip: toe clip immediately
-        5. Not toe clipped: toe clip in future
-        6. Not weaned: wean in future
-        """
-        # By default, nothing needed
-        self.cached_needs = None
-        self.cached_need_date = None
-        
-        if not self.dob:
-            # Guard against no date_mated
-            if not self.date_mated:
-                self.cached_needs = "date mated"
-                self.cached_need_date = datetime.date.today()
-                return
-
-            # Not born yet, need to check for pups
-            self.cached_need_date = self.date_mated + \
-                datetime.timedelta(days=25)
-            
-            # If it was checked since the target date, extend by 4 days
-            if (self.date_checked is not None and 
-                self.date_checked > self.cached_need_date):
-                self.cached_need_date = self.date_checked + \
-                    datetime.timedelta(days=4)
-            
-            # Recalculate the time taken
-            gestation_period = (self.cached_need_date - self.date_mated).days
-            self.cached_needs = "pup check" # day %d" % gestation_period            
-            return
-        
-        if self.age() >= 18 and not self.date_weaned:
-            # Needs wean by P21
-            self.cached_need_date = self.dob + datetime.timedelta(days=21)
-            self.cached_needs = "wean"
-            return
-        
-        if self.age() >= 7 and not self.date_toeclipped:
-            # Needs toe clip immediately
-            self.cached_need_date = self.dob + datetime.timedelta(days=7)
-            self.cached_needs = "toe clip"
-            return        
-        
-        if not self.date_toeclipped:
-            # Needs toe clip in the future
-            self.cached_need_date = self.dob + datetime.timedelta(days=7)
-            self.cached_needs = "toe clip"
-            return
-        
-        if not self.date_weaned:
-            # Needs wean in the future
-            self.cached_need_date = self.dob + datetime.timedelta(days=21)
-            self.cached_needs = "wean"          
-            return
+    auto_needs_message.allow_tags = True
 
     def save(self, *args, **kwargs):
         if self.breeding_cage and not self.pk:

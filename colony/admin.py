@@ -84,7 +84,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     # Columns in the list page
     list_display = ('name', 'proprietor', 'litter', 
         'target_genotype', 'link_to_mice', 
-        'needs', 'need_date', 'notes',)
+        'auto_needs_message', 'notes',)
     
     # The ones that are editable
     list_editable = ('notes', )
@@ -96,8 +96,8 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     ordering = ('defunct', 'name',)
     
     # The readonly fields
-    readonly_fields = ('infos', 'needs', 'need_date', 'target_genotype', 
-        'link_to_mice',)
+    readonly_fields = ('infos', 'target_genotype', 
+        'link_to_mice', 'auto_needs_message')
     
     # Litter is an inline
     inlines = [LitterInline]
@@ -134,7 +134,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
             'description': 'Mice in this cage',
         }),                     
         (None, {
-            'fields': ('target_genotype', 'needs', 'need_date',),
+            'fields': ('target_genotype', 'auto_needs_message',),
             'description': 'Litter husbandry information',
         }),
     )
