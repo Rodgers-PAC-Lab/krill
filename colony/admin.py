@@ -29,6 +29,7 @@ class SpecialRequestInline(admin.TabularInline):
     model = SpecialRequest
     extra = 1
     show_change_link = True
+    inlines = []
 
 class LitterAdmin(admin.ModelAdmin):
     list_display = ('breeding_cage', 'proprietor', 'info', 'target_genotype',
