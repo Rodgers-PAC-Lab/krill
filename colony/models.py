@@ -22,6 +22,9 @@ from django.contrib.auth.models import User
 class Person(models.Model):
     name = models.CharField(max_length=15, unique=True)    
     
+    # track history with simple_history
+    history = HistoricalRecords()
+    
     def __str__(self):
         return self.name
 
@@ -52,7 +55,10 @@ class Cage(models.Model):
     
     # Needs to be made mandatory
     proprietor = models.ForeignKey('Person')
-
+    
+    # track history with simple_history
+    history = HistoricalRecords()
+    
     def notes_first_half(self, okay_line_length=25):
         """Return the first half of the notes. For CensusView display
         
@@ -204,6 +210,10 @@ class Cage(models.Model):
 
 class Genotype(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    
+    # track history with simple_history
+    history = HistoricalRecords()
+    
     def __str__(self):
         return self.name
 
@@ -529,6 +539,9 @@ class Litter(models.Model):
     # Other optional fields
     notes = models.CharField(max_length=100, null=True, blank=True)
     pcr_info = models.CharField(max_length=50, null=True, blank=True)
+
+    # track history with simple_history
+    history = HistoricalRecords()
     
     def days_since_mating(self):
         if self.date_mated is None:
@@ -710,3 +723,6 @@ class SpecialRequest(models.Model):
         related_name='requests_for_me')
     date_requested = models.DateField('date requested', null=True, blank=True)
     date_completed = models.DateField('date completed', null=True, blank=True)
+    
+    # track history with simple_history
+    history = HistoricalRecords()
