@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Mouse, Genotype, Litter, 
-    Cage, Person, Task, SpecialRequest)
+    Cage, Person, Task, SpecialRequest, MouseMove)
 # Register your models here.
 from django.db.models import Count
 import nested_inline.admin
@@ -265,9 +265,13 @@ class SpecialRequestAdmin(admin.ModelAdmin):
     list_display = ('cage', 'requester', 'requestee', 'date_requested', 
         'date_completed', 'message',)
 
+class MouseMoveAdmin(admin.ModelAdmin):
+    list_display = ('mouse', 'from_cage', 'move_time')
+
 admin.site.register(Mouse, MouseAdmin)
 admin.site.register(Genotype, GenotypeAdmin)
 admin.site.register(Litter, LitterAdmin)
 admin.site.register(Cage, CageAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(SpecialRequest, SpecialRequestAdmin)
+admin.site.register(MouseMove, MouseMoveAdmin)
