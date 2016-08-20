@@ -13,6 +13,9 @@ from __future__ import unicode_literals
 from django.db import models
 import datetime
 from django.core import urlresolvers
+from simple_history.models import HistoricalRecords
+from django.utils import timezone
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -257,9 +260,62 @@ class Mouse(models.Model):
     # This field is almost always set at the time of creation of a new Litter
     litter = models.ForeignKey('Litter', null=True, blank=True)
     
+    # track history with simple_history
+    history = HistoricalRecords()
+    
     # To always sort mice within a cage by name, eg in census view
     class Meta:
         ordering = ['name']
+    
+    def get_cage_history_list(self, only_cage_changes=True):
+        """Return list of cage info at every historical timepoint.
+        
+        The results are sorted from oldest to most recent.
+        
+        only_cage_changes : if True, then only return history items that
+            have a different cage name than the immediately previous item
+        
+        Returns: list of dicts
+            Each dict has keys 'cage__name', 'history_date', 'history_user'
+        """
+        # List of cages at all historical timepoints
+        h_list = self.history.order_by('history_date').all().values(
+            'cage__name', 'history_user_id', 'history_date')
+        
+        # Filter by only those that changed
+        if only_cage_changes:
+            current_cage = None
+            res = []
+            for hll in h_list:
+                if current_cage is None or hll['cage__name'] != current_cage:
+                    res.append(hll)
+                    current_cage = hll['cage__name']
+            return res
+        
+        else:
+            return h_list
+    
+    def cage_history_string(self, only_cage_changes=True):
+        """Returns a formatted string of the cage history for this mouse"""
+        hl = self.get_cage_history_list(only_cage_changes)
+        res_l = []
+        
+        for hll in hl:
+            try:
+                username = User.objects.get(id=hll['history_user_id']).username
+            except User.DoesNotExist:
+                username = 'Unknown'
+            
+            res_l.append('%s Cage: %s  User: %s' % (
+                timezone.localtime(hll['history_date']).strftime(
+                    '%Y-%m-%d %H:%M:%S'),
+                hll['cage__name'],
+                username,
+            ))
+        
+        return "<br />\n".join(res_l)
+    cage_history_string.allow_tags = True
+    cage_history_string.short_description = 'From oldest to newest'
     
     @property
     def sacked(self):

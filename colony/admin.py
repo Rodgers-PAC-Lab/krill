@@ -5,6 +5,7 @@ from .models import (Mouse, Genotype, Litter,
 from django.db.models import Count
 import nested_inline.admin
 from django.core import urlresolvers
+from simple_history.admin import SimpleHistoryAdmin
 
 class MouseInline(nested_inline.admin.NestedTabularInline):
     """Nested within Litter, so this is for adding pups"""
@@ -171,7 +172,7 @@ class MouseAdmin(admin.ModelAdmin):
     list_editable = ('notes',)
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
         'link_to_mother', 'link_to_father', 'link_to_progeny',
-        'link_to_cage',)
+        'link_to_cage', 'cage_history_string',)
     #~ list_display_links = ('name', 'litter', 'cage')
     list_filter = ['cage__proprietor', 'breeder', SackFilter, 
         'genotype__name', ]
@@ -227,6 +228,10 @@ class MouseAdmin(admin.ModelAdmin):
         (None, {
             'fields': ('link_to_mother', 'link_to_father', 'link_to_progeny'),
             'description': 'Genealogy',
+        }),     
+        (None, {
+            'fields': ('cage_history_string', ),
+            'description': 'Historical cage records',
         }),                
         (None, {
             'fields': ('age', 'manual_father', 'manual_mother', 'manual_dob',),
