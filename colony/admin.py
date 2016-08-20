@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Mouse, Genotype, Litter, 
-    Cage, Person, Task, SpecialRequest)
+    Cage, Person, SpecialRequest)
 # Register your models here.
 from django.db.models import Count
 import nested_inline.admin

@@ -27,18 +27,6 @@ class Person(models.Model):
     
     def __str__(self):
         return self.name
-
-class Task(models.Model):
-    assigned_to = models.ForeignKey('Person', related_name='assigned_to')
-    created_by = models.ForeignKey('Person', related_name='created_by')
-    notes = models.CharField(max_length=150)
-    cages = models.ManyToManyField('Cage', blank=True)
-    
-    def cage_names(self):
-        cage_l=[]
-        for c in self.cages.all():
-            cage_l.append(c.name)
-        return ', '.join(cage_l)
     
 class Cage(models.Model):
     name = models.CharField(max_length=10, unique=True)    
