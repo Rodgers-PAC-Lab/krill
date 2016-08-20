@@ -16,6 +16,7 @@ from django.core import urlresolvers
 from simple_history.models import HistoricalRecords
 from django.utils import timezone
 from django.contrib.auth.models import User
+from autoslug import AutoSlugField
 
 # Create your models here.
 
@@ -40,6 +41,11 @@ class Cage(models.Model):
             ),
         default=0
         )
+    
+    tgeno = AutoSlugField(populate_from=(
+        'litter__mother__genotype__name',
+        'litter__father__genotype__name',),
+    )
     
     # Needs to be made mandatory
     proprietor = models.ForeignKey('Person')
