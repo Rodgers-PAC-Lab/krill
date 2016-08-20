@@ -69,10 +69,12 @@
         {{ cl.formset.non_form_errors }}
     {% endif %}
     <div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
-      <p>
-      This is a record of all of the changes made to every mouse in the database. Try filtering by a specific mouse or a specific cage using the search box, or CTRL+F and the filters on the right-hand side.<br />
-      This will show you every cage that a mouse has ever been in, or every mouse that a cage has ever contained. Note that other types of changes (e.g., to the notes field) will also be displayed in the table below.
-      </p>
+      <div>
+      This is a record of all of the changes made to every mouse in the database. <br />
+      Try filtering by a specific mouse or a specific cage using the search box, or CTRL+F and the filters on the right-hand side.<br />
+      This will show you every cage that a mouse has ever been in, or every mouse that a cage has ever contained. <br />
+      Note that other types of changes (e.g., to the notes field) will also be displayed in the table below.
+      </div>
       {% block search %}{% search_form cl %}{% endblock %}
       {% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}
 
