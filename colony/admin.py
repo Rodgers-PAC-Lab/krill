@@ -275,6 +275,7 @@ class HistoricalMouseAdmin(admin.ModelAdmin):
     search_fields = ('name', 'cage__name')
     list_display = ('history_date', 'history_user', 'name', 'cage', 'notes',
         'genotype',)
+    change_list_template = 'admin/colony/historicalmouse/change_list.html'
 
 
 admin.site.register(HistoricalMouse, HistoricalMouseAdmin)
