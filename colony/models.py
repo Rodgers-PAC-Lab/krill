@@ -13,7 +13,6 @@ from __future__ import unicode_literals
 from django.db import models
 import datetime
 from django.core import urlresolvers
-from django.utils import timezone
 
 # Create your models here.
 
@@ -647,13 +646,6 @@ class Litter(models.Model):
         return super(Litter, self).save(*args, **kwargs)
 
 class SpecialRequest(models.Model):
-    """Requests for something to be done to a cage.
-    
-    A requester can enter a request that corresponds to a specific cage
-    and should be completed by a requestee. This will be displayed
-    on the census view and rendered according to whether it has been
-    completed.
-    """
     cage = models.ForeignKey(Cage)
     message = models.CharField(max_length=150)
     requester = models.ForeignKey(Person, null=True, blank=True,
@@ -662,14 +654,3 @@ class SpecialRequest(models.Model):
         related_name='requests_for_me')
     date_requested = models.DateField('date requested', null=True, blank=True)
     date_completed = models.DateField('date completed', null=True, blank=True)
-
-class MouseMove(models.Model):
-    """A historical record of when a mouse was moved out of a cage.
-    
-    We don't record the cage that it was moved into, because this creates
-    the possibility of inconsistencies in the record. The cage it was moved
-    into should be the next CageSnapshot "from_cage", or the current cage.
-    """
-    mouse = models.ForeignKey(Mouse)
-    from_cage = models.ForeignKey(Cage)
-    move_time = models.DateTimeField(default=timezone.now)
