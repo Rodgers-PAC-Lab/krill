@@ -18,6 +18,10 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from autoslug import AutoSlugField
 
+# This needs to be here for a weird migration
+def get_tgeno():
+    pass
+
 # Create your models here.
 
 class Person(models.Model):
@@ -28,7 +32,48 @@ class Person(models.Model):
     
     def __str__(self):
         return self.name
+
+def slug_target_genotype(litter):
+    """Function to generate a target genotype slug from a cage
     
+    The model itself calls this function via AutoSlugField.
+    
+    If the litter has already been weaned, or if its cage is defunct,
+    then this returns 'NA'. That's because we typically only use this
+    for filtering for active litters.
+    
+    To generate the slug, we first get the genotype of both parents. Then
+    try to put the driver line first and the reporter second. If we
+    can't identify which is which, return in alphabetical order.
+    """
+    if litter.date_weaned is not None or litter.breeding_cage.defunct:
+        return 'NA'
+    
+    g1 = str(litter.father.genotype)
+    g2 = str(litter.mother.genotype)
+    drivers = ['cre']
+    reporters = ['flex', 'halo', 'tdtomato', 'mcherry']
+    for driver in drivers:
+        if driver in g1.lower():
+            return g1 + ' x ' + g2
+        elif driver in g2.lower():
+            return g2 + ' x ' + g1
+    
+    for reporter in reporters:
+        if reporter in g2.lower():
+            return g1 + ' x ' + g2
+        elif reporter in g1.lower():
+            return g2 + ' x ' + g1
+    
+    if g1 < g2:
+        return g1 + ' x ' + g2
+    else:
+        return g2 + ' x ' + g1
+
+def my_slugify(s):
+    """Don't apply any prettification to the slug, such as removing +"""
+    return s
+
 class Cage(models.Model):
     name = models.CharField(max_length=10, unique=True)    
     notes = models.CharField(max_length=100, blank=True, null=True)
@@ -41,11 +86,6 @@ class Cage(models.Model):
             ),
         default=0
         )
-    
-    tgeno = AutoSlugField(populate_from=(
-        'litter__mother__genotype__name',
-        'litter__father__genotype__name',),
-    )
     
     # Needs to be made mandatory
     proprietor = models.ForeignKey('Person')
@@ -150,9 +190,11 @@ class Cage(models.Model):
     auto_needs_message.allow_tags = True
     
     def target_genotype(self):
-        """If contains a non-weaned Litter, return target genotype of it"""
-        if self.litter and not self.litter.date_weaned:
+        if self.litter:
             return self.litter.target_genotype
+        else:
+            return 'NA'
+    target_genotype.admin_order_field = 'litter__target_genotype'
     
     def change_link(self):
         """Get a link to the change page
@@ -523,6 +565,13 @@ class Litter(models.Model):
         related_name='bc_mother',
         limit_choices_to={'sex': 1})
 
+    # The target genotype is slugged from the genotype of the mother
+    # and father
+    target_genotype = AutoSlugField(populate_from=slug_target_genotype,
+        always_update=True,
+        slugify=my_slugify,
+    )
+
     # Optional fields relating to dates
     date_mated = models.DateField('parents mated', null=True, blank=True)
     dob = models.DateField('date of birth', null=True, blank=True)
@@ -569,11 +618,6 @@ class Litter(models.Model):
                 return 'E%s' % (pup_embryonic_age)
         else:
             return '%d@P%s' % (n_pups, pup_age)
-
-    @property
-    def target_genotype(self):
-        """Returns string: the father's genotype x the mother's."""
-        return str(self.father.genotype) + ' x ' + str(self.mother.genotype)
     
     def needs_date_mated(self):
         """Returns message if litter has no date_mated.

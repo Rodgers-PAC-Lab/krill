@@ -97,17 +97,19 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     list_editable = ('notes', )
     
     # This allows filtering by proprietor name and defunctness
-    list_filter = ('proprietor__name', DefunctFilter,)
+    list_filter = ('proprietor__name', DefunctFilter, 'litter__target_genotype')
     
     # Sorting in the list page
     ordering = ('defunct', 'name',)
     
     # The readonly fields
     readonly_fields = ('infos', 'target_genotype', 
-        'link_to_mice', 'auto_needs_message')
+        'link_to_mice', 'auto_needs_message', 'litter__target_genotype',
+        'target_genotype')
     
     # Litter is an inline
     inlines = [LitterInline, SpecialRequestInline]
+
 
     ## Define what shows up on the individual cage admin page
     # Clickable links to every mouse in the cage
