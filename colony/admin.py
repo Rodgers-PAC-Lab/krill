@@ -99,6 +99,8 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     # This allows filtering by proprietor name and defunctness
     list_filter = ('proprietor__name', DefunctFilter, 'litter__target_genotype')
     
+    search_fields = ('name',)
+    
     # Sorting in the list page
     ordering = ('defunct', 'name',)
     
@@ -178,6 +180,8 @@ class MouseAdmin(admin.ModelAdmin):
     #~ list_display_links = ('name', 'litter', 'cage')
     list_filter = ['cage__proprietor', 'breeder', SackFilter, 
         'genotype__name', ]
+    
+    search_fields = ('name',)
     
     # How it is sorted by default
     ordering = ('name',)
