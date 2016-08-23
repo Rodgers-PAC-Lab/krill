@@ -578,7 +578,6 @@ class Litter(models.Model):
     date_toeclipped = models.DateField('toe clip', null=True, blank=True)
     date_weaned = models.DateField('weaned', null=True, blank=True)
     date_checked = models.DateField('last checked', null=True, blank=True)
-    date_genotyped = models.DateField('genotyped', null=True, blank=True)
     
     # Other optional fields
     notes = models.CharField(max_length=100, null=True, blank=True)
