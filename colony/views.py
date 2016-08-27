@@ -14,10 +14,27 @@ class IndexView(generic.ListView):
     model = Cage
 
     def get_queryset(self):
-        proprietor = self.request.GET.get('proprietor')
+        """Return cages relating to a certain user.
         
-        if proprietor:
-            return Cage.objects.order_by('name').filter(proprietor__name=proprietor) 
+        'person' can be passed as a query parameter
+        For now this is applied to the proprietor field of the cage.
+        
+        TODO: also apply to user field of mouse, and special request
+        field.
+        
+        TODO: Link this to the Person class, to account for usernames
+        that don't exactly match Person names. Right now we're using
+        'proprietor_name_icontains', which works for 'Amanda/Georgia',
+        but wouldn't work for names that are subsets of other names.
+        """
+        pname = self.request.GET.get('person')
+        
+        # could also do:
+        # pname = self.request.user.username
+        
+        if pname:
+            return Cage.objects.order_by('name').filter(
+                proprietor__name__icontains=pname) 
         else:
             return Cage.objects.order_by('name').all()
 
