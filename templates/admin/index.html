@@ -11,7 +11,9 @@
 
 {% block content %}
 <div id="content-main">
-  <div style="margin-bottom:15px"><a href="{% url 'colony:index' %}" >Link To Census</a></div>
+  <div style="margin-bottom:15px">Welcome, {{ user.get_username }}.</div>
+  <div style="margin-bottom:15px"><a href="{% url 'colony:index' %}?person={{ user.get_username }}" >Your census view</a></div>
+  <div style="margin-bottom:15px"><a href="{% url 'colony:index' %}" >Complete census view</a></div>
 
 {% if app_list %}
     {% for app in app_list %}
