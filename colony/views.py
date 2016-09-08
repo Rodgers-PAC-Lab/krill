@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views import generic
+from django.db.models import FieldDoesNotExist
 
 from .models import  Mouse, Cage
 
@@ -19,6 +20,8 @@ class IndexView(generic.ListView):
         'person' can be passed as a query parameter
         For now this is applied to the proprietor field of the cage.
         
+        'order_by' can be passed as a query parameter
+        
         TODO: also apply to user field of mouse, and special request
         field.
         
@@ -27,14 +30,30 @@ class IndexView(generic.ListView):
         'proprietor_name_icontains', which works for 'Amanda/Georgia',
         but wouldn't work for names that are subsets of other names.
         """
-        pname = self.request.GET.get('person')
-        
         # could also do:
         # pname = self.request.user.username
+        pname = self.request.GET.get('person')
+        order_by = self.request.GET.get('order_by', 'name')
         
+        # ensure order_by is valid
+        # this fucks up ordering by -column_name
+        # so disregard this check and let the user enter it correctly
+        # http://stackoverflow.com/questions/7173856/django-order-by-fielderror-exception-can-not-be-catched
+        #~ try:
+            #~ Cage._meta.get_field_by_name(order_by)
+        #~ except FieldDoesNotExist:
+            #~ order_by = None
+        
+        qs = Cage.objects
+        
+        # First filter
         if pname:
-            return Cage.objects.order_by('name').filter(
-                proprietor__name__icontains=pname) 
-        else:
-            return Cage.objects.order_by('name').all()
+            qs = qs.filter(proprietor__name__icontains=pname) 
+        
+        # Now order
+        if order_by:
+            # What if order_by == 'name'?
+            qs = qs.order_by(order_by, 'name')
+        
+        return qs
 
