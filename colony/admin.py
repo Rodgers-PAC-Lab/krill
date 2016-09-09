@@ -6,6 +6,7 @@ from django.db.models import Count
 import nested_inline.admin
 from django.core import urlresolvers
 from simple_history.admin import SimpleHistoryAdmin
+from django import forms
 
 class MouseInline(nested_inline.admin.NestedTabularInline):
     """Nested within Litter, so this is for adding pups"""
@@ -84,9 +85,62 @@ class DefunctFilter(admin.SimpleListFilter):
             value = 'no'
         return value
 
+class AddMiceToCageForm(forms.ModelForm):
+    """Special form to allow adding mice from the cage admin page.
+    
+    Basically we just add a ModelMultipleChoiceField, populated with
+    the current mouse set. Upon saving, we update the cage field on
+    each mouse.
+    
+    References:
+    Adapted from here: http://stackoverflow.com/questions/6034047/one-to-many-inline-select-with-django-admin
+    See also: http://stackoverflow.com/questions/17948018/django-admin-add-custom-form-fields-that-are-not-part-of-the-model
+    The trick of adding fields = '__all__' comes from the second link
+    """
+    # http://stackoverflow.com/questions/6034047/one-to-many-inline-select-with-django-admin
+    class Meta:
+        model = Cage
+        
+        # Without this, complains that fields or exclude needs to be set
+        fields = '__all__'
+    
+    # Custom form field for selecting multiple mice
+    add_mouse_to_cage = forms.ModelChoiceField(required=False,
+        queryset=Mouse.objects.filter(sack_date__isnull=True).all())
+    
+    # Override __init__ if you want to specify initial
+    
+    def save(self, commit=True, *args, **kwargs):
+        """Add the selected mouse to this cage.
+        
+        Sets the selected mouse's cage attribute to this cage.
+        commit argument is not handled
+        
+        This seems to correctly save the "add_mouse_to_cage" form
+        field only if a mouse was actually selected.
+        """
+        # Call the superclass save function but don't commit
+        # Not even sure what this does other than set up `instance`
+        instance = super(AddMiceToCageForm, self).save(commit=False)
+
+        # Get the selected mouse, if any
+        selected_mouse = self.cleaned_data['add_mouse_to_cage']
+        
+        if selected_mouse:        
+            # Set the selected mouse's cage attribute to this cage
+            selected_mouse.cage = instance
+            
+            # Save it, in order to trigger any custom save stuff
+            # (important for historical mouse records)
+            selected_mouse.save()
+        
+        return instance        
+
 class CageAdmin(nested_inline.admin.NestedModelAdmin):
     """Admin page for the Cage object.
 
+    A custom form is used to allow adding mice using multiple
+    selection, as opposed to individually going to each mouse page.
     """
     # Columns in the list page
     list_display = ('name', 'proprietor', 'litter', 
@@ -99,6 +153,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     # This allows filtering by proprietor name and defunctness
     list_filter = ('proprietor__name', DefunctFilter, 'litter__target_genotype')
     
+    # Allow searching cages by mouse info
     search_fields = ('name', 'mouse__genotype__name',
         'mouse__name', 'litter__target_genotype')
     
@@ -113,6 +168,8 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     # Litter is an inline
     inlines = [LitterInline, SpecialRequestInline]
 
+    # A special form for adding mice
+    form = AddMiceToCageForm
 
     ## Define what shows up on the individual cage admin page
     # Clickable links to every mouse in the cage
@@ -142,8 +199,8 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
             'description': 'Optional properties',
         }),        
         (None, {
-            'fields': ('link_to_mice',),
-            'description': 'Mice in this cage',
+            'fields': ('link_to_mice', 'mice',),
+            'description': 'Mice currently in this cage, and option to add more',
         }),                     
         (None, {
             'fields': ('target_genotype', 'auto_needs_message',),
