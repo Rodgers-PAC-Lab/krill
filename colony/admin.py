@@ -199,7 +199,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
             'description': 'Optional properties',
         }),        
         (None, {
-            'fields': ('link_to_mice', 'mice',),
+            'fields': ('link_to_mice', 'add_mouse_to_cage',),
             'description': 'Mice currently in this cage, and option to add more',
         }),                     
         (None, {
