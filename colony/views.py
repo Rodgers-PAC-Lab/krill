@@ -1,8 +1,11 @@
 from django.shortcuts import render
 from django.views import generic
 from django.db.models import FieldDoesNotExist
+from django.http import HttpResponseRedirect
+import datetime
 
-from .models import  Mouse, Cage
+from .models import  Mouse, Cage, Litter
+from .forms import MatingCageForm
 
 # Create your views here.
 
@@ -57,3 +60,49 @@ class IndexView(generic.ListView):
         
         return qs
 
+def make_mating_cage(request):
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = MatingCageForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            father = form.cleaned_data['father']
+            mother = form.cleaned_data['mother']
+            cage_name = form.cleaned_data['cage_name']
+            proprietor = form.cleaned_data['proprietor']
+            
+            cage = Cage(
+                name=cage_name,
+                proprietor=proprietor,
+            )
+            cage.save()
+
+            litter = Litter(
+                breeding_cage=cage,
+                proprietor=proprietor,
+                father=father,
+                mother=mother,
+                date_mated=datetime.date.today(),
+            )
+            
+
+            mother.cage = cage
+            father.cage = cage
+            
+            
+            litter.save()
+            mother.save()
+            father.save()
+            
+            
+            return HttpResponseRedirect('/admin/colony/cage/%d' % cage.pk)
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = MatingCageForm()
+
+    return render(request, 'colony/new_mating_cage.html', {'form': form})
