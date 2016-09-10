@@ -18,6 +18,109 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from autoslug import AutoSlugField
 
+# Helper function to get a new cage nuber based on user
+def get_series_number_from_user_name(user_name):
+    """Returns the first digit of the cage series for this user name
+    
+    Here we use the login name, rather than the name on the Person class.
+    0 is returned if the user_name is not known.
+    """
+    if user_name == 'amanda':
+        series_number = 9
+    elif user_name == 'chris':
+        series_number = 3
+    elif user_name == 'Dan':
+        series_number = 5
+    elif user_name == 'georgia':
+        series_number = 9
+    elif user_name == 'kate':
+        series_number = 1
+    else:
+        series_number = 0
+    return series_number
+
+def get_person_name_from_user_name(user_name):
+    """Return the person corresponding to the logged-in user"""
+    if user_name == 'amanda':
+        return 'Amanda'
+    elif user_name == 'chris':
+        return 'Chris'
+    elif user_name == 'christina':
+        return 'Christina'        
+    elif user_name == 'Dan':
+        return 'Dan'
+    elif user_name == 'Drew':
+        return 'Drew'
+    elif user_name == 'georgia':
+        return 'Georgia'
+    elif user_name == 'jpatterson':
+        return 'Jason'
+    elif user_name == 'kate':
+        return 'Kate'
+    elif user_name == 'randy':
+        return 'Randy'
+    else:
+        return None
+
+def strip_alpha(cage_name):
+    """Keep only digits from cage name
+    
+    Ignores any initial alpha characters
+    Then takes digits until the next alpha character is reached
+    Then returns the digits as an integer, or None if no match.
+    """
+    res = ''
+    started_taking_digits = False
+    for char in cage_name:
+        if not started_taking_digits:
+            if char in '0123456789':
+                started_taking_digits = True
+                res += char
+            else:
+                continue
+        else:
+            if char in '0123456789':
+                res += char
+            else:
+                break
+    
+    if len(res) == 0:
+        return None
+    else:
+        return int(res)
+
+def generate_cage_name(user_name=None):
+    """Returns the next cage name for this user.
+    
+    user_name : logged-in user's name
+    
+    Finds all existing cage names and chooses one number higher.
+    Returns: the new cage name as a string
+    """
+    # Determine what cage series it is
+    series_number = get_series_number_from_user_name(user_name)
+    
+    # Find all cage numbers in this series
+    my_cages = Cage.objects.filter(name__startswith=str(series_number))
+    cage_names = list(my_cages.values_list('name', flat=True))
+    cage_numbers = map(strip_alpha, cage_names)
+    cage_numbers = filter(lambda num: num is not None, cage_numbers)
+    
+    # Generate a new cage number that is 1 higher
+    if len(cage_numbers) == 0:
+        target_cage = series_number * 1000 + 1
+    else:
+        target_cage = max(cage_numbers) + 1
+    target_cage_name = '%04d' % target_cage
+    
+    # Error check
+    if not target_cage_name.startswith(str(series_number)):
+        raise ValueError("cannot generate new cage name, series full?")
+    if Cage.objects.filter(name=target_cage_name).count() > 0:
+        raise ValueError("cannot generate new unique cage name")
+    
+    return target_cage_name
+
 # This needs to be here for a weird migration
 def get_tgeno():
     pass

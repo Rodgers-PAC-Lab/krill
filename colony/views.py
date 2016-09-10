@@ -4,7 +4,8 @@ from django.db.models import FieldDoesNotExist
 from django.http import HttpResponseRedirect
 import datetime
 
-from .models import  Mouse, Cage, Litter
+from .models import (Mouse, Cage, Litter, generate_cage_name,
+    get_person_name_from_user_name, Person)
 from .forms import MatingCageForm
 
 # Create your views here.
@@ -61,6 +62,13 @@ class IndexView(generic.ListView):
         return qs
 
 def make_mating_cage(request):
+    """View for making a new mating cage.
+    
+    We create a MatingCageForm and pass it the logged-in user.
+    If the data is valid, we create a new Cage object, insert the
+    father and mother, and create a new Litter object with those
+    mice as parents.
+    """
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -75,12 +83,14 @@ def make_mating_cage(request):
             cage_name = form.cleaned_data['cage_name']
             proprietor = form.cleaned_data['proprietor']
             
+            # Create the cage
             cage = Cage(
                 name=cage_name,
                 proprietor=proprietor,
             )
             cage.save()
 
+            # Create the litter
             litter = Litter(
                 breeding_cage=cage,
                 proprietor=proprietor,
@@ -89,20 +99,24 @@ def make_mating_cage(request):
                 date_mated=datetime.date.today(),
             )
             
-
+            # Put mice in this cage and save everything
             mother.cage = cage
             father.cage = cage
-            
-            
             litter.save()
             mother.save()
             father.save()
             
-            
+            # Redirect to admin change page
             return HttpResponseRedirect('/admin/colony/cage/%d' % cage.pk)
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        form = MatingCageForm()
+        person_name = get_person_name_from_user_name(str(request.user))
+        person = Person.objects.filter(name=person_name).first()
+        initial = {
+            'cage_name': generate_cage_name(str(request.user)),
+            'proprietor': person,
+        }
+        form = MatingCageForm(initial=initial)
 
     return render(request, 'colony/new_mating_cage.html', {'form': form})

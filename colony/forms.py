@@ -21,4 +21,3 @@ class MatingCageForm(forms.Form):
     proprietor = forms.ModelChoiceField(label='proprietor',
         queryset=Person.objects.all())
     cage_name = forms.CharField(label='cage', max_length=20)
-    
