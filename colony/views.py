@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
-    get_person_name_from_user_name, Person)
+    get_person_name_from_user_name, Person, get_user_name_from_person_name)
 from .forms import MatingCageForm
 
 # Create your views here.
@@ -68,6 +68,9 @@ def make_mating_cage(request):
     If the data is valid, we create a new Cage object, insert the
     father and mother, and create a new Litter object with those
     mice as parents.
+    
+    If the cage name is not specified, it is auto-generated from the
+    proprietor's name.
     """
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
@@ -82,6 +85,11 @@ def make_mating_cage(request):
             mother = form.cleaned_data['mother']
             cage_name = form.cleaned_data['cage_name']
             proprietor = form.cleaned_data['proprietor']
+            
+            # Define the cage name
+            if cage_name == '':
+                user_name = get_user_name_from_person_name(str(proprietor.name))
+                cage_name = generate_cage_name(user_name)
             
             # Create the cage
             cage = Cage(
@@ -114,7 +122,6 @@ def make_mating_cage(request):
         person_name = get_person_name_from_user_name(str(request.user))
         person = Person.objects.filter(name=person_name).first()
         initial = {
-            'cage_name': generate_cage_name(str(request.user)),
             'proprietor': person,
         }
         form = MatingCageForm(initial=initial)

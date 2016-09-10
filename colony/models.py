@@ -62,6 +62,29 @@ def get_person_name_from_user_name(user_name):
     else:
         return None
 
+def get_user_name_from_person_name(person_name):
+    """Return the user name corresponding to the person name"""
+    if person_name == 'Amanda':
+        return 'amanda'
+    elif person_name == 'Chris':
+        return 'chris'
+    elif person_name == 'Christina':
+        return 'christina'        
+    elif person_name == 'Dan':
+        return 'Dan'
+    elif person_name == 'Drew':
+        return 'Drew'
+    elif person_name == 'Georgia':
+        return 'georgia'
+    elif person_name == 'Jason':
+        return 'jpatterson'
+    elif person_name == 'Kate':
+        return 'kate'
+    elif person_name == 'Randy':
+        return 'randy'
+    else:
+        return None
+
 def strip_alpha(cage_name):
     """Keep only digits from cage name
     

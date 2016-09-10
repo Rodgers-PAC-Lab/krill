@@ -20,4 +20,12 @@ class MatingCageForm(forms.Form):
     )
     proprietor = forms.ModelChoiceField(label='proprietor',
         queryset=Person.objects.all())
-    cage_name = forms.CharField(label='cage', max_length=20)
+    cage_name = forms.CharField(label='cage', max_length=20, required=False,
+        help_text=("If you leave this field blank, "
+            "it will be auto-generated from the proprietor's name."))
+
+    def clean_cage_name(self):
+        data = self.cleaned_data['cage_name']
+        if Cage.objects.filter(name=data).count() > 0:
+            raise forms.ValidationError("A cage with this name already exists!")
+        return data
