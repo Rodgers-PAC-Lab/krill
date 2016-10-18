@@ -127,3 +127,20 @@ def make_mating_cage(request):
         form = MatingCageForm(initial=initial)
 
     return render(request, 'colony/new_mating_cage.html', {'form': form})
+
+
+def summary(request):
+    persons = Person.objects.all()
+    mice = Mouse.objects.all()
+    cages = Cage.objects.all()
+
+    table_data = [{ 'name': person.name, 
+                    'cages': cages.filter(proprietor=person).count(),
+                    'mice': mice.filter(user=person).count(),
+                } for person in persons]
+
+
+    return render(request, 'colony/summary.html', {'persons': table_data})
+
+
+

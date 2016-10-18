@@ -1,0 +1,20 @@
+<h1>Colony Summary</h1>
+<table>
+	<thead>
+		<tr>
+			<th>Owner</th>
+			<th>Cages</th>
+			<th>Mice</th>
+		</tr>
+	</thead>
+
+	<tbody>
+	{% for person in persons %}
+		<tr>
+			<td>{{ person.name }}</td>
+			<td>{{ person.cages }}</td>
+			<td>{{ person.mice }}</td>
+		</tr>
+	{% endfor %}
+	</tbody>
+</table>
