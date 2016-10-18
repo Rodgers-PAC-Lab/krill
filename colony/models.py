@@ -488,6 +488,31 @@ class Mouse(models.Model):
         return "<br />\n".join(res_l)
     cage_history_string.allow_tags = True
     cage_history_string.short_description = 'From oldest to newest'
+
+    @property
+    def user_or_proprietor(self):
+        """Returns the person in charge of this mouse.
+        
+        This is determined in the following precedence order
+            * self.user if it is set
+            * self.cage.proprietor if self.cage is set
+            * self.litter.breeding_cage.proprietor if self.litter is set
+            * Otherwise None
+
+        Probably it would make more sense to use an AutoSlugField here, that
+        would update to cage's proprietor after every cage change. Also
+        it would be much faster to query the database.
+        """
+        if self.user:
+            return self.user
+        
+        if self.cage:
+            return self.cage.proprietor
+        
+        if self.litter:
+            return self.litter.breeding_cage.proprietor
+        
+        return None
     
     @property
     def sacked(self):
