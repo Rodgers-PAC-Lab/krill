@@ -139,15 +139,21 @@ def summary(request):
                     'cages': cages.filter(proprietor=person).count(),
                     'mice': mice.filter(user=person).count(),
                 } for person in persons]
-
+    all_totals = {'cages' : Cage.objects.count(), 'mice' : Mouse.objects.count()}
     #Contains information about only non-defunct cages and non-sacked mice
     current_table_data = [{ 'name': person.name, 
                     'cages': len([cage for cage in cages.filter(proprietor=person, defunct=False) if not cage.defunct]),
                     'mice': len([mouse for mouse in mice.filter(user=person) if not mouse.sacked]),
                 } for person in persons]
 
+    current_totals = {'cages' : Cage.objects.filter(defunct=False).count(), 'mice' : len([mouse for mouse in Mouse.objects.all() if not mouse.sacked])}
 
-    return render(request, 'colony/summary.html', {'persons_all': all_table_data, 'persons_current': current_table_data})
+    #Totals do not match column totals yet
+
+    return render(request, 'colony/summary.html', {'persons_all': all_table_data, 'persons_current': current_table_data,
+                                                    'all_totals': all_totals,
+                                                    'current_totals' : current_totals,
+                                                    })
 
 
 
