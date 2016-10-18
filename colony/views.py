@@ -130,6 +130,26 @@ def make_mating_cage(request):
 
 
 def summary(request):
+    """Returns cage and mouse counts by person for a summary view
+    
+    For this summary, we use the "proprietor" attribute of cage to determine
+    who owns it. We use cage__proprietor to determine who owns a mouse. This
+    is because mouse.user is usually null. Note that this will fail when a
+    mouse has no cage (typically after sacking). These mice are listed as
+    belonging to "No Cage".
+    
+    Would probably be better to use the "user_or_proprietor" property
+    of Mouse, but this is Python (not a slug) so would be too slow here.
+    
+    'persons_all':
+        list of dicts, each with keys:
+            'name': each person's name
+            'cages': number of cages for which that person is proprietor
+            'mice': number of mice in those cages
+    
+    'persons_current':
+        Same as above, but only for cages for which defunct=False.
+    """
     persons = Person.objects.all()
     mice = Mouse.objects.all()
     cages = Cage.objects.all()
@@ -137,13 +157,20 @@ def summary(request):
     #Contains information about all cages and mice stored in databse
     all_table_data = [{ 'name': person.name, 
                     'cages': cages.filter(proprietor=person).count(),
-                    'mice': mice.filter(user=person).count(),
+                    'mice': mice.filter(cage__proprietor=person).count(),
                 } for person in persons]
-
-    #Contains information about only non-defunct cages and non-sacked mice
+    
+    # Add entry for mice without a cage
+    all_table_data.append({
+        'name': 'No Cage',
+        'cages': 0,
+        'mice': mice.filter(cage__isnull=True).count()
+    })
+    
+    #Contains information about only non-defunct cages
     current_table_data = [{ 'name': person.name, 
-                    'cages': len([cage for cage in cages.filter(proprietor=person, defunct=False) if not cage.defunct]),
-                    'mice': len([mouse for mouse in mice.filter(user=person) if not mouse.sacked]),
+                    'cages': cages.filter(proprietor=person, defunct=False).count(),
+                    'mice': mice.filter(cage__proprietor=person, cage__defunct=False).count(),
                 } for person in persons]
 
 
