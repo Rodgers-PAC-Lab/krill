@@ -1,6 +1,7 @@
 <h1>Colony Summary</h1>
-<table>
+<table style="display: inline">
 	<thead>
+		<tr><td>All</td></tr>
 		<tr>
 			<th>Owner</th>
 			<th>Cages</th>
@@ -9,7 +10,28 @@
 	</thead>
 
 	<tbody>
-	{% for person in persons %}
+	{% for person in persons_all %}
+		<tr>
+			<td>{{ person.name }}</td>
+			<td>{{ person.cages }}</td>
+			<td>{{ person.mice }}</td>
+		</tr>
+	{% endfor %}
+	</tbody>
+</table>
+
+<table style="display: inline; margin-left:100px">
+	<thead>
+		<tr><td>Current</td></tr>
+		<tr>
+			<th>Owner</th>
+			<th>Cages</th>
+			<th>Mice</th>
+		</tr>
+	</thead>
+
+	<tbody>
+	{% for person in persons_current %}
 		<tr>
 			<td>{{ person.name }}</td>
 			<td>{{ person.cages }}</td>
