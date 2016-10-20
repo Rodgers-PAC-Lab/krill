@@ -15,8 +15,7 @@
   <div style="margin-bottom:15px"><a href="{% url 'colony:index' %}?person={{ user.get_username }}" >Your census view</a></div>
   <div style="margin-bottom:15px"><a href="{% url 'colony:index' %}" >Complete census view</a></div>
   <div style="margin-bottom:15px"><a href="{% url 'colony:new_mating_cage' %}" >Create a new mating cage</a></div>
-  <div style="margin-bottom:15px"><a href="{% url 'colony:summary' %}" >Cage counts</a></div>
-  
+
 {% if app_list %}
     {% for app in app_list %}
         <div class="app-{{ app.app_label }} module">
