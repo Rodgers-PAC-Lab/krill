@@ -168,36 +168,33 @@ def summary(request):
     mice = Mouse.objects.all()
     cages = Cage.objects.all()
 
-
-    #Contains information about all cages and mice stored in databse
-    all_table_data = [{ 'name': person.name, 
-                    'cages': cages.filter(proprietor=person).count(),
-                    'mice': mice.filter(user=person).count(),
-                } for person in persons]
-
+    # Contains information about all cages and mice stored in databse
+    all_table_data = [{ 
+        'name': person.name, 
+        'cages': cages.filter(proprietor=person).count(),
+        'mice': mice.filter(cage__proprietor=person).count(),
+    } for person in persons]
+    
+    # Add entry for mice without a cage
     all_table_data.append({
         'name': 'No Cage',
         'cages': 0,
         'mice': mice.filter(cage__isnull=True).count()
     })
-
-    all_totals = {'cages' : Cage.objects.count(), 'mice' : Mouse.objects.count()}
-    #Contains information about only non-defunct cages and non-sacked mice
-    current_table_data = [{ 'name': person.name, 
-                    'cages': len([cage for cage in cages.filter(proprietor=person, defunct=False) if not cage.defunct]),
-                    'mice': len([mouse for mouse in mice.filter(user=person) if not mouse.sacked]),
-                } for person in persons]
-
-    current_totals = {'cages' : Cage.objects.filter(defunct=False).count(), 'mice' : len([mouse for mouse in Mouse.objects.all() if not mouse.sacked])}
-
-    #Totals do not match column totals yet
-
-    return render(request, 'colony/summary.html', {'persons_all': all_table_data, 'persons_current': current_table_data,
-                                                    'all_totals': all_totals,
-                                                    'current_totals' : current_totals,
-                                                    })
+    
+    # Contains information about only non-defunct cages
+    current_table_data = [{ 
+        'name': person.name, 
+        'cages': cages.filter(proprietor=person, defunct=False).count(),
+        'mice': mice.filter(cage__proprietor=person, 
+            cage__defunct=False).count(),
+    } for person in persons]
 
 
+    return render(request, 'colony/summary.html', {
+        'persons_all': all_table_data, 
+        'persons_current': current_table_data
+    })
 
 
 
