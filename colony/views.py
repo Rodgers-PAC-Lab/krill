@@ -60,7 +60,18 @@ class IndexView(generic.ListView):
             qs = qs.order_by(order_by, 'name')
         
         # Now select related
-        qs = qs.prefetch_related('mouse_set').select_related()
+        qs = qs.prefetch_related('mouse_set').\
+            prefetch_related('specialrequest_set').\
+            prefetch_related('specialrequest_set__requester').\
+            prefetch_related('specialrequest_set__requestee').\
+            prefetch_related('mouse_set__litter').\
+            prefetch_related('mouse_set__user').\
+            prefetch_related('mouse_set__genotype').\
+            prefetch_related('litter').\
+            prefetch_related('litter__mouse_set').\
+            prefetch_related('litter__father').\
+            prefetch_related('litter__mother').\
+            select_related()
         
         return qs
 
