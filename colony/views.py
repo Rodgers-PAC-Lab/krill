@@ -48,7 +48,7 @@ class IndexView(generic.ListView):
         #~ except FieldDoesNotExist:
             #~ order_by = None
         
-        qs = Cage.objects.filter(defunct=False).select_related()
+        qs = Cage.objects.filter(defunct=False)
         
         # First filter
         if pname:
@@ -58,6 +58,9 @@ class IndexView(generic.ListView):
         if order_by:
             # What if order_by == 'name'?
             qs = qs.order_by(order_by, 'name')
+        
+        # Now select related
+        qs = qs.select_related()
         
         return qs
 
