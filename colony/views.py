@@ -181,7 +181,9 @@ def summary(request):
         'cages': 0,
         'mice': mice.filter(cage__isnull=True).count()
     })
-    
+    all_totals = {'cages' : sum([person['cages'] for person in all_table_data]), 
+        'mice' : sum([person['mice'] for person in all_table_data])}
+
     # Contains information about only non-defunct cages
     current_table_data = [{ 
         'name': person.name, 
@@ -191,9 +193,15 @@ def summary(request):
     } for person in persons]
 
 
+
+    current_totals = {'cages' : sum([person['cages'] for person in current_table_data]),
+        'mice' : sum([person['mice'] for person in current_table_data])}
+
     return render(request, 'colony/summary.html', {
         'persons_all': all_table_data, 
-        'persons_current': current_table_data
+        'persons_current': current_table_data,
+        'all_totals' : all_totals,
+        'current_totals' : current_totals,
     })
 
 
