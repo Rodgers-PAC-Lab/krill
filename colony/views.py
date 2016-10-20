@@ -60,7 +60,7 @@ class IndexView(generic.ListView):
             qs = qs.order_by(order_by, 'name')
         
         # Now select related
-        qs = qs.select_related().prefetch_related('mouse_set')
+        qs = qs.prefetch_related('mouse_set').select_related()
         
         return qs
 
