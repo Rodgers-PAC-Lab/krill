@@ -1,3 +1,19 @@
-{% for statement in statements %}
-	<p>{{ statement }}</p>
+<h1>Records</h1>
+
+{% for rec in rec_summaries %}
+	<p>
+		<i>{{ rec.alter_time }}</i>
+		<strong> {{ rec.name }}</strong>
+		{% for change in rec.changes  %}
+			{% if change.type == 'addition' %}
+				{{ change.field }} set to {{ change.new }},
+			{% elif change.type == 'change' %}
+				{{change.field}} changed from {{change.old}} to {{change.new}},
+			{% elif change.type == 'removal' %} 
+				{{change.field}} unset from {{change.old}},
+			{% endif %}
+			
+			
+		{% endfor %}
+	</p>
 {% endfor %}

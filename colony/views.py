@@ -5,7 +5,8 @@ from django.http import HttpResponseRedirect
 import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
-    get_person_name_from_user_name, Person, get_user_name_from_person_name)
+    get_person_name_from_user_name, Person, get_user_name_from_person_name,
+    HistoricalCage, HistoricalMouse)
 from .forms import MatingCageForm
 
 from simple_history.models import HistoricalRecords
@@ -219,7 +220,7 @@ def records(request):
     #Take at most 50 records
     records = records[:50] if len(records) > 50 else records[:len(records)]
 
-    statements = []
+    rec_summaries = []
 
     for i in range(len(records)):
         new_record = records[i]
@@ -227,26 +228,62 @@ def records(request):
 
         #Find which fields differ between the 2 records
         old_fields, new_fields = compare(new_record, old_record)
-        statement = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S') + "\t"
+        # statement = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S') + "\t"
+        model = ''
+
+        if type(new_record) == HistoricalCage:
+            model = 'Cage'
+        elif type(new_record) == HistoricalMouse:
+            model = 'Mouse'
+
+        name = model + ' ' + new_record.name
+        alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')
+        changes = []
+
 
         for j, field in enumerate(old_fields.keys()):
-            clause = "Changed {} from '{}' to '{}'".format(field, old_fields[field], new_fields[field])
+            # clause = "Changed {} from '{}' to '{}'".format(field, old_fields[field], new_fields[field])
 
-            statement += clause
+            # statement += clause
 
-            if j == len(old_fields) - 1:
-                statement += ",  "
-            else:
-                statement += "."
+            # if j == len(old_fields) - 1:
+            #     statement += ",  "
+            # else:
+            #     statement += "."
 
-        statements.append(statement)
+            old = old_fields[field]
+            new = new_fields[field]
+            change_type = 'change'
+
+
+            if not old:
+                change_type = 'addition'
+            elif not new:
+                change_type = 'removal'
+
+
+            changes.append({
+                'field' : field.capitalize(),
+                'old' : old_fields[field],
+                'new' : new_fields[field],
+                'type' : change_type, 
+            })
+
+        rec_summary = {
+            'name' : name,
+            'alter_time' : alter_time,
+            'changes' : changes,
+        }
+
+
+        rec_summaries.append(rec_summary)
 
 
 
         
 
     return render(request, 'colony/records.html', {
-        'statements' : statements
+        'rec_summaries' : rec_summaries
         })
 
 def compare(obj1,obj2):
