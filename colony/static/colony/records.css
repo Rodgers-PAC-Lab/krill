@@ -1,0 +1,14 @@
+.old {
+	font-weight: bold;
+	color: red;
+}
+
+.updated {
+	font-weight: bold;
+	color: green;
+}
+
+.new {
+	font-weight: bold;
+	color: blue;
+}

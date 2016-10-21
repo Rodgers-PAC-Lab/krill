@@ -1,16 +1,18 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'colony/records.css' %}" />
 <h1>Records</h1>
 
 {% for rec in rec_summaries %}
 	<p>
 		<i>{{ rec.alter_time }}</i>
-		<strong> {{ rec.name }}</strong>
+		<strong> {{ rec.name }}:</strong>
 		{% for change in rec.changes  %}
 			{% if change.type == 'addition' %}
-				{{ change.field }} set to {{ change.new }},
+				{{ change.field }} set to <span class="new">'{{ change.new }}'</span>,
 			{% elif change.type == 'change' %}
-				{{change.field}} changed from {{change.old}} to {{change.new}},
+				{{change.field}} changed from <span class="old">'{{change.old}}'</span> to <span class="updated">'{{change.new}}'</span>,
 			{% elif change.type == 'removal' %} 
-				{{change.field}} unset from {{change.old}},
+				{{change.field}} unset from <span class="old">'{{change.old}}'</span>,
 			{% endif %}
 			
 			

@@ -209,6 +209,11 @@ def summary(request):
     })
 
 def records(request):
+    """ Returns a feed of Mouse and Cage model change
+    The historical record object is used to obtain the previous 50 model changes
+    and identify which fields are altered in each
+    """
+
     mouse_records = Mouse.history.all()
     cage_records = Cage.history.all()
 
@@ -226,57 +231,54 @@ def records(request):
         new_record = records[i]
         old_record = new_record.get_previous_by_history_date()
 
+
         #Find which fields differ between the 2 records
-        old_fields, new_fields = compare(new_record, old_record)
-        # statement = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S') + "\t"
-        model = ''
+        old_fields, new_fields = history_compare(old_record, new_record)
 
-        if type(new_record) == HistoricalCage:
-            model = 'Cage'
-        elif type(new_record) == HistoricalMouse:
-            model = 'Mouse'
+        #Make sure there are sufficient differences between records (i.e. at least one change)
+        if len(old_fields) != 0:
+            model = ''
 
-        name = model + ' ' + new_record.name
-        alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')
-        changes = []
+            if type(new_record) == HistoricalCage:
+                model = 'Cage'
+            elif type(new_record) == HistoricalMouse:
+                model = 'Mouse'
 
+            name = model + ' ' + new_record.name
+            alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')
 
-        for j, field in enumerate(old_fields.keys()):
-            # clause = "Changed {} from '{}' to '{}'".format(field, old_fields[field], new_fields[field])
-
-            # statement += clause
-
-            # if j == len(old_fields) - 1:
-            #     statement += ",  "
-            # else:
-            #     statement += "."
-
-            old = old_fields[field]
-            new = new_fields[field]
-            change_type = 'change'
+            #Changes is a list of dictionary objects containing details about
+            #changed fields
+            changes = []
 
 
-            if not old:
-                change_type = 'addition'
-            elif not new:
-                change_type = 'removal'
+            for j, field in enumerate(old_fields.keys()):
+
+                old = old_fields[field]
+                new = new_fields[field]
+                change_type = 'change'
+
+                #Different change types depending on existence of values for fields
+                if not old:
+                    change_type = 'addition'
+                elif not new:
+                    change_type = 'removal'
+
+                changes.append({
+                    'field' : field.capitalize(),
+                    'old' : old_fields[field],
+                    'new' : new_fields[field],
+                    'type' : change_type, 
+                })
+
+            rec_summary = {
+                'name' : name,
+                'alter_time' : alter_time,
+                'changes' : changes,
+            }
 
 
-            changes.append({
-                'field' : field.capitalize(),
-                'old' : old_fields[field],
-                'new' : new_fields[field],
-                'type' : change_type, 
-            })
-
-        rec_summary = {
-            'name' : name,
-            'alter_time' : alter_time,
-            'changes' : changes,
-        }
-
-
-        rec_summaries.append(rec_summary)
+            rec_summaries.append(rec_summary)
 
 
 
@@ -286,25 +288,49 @@ def records(request):
         'rec_summaries' : rec_summaries
         })
 
-def compare(obj1,obj2):
-    excluded_keys = ('created', '_state', 'timestamp', 'user', 'uid', 'changed',
-        'history_id', 'history_date', 'history_user_id', 'history_type', 'id')
+def history_compare(obj1,obj2):
+    """ Function to compare each field in 2 different objects """
+
+    #A list of fields that should be ignored
+    excluded_keys = ('history_user', 'history_id', 'history_date', 'id', 'history_type')
     return _compare(obj1, obj2, excluded_keys)
 
+# def _compare(obj1, obj2, excluded_keys):
+#     d1, d2 = obj1.__dict__, obj2.__dict__
+#     old, new = {}, {}
+#     for k,v in d1.items():
+#         if k in excluded_keys:
+#             continue
+#         try:
+#             if v != d2[k]:
+#                 old.update({k: v})
+#                 new.update({k: d2[k]})
+#         except KeyError:
+#             old.update({k: v})
+    
+#     return old, new 
+
+
 def _compare(obj1, obj2, excluded_keys):
-    d1, d2 = obj1.__dict__, obj2.__dict__
+    
+    fields = type(obj1)._meta.get_fields()
     old, new = {}, {}
-    for k,v in d1.items():
-        if k in excluded_keys:
+
+    for field in fields:
+        field_name = field.name
+
+        if field.name in excluded_keys:
             continue
         try:
-            if v != d2[k]:
-                old.update({k: v})
-                new.update({k: d2[k]})
+            # Separate old and new field values if they differ
+            if getattr(obj1, field_name) != getattr(obj2, field_name):
+                old.update({field_name : getattr(obj1, field_name)})
+                new.update({field_name : getattr(obj2, field_name)})
         except KeyError:
-            old.update({k: v})
-    
-    return old, new  
+            old.update({field_name : getattr(obj1, field_name)})
+
+    return old, new
+
 
 
 
