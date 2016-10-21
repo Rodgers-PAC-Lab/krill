@@ -8,6 +8,9 @@ from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name)
 from .forms import MatingCageForm
 
+from simple_history.models import HistoricalRecords
+from itertools import chain
+
 # Create your views here.
 
 class IndexView(generic.ListView):
@@ -193,9 +196,9 @@ def summary(request):
     } for person in persons]
 
 
-
     current_totals = {'cages' : sum([person['cages'] for person in current_table_data]),
         'mice' : sum([person['mice'] for person in current_table_data])}
+
 
     return render(request, 'colony/summary.html', {
         'persons_all': all_table_data, 
@@ -203,6 +206,68 @@ def summary(request):
         'all_totals' : all_totals,
         'current_totals' : current_totals,
     })
+
+def records(request):
+    mouse_records = Mouse.history.all()
+    cage_records = Cage.history.all()
+
+    #Merge the historical mouse and cage records
+    records = sorted(chain(mouse_records, cage_records),
+        key=lambda instance: instance.history_date, reverse=True)
+
+
+    #Take at most 50 records
+    records = records[:50] if len(records) > 50 else records[:len(records)]
+
+    statements = []
+
+    for i in range(len(records)):
+        new_record = records[i]
+        old_record = new_record.get_previous_by_history_date()
+
+        #Find which fields differ between the 2 records
+        old_fields, new_fields = compare(new_record, old_record)
+        statement = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S') + "\t"
+
+        for j, field in enumerate(old_fields.keys()):
+            clause = "Changed {} from '{}' to '{}'".format(field, old_fields[field], new_fields[field])
+
+            statement += clause
+
+            if j == len(old_fields) - 1:
+                statement += ",  "
+            else:
+                statement += "."
+
+        statements.append(statement)
+
+
+
+        
+
+    return render(request, 'colony/records.html', {
+        'statements' : statements
+        })
+
+def compare(obj1,obj2):
+    excluded_keys = ('created', '_state', 'timestamp', 'user', 'uid', 'changed',
+        'history_id', 'history_date', 'history_user_id', 'history_type', 'id')
+    return _compare(obj1, obj2, excluded_keys)
+
+def _compare(obj1, obj2, excluded_keys):
+    d1, d2 = obj1.__dict__, obj2.__dict__
+    old, new = {}, {}
+    for k,v in d1.items():
+        if k in excluded_keys:
+            continue
+        try:
+            if v != d2[k]:
+                old.update({k: v})
+                new.update({k: d2[k]})
+        except KeyError:
+            old.update({k: v})
+    
+    return old, new  
 
 
 
