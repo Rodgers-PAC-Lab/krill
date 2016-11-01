@@ -235,50 +235,49 @@ def records(request):
         #Find which fields differ between the 2 records
         old_fields, new_fields = history_compare(old_record, new_record)
 
-        #Make sure there are sufficient differences between records (i.e. at least one change)
-        if len(old_fields) != 0:
-            model = ''
 
-            if type(new_record) == HistoricalCage:
-                model = 'Cage'
-            elif type(new_record) == HistoricalMouse:
-                model = 'Mouse'
+        model = ''
 
-            name = model + ' ' + new_record.name
-            alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')
+        if type(new_record) == HistoricalCage:
+            model = 'Cage'
+        elif type(new_record) == HistoricalMouse:
+            model = 'Mouse'
 
-            #Changes is a list of dictionary objects containing details about
-            #changed fields
-            changes = []
+        name = model + ' ' + new_record.name + new_record.history_type
+        alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')
 
-
-            for j, field in enumerate(old_fields.keys()):
-
-                old = old_fields[field]
-                new = new_fields[field]
-                change_type = 'change'
-
-                #Different change types depending on existence of values for fields
-                if not old:
-                    change_type = 'addition'
-                elif not new:
-                    change_type = 'removal'
-
-                changes.append({
-                    'field' : field.capitalize(),
-                    'old' : old_fields[field],
-                    'new' : new_fields[field],
-                    'type' : change_type, 
-                })
-
-            rec_summary = {
-                'name' : name,
-                'alter_time' : alter_time,
-                'changes' : changes,
-            }
+        #Changes is a list of dictionary objects containing details about
+        #changed fields
+        changes = []
 
 
-            rec_summaries.append(rec_summary)
+        for j, field in enumerate(old_fields.keys()):
+
+            old = old_fields[field]
+            new = new_fields[field]
+            change_type = 'change'
+
+            #Different change types depending on existence of values for fields
+            if not old:
+                change_type = 'addition'
+            elif not new:
+                change_type = 'removal'
+
+            changes.append({
+                'field' : field.capitalize(),
+                'old' : old_fields[field],
+                'new' : new_fields[field],
+                'type' : change_type, 
+            })
+
+        rec_summary = {
+            'name' : name,
+            'alter_time' : alter_time,
+            'changes' : changes,
+        }
+
+
+        rec_summaries.append(rec_summary)
 
 
 
@@ -323,6 +322,7 @@ def _compare(obj1, obj2, excluded_keys):
             continue
         try:
             # Separate old and new field values if they differ
+            # print obj2.name, field_name, getattr(obj1, field_name), getattr(obj2, field_name)
             if getattr(obj1, field_name) != getattr(obj2, field_name):
                 old.update({field_name : getattr(obj1, field_name)})
                 new.update({field_name : getattr(obj2, field_name)})
