@@ -31,6 +31,7 @@ class MatingCageForm(forms.Form):
         return data
 
 class SackForm(forms.Form):
+   "Form for making cage defunct and sacking its mice" 
    pass 
 
 

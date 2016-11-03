@@ -210,16 +210,19 @@ def sack(request, cage_id):
     cage = Cage.objects.get(pk=cage_id)
     mice = Mouse.objects.filter(cage=cage)
 
+    #If the form is being submitted
     if request.method == 'POST':
         form = SackForm(request.POST)
 
         if form.is_valid():
+            #Make all cage/mice defunct
             cage.defunct = True
             cage.save()
             for mouse in mice:
                 mouse.sack_date = datetime.date.today()
                 mouse.save()
             
+            #redirect to census
             return HttpResponseRedirect('colony/') 
 
     return render(request, 'colony/sack.html', {
