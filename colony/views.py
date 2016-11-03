@@ -223,7 +223,7 @@ def sack(request, cage_id):
                 mouse.save()
             
             #redirect to census
-            return HttpResponseRedirect('colony/') 
+            return HttpResponseRedirect('/colony/') 
 
     return render(request, 'colony/sack.html', {
         'cage' : cage,

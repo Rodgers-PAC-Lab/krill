@@ -28,5 +28,6 @@
 </table>
 
 <form action="{{ sack_cage }}" method="post">
+	{% csrf_token %}
 	<input type="submit", value="Make defunct" />
 </form>
