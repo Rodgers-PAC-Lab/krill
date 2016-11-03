@@ -8,4 +8,5 @@ urlpatterns = [
     url(r'^$', login_required(views.IndexView.as_view()), name='index'),
     url(r'^new_mating_cage$', login_required(views.make_mating_cage), name='new_mating_cage'),
     url(r'^summary$', login_required(views.summary), name='summary'),
+    url(r'^sack/([0-9]+)/$', login_required(views.sack), name='sack'),
 ]

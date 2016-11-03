@@ -26,6 +26,7 @@ td
         <th>mouse notes</th>
         <th>auto needs</th>
         <th>cage notes</th>
+        <th>make defunct</th>
     </tr>
     
     {# iterate over every cage #}
@@ -96,6 +97,13 @@ td
                 </td>
             {% elif forlooop.counter0 >= 3 %}
                 <td />
+            {% endif %}
+
+            {% if forloop.counter0 == 0 %}
+                {% url 'colony:sack' cage.pk as sack_cage %} 
+                <td>
+                    <a href="{{ sack_cage }}"> Sack Mice </a>
+                </td>
             {% endif %}
         </tr>
         {% endfor %} {# for mouse in cage.mouse_set.all #}

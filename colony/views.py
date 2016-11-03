@@ -6,7 +6,7 @@ import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name)
-from .forms import MatingCageForm
+from .forms import MatingCageForm, SackForm
 
 # Create your views here.
 
@@ -202,6 +202,30 @@ def summary(request):
         'persons_current': current_table_data,
         'all_totals' : all_totals,
         'current_totals' : current_totals,
+    })
+
+def sack(request, cage_id):
+
+
+    cage = Cage.objects.get(pk=cage_id)
+    mice = Mouse.objects.filter(cage=cage)
+
+    if request.method == 'POST':
+        form = SackForm(request.POST)
+
+        if form.is_valid():
+            cage.defunct = True
+            cage.save()
+            for mouse in mice:
+                mouse.sack_date = datetime.date.today()
+                mouse.save()
+            
+            return HttpResponseRedirect('colony/') 
+
+    return render(request, 'colony/sack.html', {
+        'cage' : cage,
+        'mice' : mice,
+
     })
 
 
