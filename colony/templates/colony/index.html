@@ -115,13 +115,30 @@ td
         {# because the mouse_set iteration will have finished too soon. #}
         {# Then we always have 3 rows of 8 columns #}
         {% if cage.n_mice == 0 %}
-            <tr><td /><td /><td /><td /><td /><td /><td /><td /></tr>
+            {# Special case of an empty cage #}
+            {# We always want to display the name and the sack link #}
+            <tr style="border-top: thin solid">
+                {# Cage name #}
+                <td rowspan="3" style="width:100px;"> 
+                    <a href={{ cage.change_link }}>
+                    <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
+                </td>
+                
+                {# eight empty spots #}
+                <td /><td /><td /><td /><td /><td /><td /><td />
+                
+                {# Sack link #}
+                {% url 'colony:sack' cage.pk as sack_cage %} 
+                <td>
+                    <a href="{{ sack_cage }}"> Sack Mice </a>
+                </td>                
+            </tr>
         {% endif %} 
         {% if cage.n_mice <= 1 %}
-            <tr><td /><td /><td /><td /><td /><td /><td /><td /></tr>
+            <tr><td /><td /><td /><td /><td /><td /><td /><td /><td /><td /></tr>
         {% endif %} 
         {% if cage.n_mice <= 2 %}
-            <tr><td /><td /><td /><td /><td /><td /><td /><td /></tr>
+            <tr><td /><td /><td /><td /><td /><td /><td /><td /><td /><td /></tr>
         {% endif %} 
 
     {% endfor %} {# for cage in object.list #}
