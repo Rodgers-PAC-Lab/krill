@@ -124,9 +124,14 @@ td
                     <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
                 </td>
                 
-                {# eight empty spots #}
-                <td /><td /><td /><td /><td /><td /><td /><td />
-                
+                {# seven empty spots #}
+                <td /><td /><td /><td /><td /><td /><td />
+
+                {# cage notes #}
+                <td style="width:150px;">
+                    {{ cage.notes }}
+                </td>
+
                 {# Sack link #}
                 {% url 'colony:sack' cage.pk as sack_cage %} 
                 <td>
