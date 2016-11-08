@@ -116,7 +116,7 @@ td
         {# Then we always have 3 rows of 8 columns #}
         {% if cage.n_mice == 0 %}
             {# Special case of an empty cage #}
-            {# We always want to display the name and the sack link #}
+            {# We always want to display the name, needs, notes, and sack link #}
             <tr style="border-top: thin solid">
                 {# Cage name #}
                 <td rowspan="3" style="width:100px;"> 
@@ -124,8 +124,13 @@ td
                     <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
                 </td>
                 
-                {# seven empty spots #}
-                <td /><td /><td /><td /><td /><td /><td />
+                {# six empty spots #}
+                <td /><td /><td /><td /><td /><td />
+
+                {# auto needs and special requests #}
+                <td style="width:150px;">
+                    {{ cage.auto_needs_message | safe }}
+                </td>                
 
                 {# cage notes #}
                 <td style="width:150px;">
