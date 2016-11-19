@@ -209,130 +209,144 @@ def summary(request):
 
 def records(request):
     """ Returns a feed of Mouse and Cage model change
+    
     The historical record object is used to obtain the previous 50 model changes
     and identify which fields are altered in each
+    
+    Returns a request with "rec_summaries" in context data.
+    rec_summaries is a list in chronological order.
+    Each entry is a dict with the following fields:
+        name: string with format
+            "%MODEL_NAME% %NEW_OBJECT_NAME% %HISTORY_TYPE%"
+        alter_time: time it was changed
+        changes: list of changes to this object.
+            Each entry in 'changes' is a dict with fields:
+            field : name of field that was changed
+            old: previous value
+            new: new value
+            type: 'addition', 'removal', or 'change'
+        
     """
-
+    # Get all historical mouses and historical cages
     mouse_records = Mouse.history.all()
     cage_records = Cage.history.all()
 
-    #Merge the historical mouse and cage records
+    # Merge the historical mouse and cage records
     records = sorted(chain(mouse_records, cage_records),
         key=lambda instance: instance.history_date, reverse=True)
 
-
-    #Take at most 50 records
+    # Take at most 50 records
     records = records[:50] if len(records) > 50 else records[:len(records)]
 
+    # Summarize each change
     rec_summaries = []
-
     for i in range(len(records)):
+        # Get the current record
         new_record = records[i]
+        
+        # Get the previous one by date
         old_record = new_record.get_previous_by_history_date()
 
-
-        #Find which fields differ between the 2 records
+        # Find which fields differ between the 2 records
         old_fields, new_fields = history_compare(old_record, new_record)
 
-
+        ## Create a string summary of this change
+        # First get the model name
         model = ''
 
+        # Add the type of the model
         if type(new_record) == HistoricalCage:
             model = 'Cage'
         elif type(new_record) == HistoricalMouse:
             model = 'Mouse'
 
+        # Form a string that is the model name, record name, and type
+        # of history
         name = model + ' ' + new_record.name + new_record.history_type
+        
+        # Get the time of the change
         alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')
 
-        #Changes is a list of dictionary objects containing details about
-        #changed fields
+        # Changes is a list of dictionary objects containing details about
+        # changed fields
         changes = []
-
-
+        
+        # Iterate over fields
         for j, field in enumerate(old_fields.keys()):
-
+            # Compare the old and new fields
             old = old_fields[field]
             new = new_fields[field]
             change_type = 'change'
 
-            #Different change types depending on existence of values for fields
+            # Different change types depending on existence of values for fields
             if not old:
                 change_type = 'addition'
             elif not new:
                 change_type = 'removal'
 
+            # Append the field, its values, and the type of change
             changes.append({
                 'field' : field.capitalize(),
                 'old' : old_fields[field],
                 'new' : new_fields[field],
                 'type' : change_type, 
             })
-
+    
+        # Store in rec_summary and append
         rec_summary = {
             'name' : name,
             'alter_time' : alter_time,
             'changes' : changes,
         }
-
-
         rec_summaries.append(rec_summary)
-
-
-
-        
 
     return render(request, 'colony/records.html', {
         'rec_summaries' : rec_summaries
         })
 
-def history_compare(obj1,obj2):
-    """ Function to compare each field in 2 different objects """
-
-    #A list of fields that should be ignored
-    excluded_keys = ('history_user', 'history_id', 'history_date', 'id', 'history_type')
+def history_compare(obj1, obj2):
+    """Function to compare each field in 2 different objects """
+    # A list of fields that should be ignored
+    excluded_keys = ('history_user', 'history_id', 'history_date', 
+        'id', 'history_type')
+    
+    # Call to lower _compare function
     return _compare(obj1, obj2, excluded_keys)
 
-# def _compare(obj1, obj2, excluded_keys):
-#     d1, d2 = obj1.__dict__, obj2.__dict__
-#     old, new = {}, {}
-#     for k,v in d1.items():
-#         if k in excluded_keys:
-#             continue
-#         try:
-#             if v != d2[k]:
-#                 old.update({k: v})
-#                 new.update({k: d2[k]})
-#         except KeyError:
-#             old.update({k: v})
-    
-#     return old, new 
-
-
 def _compare(obj1, obj2, excluded_keys):
+    """Compare all fields in obj1 and obj2, except excluded_keys
     
+    Looks like this assumes that attributes can be present in the old,
+    but not the new object. Not sure why.
+    """
+    # Get the fields to compare
     fields = type(obj1)._meta.get_fields()
     old, new = {}, {}
 
+    # Compare each field
     for field in fields:
         field_name = field.name
 
+        # Skip if in excluded_keys
         if field.name in excluded_keys:
             continue
+        
+        # Compare the field
         try:
             # Separate old and new field values if they differ
-            # print obj2.name, field_name, getattr(obj1, field_name), getattr(obj2, field_name)
             if getattr(obj1, field_name) != getattr(obj2, field_name):
                 old.update({field_name : getattr(obj1, field_name)})
                 new.update({field_name : getattr(obj2, field_name)})
         except KeyError:
+            # Simply say that it was present in the old, but not the new
+            # How do we knwow the KeyError must have been present in the new?
             old.update({field_name : getattr(obj1, field_name)})
 
+    # Return the values in the old and new
     return old, new
 
 def sack(request, cage_id):
-
-
+    """Sack all mice in the cage and mark the cage as defunct"""
     cage = Cage.objects.get(pk=cage_id)
     mice = Mouse.objects.filter(cage=cage)
 
