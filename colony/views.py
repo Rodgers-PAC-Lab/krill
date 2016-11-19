@@ -240,64 +240,86 @@ def records(request):
 
     # Summarize each change
     rec_summaries = []
-    for i in range(len(records)):
-        # Get the current record
-        new_record = records[i]
-        
-        # Get the previous one by date
-        old_record = new_record.get_previous_by_history_date()
-
-        # Find which fields differ between the 2 records
-        old_fields, new_fields = history_compare(old_record, new_record)
-
-        ## Create a string summary of this change
+    for new_record in records:
         # First get the model name
         model = ''
 
-        # Add the type of the model
+        # Get the type of the model
         if type(new_record) == HistoricalCage:
             model = 'Cage'
         elif type(new_record) == HistoricalMouse:
             model = 'Mouse'
-
+        else:
+            raise ValueError("unknown model type")        
+        
         # Form a string that is the model name, record name, and type
         # of history
         name = model + ' ' + new_record.name + new_record.history_type
         
         # Get the time of the change
-        alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')
-
-        # Changes is a list of dictionary objects containing details about
-        # changed fields
-        changes = []
+        alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')        
         
-        # Iterate over fields
-        for j, field in enumerate(old_fields.keys()):
-            # Compare the old and new fields
-            old = old_fields[field]
-            new = new_fields[field]
-            change_type = 'change'
+        ## Get the previous version of this object, for comparison
+        # This is the pk of the object that was changed
+        real_object_pk = new_record.instance.pk
+        
+        # Search for earlier historical objects with the same pk
+        change_datetime = new_record.history_date
+        hrecs_same_object = new_record.__class__.objects.filter(
+            id=real_object_pk, 
+            history_date__lt=change_datetime)
+        
+        # Take the most recent one that is before this one
+        old_record = hrecs_same_object.order_by('history_date').last()
 
-            # Different change types depending on existence of values for fields
-            if not old:
-                change_type = 'addition'
-            elif not new:
-                change_type = 'removal'
+        if old_record is None:
+            # No previous record to compare with
+            rec_summary = {
+                'name' : name,
+                'alter_time' : alter_time,
+                'changes' : [{
+                    'field': 'the whole thing',
+                    'old': 'nothing',
+                    'new': 'a new thing',
+                    'type': 'object creation'
+                }]
+            }
+        else:
+            ## Find which fields differ between the 2 records
+            old_fields, new_fields = history_compare(old_record, new_record)
 
-            # Append the field, its values, and the type of change
-            changes.append({
-                'field' : field.capitalize(),
-                'old' : old_fields[field],
-                'new' : new_fields[field],
-                'type' : change_type, 
-            })
-    
-        # Store in rec_summary and append
-        rec_summary = {
-            'name' : name,
-            'alter_time' : alter_time,
-            'changes' : changes,
-        }
+
+            # Changes is a list of dictionary objects containing details about
+            # changed fields
+            changes = []
+            
+            # Iterate over fields
+            for j, field in enumerate(old_fields.keys()):
+                # Compare the old and new fields
+                old = old_fields[field]
+                new = new_fields[field]
+                change_type = 'change'
+
+                # Different change types depending on existence of values for fields
+                if not old:
+                    change_type = 'addition'
+                elif not new:
+                    change_type = 'removal'
+
+                # Append the field, its values, and the type of change
+                changes.append({
+                    'field' : field.capitalize(),
+                    'old' : old_fields[field],
+                    'new' : new_fields[field],
+                    'type' : change_type, 
+                })
+
+            # Store in rec_summary and append
+            rec_summary = {
+                'name' : name,
+                'alter_time' : alter_time,
+                'changes' : changes,
+            }
         rec_summaries.append(rec_summary)
 
     return render(request, 'colony/records.html', {
