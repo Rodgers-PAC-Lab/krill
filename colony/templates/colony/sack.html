@@ -1,0 +1,33 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'colony/table.css' %}" />
+{% url 'colony:sack' cage.pk as sack_cage %} 
+
+<h3>Are you sure you want to make Cage {{ cage.name }} defunct and mark all its mice as sacked?</h1>
+
+
+<table style="margin-bottom:20px">
+	<caption>Mice</caption>
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Sex</th>
+			<th>Genotype</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		{% for mouse in mice %}
+			<tr>
+				<td>{{ mouse.name }}</td>
+				<td>{{ mouse.get_sex_display }}</td>
+				<td>{{mouse.genotype}}</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+
+</table>
+
+<form action="{{ sack_cage }}" method="post">
+	{% csrf_token %}
+	<input type="submit", value="Make defunct" />
+</form>

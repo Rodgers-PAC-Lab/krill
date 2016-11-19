@@ -171,6 +171,9 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     # A special form for adding mice
     form = AddMiceToCageForm
 
+    # Pagination to save time
+    list_per_page = 20
+
     ## Define what shows up on the individual cage admin page
     # Clickable links to every mouse in the cage
     def link_to_mice(self, obj):
@@ -243,6 +246,9 @@ class MouseAdmin(admin.ModelAdmin):
     
     # How it is sorted by default
     ordering = ('name',)
+    
+    # Pagination to save time
+    list_per_page = 20
     
     ## Create fields that are HTML links to other mice
     # http://stackoverflow.com/questions/28832897/link-in-django-admin-to-foreign-key-object

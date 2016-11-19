@@ -7,8 +7,7 @@ import datetime
 from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name,
     HistoricalCage, HistoricalMouse)
-from .forms import MatingCageForm
-
+from .forms import MatingCageForm, SackForm
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
@@ -331,6 +330,32 @@ def _compare(obj1, obj2, excluded_keys):
 
     return old, new
 
+def sack(request, cage_id):
+
+
+    cage = Cage.objects.get(pk=cage_id)
+    mice = Mouse.objects.filter(cage=cage)
+
+    #If the form is being submitted
+    if request.method == 'POST':
+        form = SackForm(request.POST)
+
+        if form.is_valid():
+            #Make all cage/mice defunct
+            cage.defunct = True
+            cage.save()
+            for mouse in mice:
+                mouse.sack_date = datetime.date.today()
+                mouse.save()
+            
+            #redirect to census
+            return HttpResponseRedirect('/colony/') 
+
+    return render(request, 'colony/sack.html', {
+        'cage' : cage,
+        'mice' : mice,
+
+    })
 
 
 
