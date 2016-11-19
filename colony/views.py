@@ -196,9 +196,9 @@ def summary(request):
     } for person in persons]
 
 
+
     current_totals = {'cages' : sum([person['cages'] for person in current_table_data]),
         'mice' : sum([person['mice'] for person in current_table_data])}
-
 
     return render(request, 'colony/summary.html', {
         'persons_all': all_table_data, 
