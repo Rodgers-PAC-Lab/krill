@@ -236,28 +236,22 @@ def records(request):
         key=lambda instance: instance.history_date, reverse=True)
 
     # Take at most 50 records
-    records = records[:50] if len(records) > 50 else records[:len(records)]
+    records = records[:50]
+    
+    # Exclude these fields
+    exclude_fields = ['history_date', 'history_id', 'history_user',
+        'history_type']
 
     # Summarize each change
     rec_summaries = []
     for new_record in records:
-        # First get the model name
-        model = ''
-
-        # Get the type of the model
+        ## First get the model name
         if type(new_record) == HistoricalCage:
             model = 'Cage'
         elif type(new_record) == HistoricalMouse:
             model = 'Mouse'
         else:
             raise ValueError("unknown model type")        
-        
-        # Form a string that is the model name, record name, and type
-        # of history
-        name = model + ' ' + new_record.name + new_record.history_type
-        
-        # Get the time of the change
-        alter_time = new_record.history_date.strftime('%Y-%m-%d %H:%M-%S')        
         
         ## Get the previous version of this object, for comparison
         # This is the pk of the object that was changed
@@ -272,100 +266,69 @@ def records(request):
         # Take the most recent one that is before this one
         old_record = hrecs_same_object.order_by('history_date').last()
 
+        ## Store some metadata
+        rec_summary = {
+            'model': model,
+            'name': new_record.name,
+            'history_type': new_record.history_type,
+            'history_user': str(new_record.history_user),
+            'alter_time': new_record.history_date.strftime('%Y-%m-%d %H:%M-%S'),
+        }
+
+        ## Compare old and new records, if possible
         if old_record is None:
             # No previous record to compare with
-            rec_summary = {
-                'name' : name,
-                'alter_time' : alter_time,
-                'changes' : [{
-                    'field': 'the whole thing',
-                    'old': 'nothing',
-                    'new': 'a new thing',
-                    'type': 'object creation'
-                }]
-            }
+            assert new_record.history_type == '+'
+            rec_summary['changes'] = []
         else:
             ## Find which fields differ between the 2 records
-            old_fields, new_fields = history_compare(old_record, new_record)
-
-
-            # Changes is a list of dictionary objects containing details about
-            # changed fields
-            changes = []
+            old_fields = type(old_record)._meta.get_fields()
+            new_fields = type(new_record)._meta.get_fields()
             
-            # Iterate over fields
-            for j, field in enumerate(old_fields.keys()):
-                # Compare the old and new fields
-                old = old_fields[field]
-                new = new_fields[field]
-                change_type = 'change'
-
-                # Different change types depending on existence of values for fields
-                if not old:
-                    change_type = 'addition'
-                elif not new:
-                    change_type = 'removal'
-
-                # Append the field, its values, and the type of change
-                changes.append({
-                    'field' : field.capitalize(),
-                    'old' : old_fields[field],
-                    'new' : new_fields[field],
-                    'type' : change_type, 
-                })
+            # Identify which are present in the old but not the new
+            for field in old_fields:
+                # This will raise AttributeError if not present
+                getattr(new_record, field.name)
+            
+            # Iterate over all fields in the new
+            changes = []
+            for field in new_fields:
+                # Skip if excluded
+                fieldname = field.name
+                if fieldname in exclude_fields:
+                    continue
+                
+                # Get the old and new field values
+                # This will raise AttributeError if not present in old
+                old_field_value = getattr(old_record, fieldname)
+                new_field_value = getattr(new_record, fieldname)
+                change = {
+                    'field': fieldname,
+                    'old': old_field_value,
+                    'new': new_field_value,
+                }
+                
+                # Determine if this was added, deleted, changed, or nothing
+                if old_field_value is None and new_field_value is not None:
+                    change['type'] = 'addition'
+                elif new_field_value is None and old_field_value is not None:
+                    change['type'] = 'removal'
+                elif old_field_value != new_field_value:
+                    change['type'] = 'change'
+                else:
+                    # no change made to this field
+                    continue
+                
+                # Append change, if any
+                changes.append(change)
 
             # Store in rec_summary and append
-            rec_summary = {
-                'name' : name,
-                'alter_time' : alter_time,
-                'changes' : changes,
-            }
+            rec_summary['changes'] = changes
         rec_summaries.append(rec_summary)
 
     return render(request, 'colony/records.html', {
         'rec_summaries' : rec_summaries
-        })
-
-def history_compare(obj1, obj2):
-    """Function to compare each field in 2 different objects """
-    # A list of fields that should be ignored
-    excluded_keys = ('history_user', 'history_id', 'history_date', 
-        'id', 'history_type')
-    
-    # Call to lower _compare function
-    return _compare(obj1, obj2, excluded_keys)
-
-def _compare(obj1, obj2, excluded_keys):
-    """Compare all fields in obj1 and obj2, except excluded_keys
-    
-    Looks like this assumes that attributes can be present in the old,
-    but not the new object. Not sure why.
-    """
-    # Get the fields to compare
-    fields = type(obj1)._meta.get_fields()
-    old, new = {}, {}
-
-    # Compare each field
-    for field in fields:
-        field_name = field.name
-
-        # Skip if in excluded_keys
-        if field.name in excluded_keys:
-            continue
-        
-        # Compare the field
-        try:
-            # Separate old and new field values if they differ
-            if getattr(obj1, field_name) != getattr(obj2, field_name):
-                old.update({field_name : getattr(obj1, field_name)})
-                new.update({field_name : getattr(obj2, field_name)})
-        except KeyError:
-            # Simply say that it was present in the old, but not the new
-            # How do we knwow the KeyError must have been present in the new?
-            old.update({field_name : getattr(obj1, field_name)})
-
-    # Return the values in the old and new
-    return old, new
+    })
 
 def sack(request, cage_id):
     """Sack all mice in the cage and mark the cage as defunct"""

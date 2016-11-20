@@ -5,17 +5,31 @@
 {% for rec in rec_summaries %}
 	<p>
 		<i>{{ rec.alter_time }}</i>
-		<strong> {{ rec.name }}:</strong>
-		{% for change in rec.changes  %}
-			{% if change.type == 'addition' %}
-				{{ change.field }} set to <span class="new">'{{ change.new }}'</span>,
-			{% elif change.type == 'change' %}
-				{{change.field}} changed from <span class="old">'{{change.old}}'</span> to <span class="updated">'{{change.new}}'</span>,
-			{% elif change.type == 'removal' %} 
-				{{change.field}} unset from <span class="old">'{{change.old}}'</span>,
-			{% endif %}
-			
-			
-		{% endfor %}
+        User {{ rec.history_user }}
+        {% if rec.history_type == '+' %} created
+        {% elif rec.history_type == '-' %} deleted
+        {% elif rec.history_type == '~' %} altered
+        {% else %} PERFORMED UNKNOWN ACTION {% endif %}
+
+        <strong> {{ rec.model }} </strong>
+		<strong> {{ rec.name }} </strong>
+        
+        {% if rec.history_type == '~' %}
+            :
+            {% if not rec.changes %}
+                <br /> no changes found
+            {% endif %}        
+        
+            {% for change in rec.changes  %}
+                <br />
+                {% if change.type == 'addition' %}
+                    {{ change.field }} set to <span class="new">'{{ change.new }}'</span>,
+                {% elif change.type == 'change' %}
+                    {{change.field}} changed from <span class="old">'{{change.old}}'</span> to <span class="updated">'{{change.new}}'</span>,
+                {% elif change.type == 'removal' %} 
+                    {{change.field}} unset from <span class="old">'{{change.old}}'</span>,
+                {% endif %}
+            {% endfor %}
+        {% endif %}
 	</p>
 {% endfor %}
