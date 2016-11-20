@@ -14,6 +14,8 @@
   <div style="margin-bottom:15px">Welcome, {{ user.get_username }}.</div>
   <div style="margin-bottom:15px"><a href="{% url 'colony:index' %}?person={{ user.get_username }}" >Your census view</a></div>
   <div style="margin-bottom:15px"><a href="{% url 'colony:index' %}" >Complete census view</a></div>
+  <div style="margin-bottom:15px"><a href="{% url 'colony:records' %}?proprietor={{ user.get_username }}&n=50" >Recent changes to your cages</a></div>
+  <div style="margin-bottom:15px"><a href="{% url 'colony:records' %}?proprietor={{ user.get_username }}&n=50" >All recent changes</a></div>
   <div style="margin-bottom:15px"><a href="{% url 'colony:new_mating_cage' %}" >Create a new mating cage</a></div>
   <div style="margin-bottom:15px"><a href="{% url 'colony:summary' %}" >Cage counts</a></div>
   

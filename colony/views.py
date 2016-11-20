@@ -239,8 +239,10 @@ def records(request):
     mouse_records = Mouse.history
     cage_records = Cage.history
     if proprietor:
-        mouse_records = mouse_records.filter(cage__proprietor__name=proprietor)
-        cage_records = cage_records.filter(proprietor__name=proprietor)
+        mouse_records = mouse_records.filter(
+            cage__proprietor__name__icontains=proprietor)
+        cage_records = cage_records.filter(
+            proprietor__name__icontains=proprietor)
 
     # Merge the historical mouse and cage records
     records = sorted(chain(mouse_records.all(), cage_records.all()),
