@@ -227,16 +227,27 @@ def records(request):
             type: 'addition', 'removal', or 'change'
         
     """
+    # get some filters from the URL
+    proprietor = request.GET.get('proprietor')
+    n_records = request.GET.get('n')
+    try:
+        n_records = int(n_records)
+    except TypeError:
+        n_records = 50
+    
     # Get all historical mouses and historical cages
-    mouse_records = Mouse.history.all()
-    cage_records = Cage.history.all()
+    mouse_records = Mouse.history
+    cage_records = Cage.history
+    if proprietor:
+        mouse_records = mouse_records.filter(cage__proprietor__name=proprietor)
+        cage_records = cage_records.filter(proprietor__name=proprietor)
 
     # Merge the historical mouse and cage records
-    records = sorted(chain(mouse_records, cage_records),
+    records = sorted(chain(mouse_records.all(), cage_records.all()),
         key=lambda instance: instance.history_date, reverse=True)
 
     # Take at most 50 records
-    records = records[:50]
+    records = records[:n_records]
     
     # Exclude these fields
     exclude_fields = ['history_date', 'history_id', 'history_user',
