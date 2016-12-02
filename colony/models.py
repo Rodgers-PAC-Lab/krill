@@ -40,6 +40,8 @@ def get_series_number_from_user_name(user_name):
         series_number = 1
     elif user_name == 'library':
         series_number = 10
+    elif user_name == 'lab stock':
+        series_number = 10
     else:
         series_number = 2
     return series_number
@@ -98,6 +100,8 @@ def get_user_name_from_person_name(person_name):
         return 'randy'
     elif person_name == 'Library':
         return 'library'
+    elif person_name == 'Lab Stock':
+        return 'lab stock'        
     else:
         return None
 
