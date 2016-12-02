@@ -20,7 +20,10 @@ from autoslug import AutoSlugField
 
 # Helper function to get a new cage nuber based on user
 def get_series_number_from_user_name(user_name):
-    """Returns the first digit of the cage series for this user name
+    """Returns the series number for this user.
+    
+    Their cages will be in the range 
+        1000*series_number:1000*(series_number+1)
     
     Here we use the login name, rather than the name on the Person class.
     0 is returned if the user_name is not known.
@@ -35,8 +38,10 @@ def get_series_number_from_user_name(user_name):
         series_number = 9
     elif user_name == 'kate':
         series_number = 1
+    elif user_name == 'library':
+        series_number = 10
     else:
-        series_number = 0
+        series_number = 2
     return series_number
 
 def get_person_name_from_user_name(user_name):
@@ -63,7 +68,16 @@ def get_person_name_from_user_name(user_name):
         return None
 
 def get_user_name_from_person_name(person_name):
-    """Return the user name corresponding to the person name"""
+    """Return the user name corresponding to the person name
+    
+    This is used to determine the input to get_series_number_from_user_name
+    in the make_mating_cage form.
+    
+    person_name : Proprietor name
+    
+    Returns: user_name
+        Suitable for get_series_number_from_user_name
+    """
     if person_name == 'Amanda':
         return 'amanda'
     elif person_name == 'Chris':
@@ -82,6 +96,8 @@ def get_user_name_from_person_name(person_name):
         return 'kate'
     elif person_name == 'Randy':
         return 'randy'
+    elif person_name == 'Library':
+        return 'library'
     else:
         return None
 
@@ -124,17 +140,29 @@ def generate_cage_name(user_name=None):
     series_number = get_series_number_from_user_name(user_name)
     
     # Find all cage numbers in this series
-    my_cages = Cage.objects.filter(name__startswith=str(series_number))
-    cage_names = list(my_cages.values_list('name', flat=True))
-    cage_numbers = map(strip_alpha, cage_names)
-    cage_numbers = filter(lambda num: num is not None, cage_numbers)
+    all_cage_names = Cage.objects.all().values_list('name', flat=True)
+    my_cage_numbers = []
+    for cage_name in all_cage_names:
+        try:
+            cage_num = int(cage_name)
+        except (TypeError, ValueError):
+            continue
+        if (cage_num // 1000 == series_number):
+            my_cage_numbers.append(cage_num)
+    
+    # This was a previous algorithm that failed after 9999
+    #~ my_cages = Cage.objects.filter(name__startswith=str(series_number))
+    #~ cage_names = list(my_cages.values_list('name', flat=True))
+    #~ cage_numbers = map(strip_alpha, cage_names)
+    #~ cage_numbers = filter(lambda num: num is not None, cage_numbers)
     
     # Generate a new cage number that is 1 higher
-    if len(cage_numbers) == 0:
+    if len(my_cage_numbers) == 0:
         target_cage = series_number * 1000 + 1
     else:
-        target_cage = max(cage_numbers) + 1
-    target_cage_name = '%04d' % target_cage
+        target_cage = max(my_cage_numbers) + 1
+    #~ target_cage_name = '%04d' % target_cage
+    target_cage_name = str(target_cage)
     
     # Error check
     if not target_cage_name.startswith(str(series_number)):
