@@ -13,12 +13,15 @@ git branch is currently active.
 To run these actions, import this module and call:
     local_settings.set_environment_variables_if_not_on_heroku()
 
-This function will do nothing if the environment variable ON_HEROKU is
-set. On Heroku's servers, this value should be set (using config:set) 
-because this script doesn't need to run there. I think this will also be 
-the case for "heroku local". In any case, the relevant environment 
-variables are probably already set in those cases, so running these 
-actions wouldn't do anything anyway.
+On Heroku's servers, these variables don't need to be set by this module,
+because they are set by Heroku or by config:set. So, the function 
+set_environment_variables_if_not_on_heroku checks for the presence of the
+environment variable ON_HEROKU and does nothing if it is set. Even if
+that variable were not set, this function would still do nothing, because
+DJANGO_SECRET_KEY and DATABASE_URL are already set.
+
+For "heroku local", this moduel does need to be run. And it will be run
+because no environment variables (e.g., ON_HEROKU) are set in that case.
 
 To generate the cache using config:get, call:
     local_settings.generate_local_cache()
@@ -155,3 +158,5 @@ def generate_local_cache(force=False):
 def set_environment_variables_if_not_on_heroku():
     if os.environ.get('ON_HEROKU') is None:
         set_environment_variables()
+    else:
+        print "[local_settings] doing nothing because ON_HEROKU is set"
