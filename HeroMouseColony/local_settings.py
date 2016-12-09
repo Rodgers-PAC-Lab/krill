@@ -156,7 +156,5 @@ def generate_local_cache(force=False):
         json.dump(data, fi, indent=4)
 
 def set_environment_variables_if_not_on_heroku():
-    if os.environ.get('ON_HEROKU') is None:
+    if True: #os.environ.get('ON_HEROKU') is None:
         set_environment_variables()
-    else:
-        print "[local_settings] doing nothing because ON_HEROKU is set"
