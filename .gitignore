@@ -2,7 +2,5 @@ venv
 *.pyc
 staticfiles
 
-# CR: for local_settings
-django_secret_key
-db_credentials
-local_settings.py
+# CR: for local settings
+local_cache

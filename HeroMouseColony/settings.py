@@ -12,12 +12,11 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import dj_database_url
 
-# import local_settings if the file exists
-# this will set the DATABASE_URL and SECRET_KEY environment variables
-try:
-    from .local_settings import *
-except ImportError:
-    pass
+# set DATABASE_URL and DJANGO_SECRET_KEY environment variables
+# this does nothing if we are in the heroku environment, which is
+# detected by the presence of config:get ON_HEROKU
+import local_settings
+local_settings.set_environment_variables_if_not_on_heroku()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
