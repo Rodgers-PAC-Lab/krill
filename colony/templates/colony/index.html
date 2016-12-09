@@ -43,7 +43,7 @@ td
                         <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
                     <br>
                     {# Second line: litter info, if any #}
-                    {% if cage.litter and not cage.litter.date_weaned %} 
+                    {% if cage.litter %} 
                         Litter {{ cage.litter }} 
                     {% endif %}   
                     <br>
@@ -120,9 +120,20 @@ td
             <tr style="border-top: thin solid">
                 {# Cage name #}
                 <td rowspan="3" style="width:100px;"> 
-                    <a href={{ cage.change_link }}>
-                    <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
-                </td>
+                    {# First line: cage name and proprietor #}
+                        <a href={{ cage.change_link }}>
+                        <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
+                    <br>
+                    {# Second line: litter info, if any #}
+                    {% if cage.litter %} 
+                        Litter {{ cage.litter }} 
+                    {% endif %}   
+                    <br>
+                    {# Third line: target genotype, if any #}
+                    {% if cage.target_genotype %}
+                        {{ cage.target_genotype }} 
+                    {% endif %}                       
+                </td>                
                 
                 {# six empty spots #}
                 <td /><td /><td /><td /><td /><td />

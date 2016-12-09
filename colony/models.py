@@ -204,7 +204,7 @@ def slug_target_genotype(litter):
     try to put the driver line first and the reporter second. If we
     can't identify which is which, return in alphabetical order.
     """
-    if litter.date_weaned is not None or litter.breeding_cage.defunct:
+    if litter.breeding_cage.defunct:
         return 'NA'
     
     g1 = str(litter.father.genotype)
