@@ -53,7 +53,7 @@ def get_branch_name():
     branch_name = run_cmd('git rev-parse --abbrev-ref HEAD')
     return branch_name
 
-def set_environment_variables(verbose=True):
+def set_environment_variables(verbose=False):
     """Set DATABASE_URL and DJANGO_SECRET_KEY environment variables.
     
     First we try to read these values from a local cache in the
@@ -156,5 +156,5 @@ def generate_local_cache(force=False):
         json.dump(data, fi, indent=4)
 
 def set_environment_variables_if_not_on_heroku():
-    if True: #os.environ.get('ON_HEROKU') is None:
+    if os.environ.get('ON_HEROKU') is None:
         set_environment_variables()
