@@ -171,7 +171,7 @@ def summary(request):
     mice = Mouse.objects.all()
     cages = Cage.objects.all()
 
-    # Contains information about all cages and mice stored in databse
+    # Contains information about all cages and mice stored in database
     all_table_data = [{ 
         'name': person.name, 
         'cages': cages.filter(proprietor=person).count(),
@@ -184,20 +184,22 @@ def summary(request):
         'cages': 0,
         'mice': mice.filter(cage__isnull=True).count()
     })
-    all_totals = {'cages' : sum([person['cages'] for person in all_table_data]), 
+    all_totals = {
+        'cages' : sum([person['cages'] for person in all_table_data]), 
         'mice' : sum([person['mice'] for person in all_table_data])}
 
     # Contains information about only non-defunct cages
+    # Exclude empty cages
     current_table_data = [{ 
         'name': person.name, 
-        'cages': cages.filter(proprietor=person, defunct=False).count(),
+        'cages': cages.filter(proprietor=person, defunct=False, 
+            mouse__isnull=False).count(),
         'mice': mice.filter(cage__proprietor=person, 
             cage__defunct=False).count(),
     } for person in persons]
 
-
-
-    current_totals = {'cages' : sum([person['cages'] for person in current_table_data]),
+    current_totals = {
+        'cages' : sum([person['cages'] for person in current_table_data]),
         'mice' : sum([person['mice'] for person in current_table_data])}
 
     return render(request, 'colony/summary.html', {
