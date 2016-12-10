@@ -192,8 +192,8 @@ def summary(request):
     # Exclude empty cages
     current_table_data = [{ 
         'name': person.name, 
-        'cages': cages.filter(proprietor=person, defunct=False, 
-            mouse__isnull=False).count(),
+        'cages': cages.filter(proprietor=person, defunct=False).exclude( 
+            mouse__isnull=True).count(),
         'mice': mice.filter(cage__proprietor=person, 
             cage__defunct=False).count(),
     } for person in persons]
