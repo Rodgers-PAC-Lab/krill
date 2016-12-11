@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Mouse, Cage, Person
+from .models import Mouse, Cage, Person, Gene, MouseGene
 
 
 class MatingCageForm(forms.Form):
@@ -36,3 +36,21 @@ class SackForm(forms.Form):
 
 
 
+class AddGenotypingInfoForm(forms.Form):
+    # Dynamically add one results for each pup
+    def __init__(self, litter, *args, **kwargs):
+        super(AddGenotypingInfoForm, self).__init__(*args, **kwargs)
+        
+        for mouse in litter.mouse_set.all():
+            self.fields['results_%s' % mouse.name] = forms.ChoiceField(
+                label='results_%s' % mouse.name,
+                choices=MouseGene.zygosity_choices_dbl,
+                help_text="The results for mouse %s" % mouse.name,
+            )
+    
+    gene_name = forms.ModelChoiceField(label='gene_name',
+        queryset=Gene.objects.all(),
+        help_text="The gene that was tested",
+    )
+    
+    
