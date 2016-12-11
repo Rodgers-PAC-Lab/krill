@@ -13,7 +13,7 @@ class GeneAdmin(admin.ModelAdmin):
 
 class MouseGeneInline(nested_inline.admin.NestedTabularInline):
     """Nested within Litter, for adding genotyping information"""
-    model = Mouse
+    model = MouseGene
     extra = 1
 
 class MouseInline(nested_inline.admin.NestedTabularInline):
@@ -26,6 +26,8 @@ class MouseInline(nested_inline.admin.NestedTabularInline):
         'sack_date', 'user', 'breeder')
     show_change_link = True    
     
+    inlines = [MouseGeneInline,]
+    
     # How can we make "notes" the right-most field?
 
 class LitterInline(nested_inline.admin.NestedStackedInline):
@@ -33,7 +35,7 @@ class LitterInline(nested_inline.admin.NestedStackedInline):
     model = Litter
     extra = 0
     show_change_link = True
-    inlines = [MouseInline, MouseGeneInline,]
+    inlines = [MouseInline]#, MouseGeneInline,]
 
 class SpecialRequestInline(admin.TabularInline):
     model = SpecialRequest
@@ -358,6 +360,7 @@ class HistoricalMouseAdmin(admin.ModelAdmin):
 
 admin.site.register(HistoricalMouse, HistoricalMouseAdmin)
 admin.site.register(Mouse, MouseAdmin)
+admin.site.register(Gene, GeneAdmin)
 admin.site.register(Genotype, GenotypeAdmin)
 admin.site.register(Litter, LitterAdmin)
 admin.site.register(Cage, CageAdmin)
