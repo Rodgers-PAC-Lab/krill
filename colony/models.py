@@ -447,6 +447,18 @@ class Mouse(models.Model):
         )
     genotype = models.ForeignKey(Genotype)
     
+    # Whether this mouse is a pure breeder
+    # This means that any offspring it has with WT mice will also be
+    # pure breeders. We will mainly use this to identify maintenance
+    # cages vs experimental cages. I can't think of a reason why
+    # a pure breeder would have more than one MouseGene, but maybe it's
+    # possible.
+    pure_breeder = models.BooleanField(default=False)
+    
+    # Whether this mouse is a wild type. It should not have any MouseGene
+    # in this case. May need to have another field for "strain".
+    wild_type = models.BooleanField(default=False)
+    
     # Optional fields that can be set by the user
     cage = models.ForeignKey(Cage, null=True, blank=True)
     sack_date = models.DateField('sac date', blank=True, null=True)
@@ -705,6 +717,58 @@ class Mouse(models.Model):
         if self.litter and self.litter.breeding_cage and not self.pk:
             self.cage = self.litter.breeding_cage
         return super(Mouse, self).save(*args, **kwargs)
+
+class Gene(models.Model):
+    """A particular gene, such as Emx-Cre.
+    
+    No reference to particular mouse or zygosity here.
+    
+    The type can be reporter or driver, which mainly just determines
+    some things about the way they are sorted.
+    """
+    name = models.CharField(max_length=50, unique=True)
+    
+    gene_type_reporter = 'reporter'
+    gene_type_driver = 'driver'
+    gene_type_choices = (gene_type_reporter, gene_type_driver)
+    gene_type_choices_dbl = tuple([(c, c) for c in gene_type_choices])
+    gene_type = models.CharField(max_length=20, choices=gene_type_choices_dbl,
+        blank=True)
+    
+    def __str__(self):
+        return self.name
+
+class MouseGene(models.Model):
+    """Particular gene for a particular mouse
+    
+    There is a separate instance for every Mouse and every one of the
+    genes that it has or may have. So for instance, Mouse M1 can have
+    Gene G1 (homo, tested on 10-10) and Gene G2 (het, not tested but
+    known). There is just one "Gene" object for each unique Gene (e.g.,
+    Emx-Cre).
+    
+    TODO: Many2Many key from MouseGene to GenotypingSession.
+    
+    Here are the possible types of cages:
+    1.  Cage without breeding. May need to subset this into weaned pup cages?
+    2.  Maintenance cage: pure breeder mating with WT or another pure
+        breeder with the same MouseGene.
+    3.  Experimental cage: pure breeders with different MouseGenes mating.
+    """
+    gene_name = models.ForeignKey(Gene)
+    mouse_name = models.ForeignKey(Mouse)
+    
+    # Zygosity
+    zygosity_yy = '+/+'
+    zygosity_yn = '+/-'
+    zygosity_ym = '+/?'
+    zygosity_mn = '?/-'
+    zygosity_mm = '?/?'
+    zygosity_nn = '-/-' # not sure this one should be allowed
+    zygosity_choices = (zygosity_yy, zygosity_yn, zygosity_ym,
+        zygosity_mn, zygosity_mm, zygosity_nn)
+    zygosity_choices_dbl = tuple([(c, c) for c in zygosity_choices])
+    zygosity = models.CharField(max_length=10, choices=zygosity_choices_dbl)
 
 class Litter(models.Model):
     """Model for Litter.

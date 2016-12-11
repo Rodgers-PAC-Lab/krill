@@ -1,12 +1,20 @@
 from django.contrib import admin
 from .models import (Mouse, Genotype, Litter, 
-    Cage, Person, SpecialRequest, HistoricalMouse)
+    Cage, Person, SpecialRequest, HistoricalMouse, Gene, MouseGene)
 # Register your models here.
 from django.db.models import Count
 import nested_inline.admin
 from django.core import urlresolvers
 from simple_history.admin import SimpleHistoryAdmin
 from django import forms
+
+class GeneAdmin(admin.ModelAdmin):
+    list_display = ('name', 'gene_type',)
+
+class MouseGeneInline(nested_inline.admin.NestedTabularInline):
+    """Nested within Litter, for adding genotyping information"""
+    model = Mouse
+    extra = 1
 
 class MouseInline(nested_inline.admin.NestedTabularInline):
     """Nested within Litter, so this is for adding pups"""
@@ -25,7 +33,7 @@ class LitterInline(nested_inline.admin.NestedStackedInline):
     model = Litter
     extra = 0
     show_change_link = True
-    inlines = [MouseInline]
+    inlines = [MouseInline, MouseGeneInline,]
 
 class SpecialRequestInline(admin.TabularInline):
     model = SpecialRequest
