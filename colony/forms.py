@@ -38,12 +38,13 @@ class SackForm(forms.Form):
 
 class AddGenotypingInfoForm(forms.Form):
     # Dynamically add one results for each pup
-    def __init__(self, litter, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        litter = kwargs.pop('litter')
         super(AddGenotypingInfoForm, self).__init__(*args, **kwargs)
         
         for mouse in litter.mouse_set.all():
-            self.fields['results_%s' % mouse.name] = forms.ChoiceField(
-                label='results_%s' % mouse.name,
+            self.fields['result_%s' % mouse.name] = forms.ChoiceField(
+                label='result_%s' % mouse.name,
                 choices=MouseGene.zygosity_choices_dbl,
                 help_text="The results for mouse %s" % mouse.name,
             )

@@ -1,5 +1,15 @@
 <form method="post">
     {% csrf_token %}
+    <p>Previous genotyping results</p>
+    {% for mouse in litter.mouse_set %}
+      {{ mouse.name }}
+      {% for mg in mouse.mousegene_set %}
+        {{ mg.gene_name }}
+        {{ mg.zygosity }}
+      {% endfor %}
+      <br />
+    {% endfor %}
+    
     <p>Enter the genotyping results</p>
     {{ form.as_p }}
     <input type="submit" value="Submit" />

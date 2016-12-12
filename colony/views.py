@@ -6,7 +6,7 @@ import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name,
-    HistoricalCage, HistoricalMouse)
+    HistoricalCage, HistoricalMouse, MouseGene)
 from .forms import MatingCageForm, SackForm, AddGenotypingInfoForm
 from simple_history.models import HistoricalRecords
 from itertools import chain
@@ -380,15 +380,20 @@ def add_genotyping_information(request, litter_id):
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
-        form = AddGenotypingInfoForm(litter, request.POST)
+        form = AddGenotypingInfoForm(request.POST, litter=litter)
         
         # check whether it's valid:
         if form.is_valid():
             # process the data in form.cleaned_data as required
             gene_name = form.cleaned_data['gene_name']
-            #~ results = form.cleaned_data['results']
-            
-            # Apply the changes here
+            for mouse in litter.mouse_set.all():
+                result = form.cleaned_data['result_%s' % mouse.name]
+                mg = MouseGene(
+                    gene_name=gene_name,
+                    mouse_name=mouse,
+                    zygosity=result,
+                )
+                mg.save()
             
             # Redirect to admin change page
             return HttpResponseRedirect('/admin/colony/litter/%d' % litter.pk)
@@ -399,7 +404,8 @@ def add_genotyping_information(request, litter_id):
     else:
         initial = {
         }
-        form = AddGenotypingInfoForm(litter, initial=initial)
+        form = AddGenotypingInfoForm(initial=initial, litter=litter)
 
-    return render(request, 'colony/add_genotyping_info.html', {'form': form})
+    return render(request, 'colony/add_genotyping_info.html', 
+        {'form': form})
 
