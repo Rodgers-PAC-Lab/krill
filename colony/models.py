@@ -769,6 +769,9 @@ class MouseGene(models.Model):
         zygosity_mn, zygosity_mm, zygosity_nn)
     zygosity_choices_dbl = tuple([(c, c) for c in zygosity_choices])
     zygosity = models.CharField(max_length=10, choices=zygosity_choices_dbl)
+    
+    class Meta:
+        ordering = ('gene_name__gene_type', 'gene_name__name',)
 
 class Litter(models.Model):
     """Model for Litter.
