@@ -388,15 +388,24 @@ def add_genotyping_information(request, litter_id):
             gene_name = form.cleaned_data['gene_name']
             for mouse in litter.mouse_set.all():
                 result = form.cleaned_data['result_%s' % mouse.name]
-                mg = MouseGene(
-                    gene_name=gene_name,
-                    mouse_name=mouse,
-                    zygosity=result,
-                )
-                mg.save()
-            
-            # Redirect to admin change page
-            return HttpResponseRedirect('/admin/colony/litter/%d' % litter.pk)
+                
+                # If the mouse gene already exists, change it
+                mgqs = MouseGene.objects.filter(
+                    mouse_name=mouse, gene_name=gene_name)
+                
+                if mgqs.count() == 0:
+                    # Create it
+                    mg = MouseGene(
+                        gene_name=gene_name,
+                        mouse_name=mouse,
+                        zygosity=result,
+                    )
+                    mg.save()
+                else:
+                    # Edit it
+                    mg = mgqs.first()
+                    mg.zygosity = result
+                    mg.save()
         
         # What if it's not valid? I think maybe it just returns form below
 
