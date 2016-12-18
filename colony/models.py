@@ -483,6 +483,35 @@ class Mouse(models.Model):
     class Meta:
         ordering = ['name']
     
+    @property
+    def new_genotype(self):
+        """Return a genotype string by concatenating linked MouseGene objects
+        
+        If wild_type:
+            returns 'WT' (but should probably be a strain)
+        If pure_breeder:
+            prepends "pure "
+        Then it is a list of each linked MouseGene, or "TBD" if there are none.
+        """
+        if self.wild_type:
+            return 'WT'
+        
+        if self.pure_breeder:
+            prefix = 'pure '
+        else:
+            prefix = ''
+        
+        qs = self.mousegene_set
+        if qs.count() == 0:
+            return prefix + 'TBD'
+        else:
+            # Get all the mouse genes that aren't -/-
+            res_l = []
+            for mg in qs.all():
+                if mg.zygosity != MouseGene.zygosity_nn:
+                    res_l.append('%s(%s)' % (mg.gene_name, mg.zygosity))
+            return prefix + '; '.join(res_l)
+    
     def get_cage_history_list(self, only_cage_changes=True):
         """Return list of cage info at every historical timepoint.
         

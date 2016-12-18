@@ -83,7 +83,13 @@ td
             
             {# print sex, genotype, dob, notes #}
             <td>{{ mouse.get_sex_display }}</td>
-            <td>{{ mouse.genotype }}</td>
+            <td>
+                {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
+                <a href="{{ add_genotyping_url }}"> 
+                    {{ mouse.new_genotype }} 
+                </a>
+                <font color='green'>{{ mouse.genotype }}</font>
+            </td>
             <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>
             <td>{% if mouse.age %} {{ mouse.age }} {% endif %}</td>
             <td style="width:200px;">{% if mouse.notes %} {{ mouse.notes }} {% endif %}</td>
