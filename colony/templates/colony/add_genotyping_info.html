@@ -1,15 +1,33 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'colony/table.css' %}" />
+
+
 <form method="post">
     {% csrf_token %}
     <p>Previous genotyping results</p>
-    {% for mouse in litter.mouse_set %}
-      {{ mouse.name }}
-      {% for mg in mouse.mousegene_set %}
-        {{ mg.gene_name }}
-        {{ mg.zygosity }}
-      {% endfor %}
-      <br />
-    {% endfor %}
-    
+
+    <table style="display: inline">
+        <thead>
+            <tr>
+                <th>Mouse</th>
+                <th>Gene</th>
+                <th>Zygosity</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for mouse in litter.mouse_set.all %}
+            {% for mg in mouse.mousegene_set.all %}
+                <tr>
+                    <td>{{ mouse.name }}</td>
+                    <td>{{ mg.gene_name }}</td>
+                    <td>{{ mg.zygosity }}</td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+
     <p>Enter the genotyping results</p>
     {{ form.as_p }}
     <input type="submit" value="Submit" />

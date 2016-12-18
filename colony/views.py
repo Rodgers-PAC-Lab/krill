@@ -407,5 +407,5 @@ def add_genotyping_information(request, litter_id):
         form = AddGenotypingInfoForm(initial=initial, litter=litter)
 
     return render(request, 'colony/add_genotyping_info.html', 
-        {'form': form})
+        {'form': form, 'litter': litter})
 
