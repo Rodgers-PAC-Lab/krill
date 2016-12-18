@@ -48,9 +48,16 @@ td
                     {% endif %}   
                     <br>
                     {# Third line: target genotype, if any #}
-                    {% if cage.target_genotype %}
-                        {{ cage.target_genotype }} 
-                    {% endif %}                       
+                    {% if cage.litter %} 
+                        {% url 'colony:add_genotyping_info' cage.litter.pk as add_genotyping_url %} 
+                        <a href="{{ add_genotyping_url }}"> 
+                            {% if cage.target_genotype %}
+                                {{ cage.target_genotype }} 
+                            {% else %}
+                                Genotyping
+                            {% endif %}                       
+                        </a>
+                    {% endif %}
                 </td>
             {% endif %}
             {# Insert empty details for additional rows #}
@@ -130,9 +137,14 @@ td
                     {% endif %}   
                     <br>
                     {# Third line: target genotype, if any #}
-                    {% if cage.target_genotype %}
-                        {{ cage.target_genotype }} 
-                    {% endif %}                       
+                    {% url 'colony:add_genotyping_info' litter.pk as add_genotyping_url %} 
+                    <a href="{{ add_genotyping_url }}"> 
+                        {% if cage.target_genotype %}
+                            {{ cage.target_genotype }} 
+                        {% else %}
+                            Genotyping
+                        {% endif %}                       
+                    </a>
                 </td>                
                 
                 {# six empty spots #}
