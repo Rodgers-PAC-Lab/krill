@@ -233,6 +233,19 @@ def my_slugify(s):
     return s
 
 class Cage(models.Model):
+    """Model for a cage.
+    
+    
+    Here are the possible types of cages:
+    -   Cages with breeding (litter is not None)
+        -   "line maintenance": pure breeder mating with WT or another pure
+            breeder with the same MouseGene
+        -   "experimental": pure breeders with different MouseGenes mating
+        -   "impure": impure breeders mating
+    -   Cages without breeding (litter is None)
+        -   "pure stock": all mice are pure breeders
+        -   "crosses": not pure stock
+    """
     name = models.CharField(max_length=10, unique=True)    
     notes = models.CharField(max_length=100, blank=True, null=True)
     defunct = models.BooleanField(default=False)
@@ -250,6 +263,56 @@ class Cage(models.Model):
     
     # track history with simple_history
     history = HistoricalRecords()
+    
+    @property
+    def cage_type(self):
+        """Return the type of the cage"""
+        if not hasattr(self, 'litter'):
+            # no breeding
+            all_mice_pure = True
+            relevant_mousegene_set = None
+            mixed_mousegene_sets = False
+            for mouse in self.mouse_set.all():
+                # If any mouse is impure, the cage cannot be pure stock
+                if not mouse.pure_breeder:
+                    all_mice_pure = False
+                
+                # Set relevant_mousegene_set if it's the same for all mice
+                this_mouse = list(mouse.mousegene_set.values_list(
+                    'gene_name__name', flat=True))
+                if relevant_mousegene_set is None:
+                    relevant_mousegene_set = this_mouse
+                elif this_mouse != relevant_mousegene_set:
+                    mixed_mousegene_sets = True
+            
+            # Stringify relevant_mousegene_set
+            if mixed_mousegene_sets:
+                mousegene_s = 'mixed'
+            else:
+                mousegene_s = ' x '.join(relevant_mousegene_set)
+            
+            if all_mice_pure:
+                return "pure stock " + mousegene_s
+            else:
+                return "impure " + mousegene_s
+        
+        else:
+            # yes breeding
+            breed_type = 'none'
+            if self.litter.mother.new_genotype == 'WT':
+                breed_type = 'line maintenance'
+                relevant_gene = self.litter.father.new_genotype
+            elif self.litter.father.new_genotype == 'WT':
+                breed_type = 'line maintenance'
+                relevant_gene = self.litter.mother.new_genotype
+            else:
+                breed_type = 'cross'
+                relevant_gene = '%s x %s' % (
+                    self.litter.father.new_genotype,
+                    self.litter.mother.new_genotype,
+                )
+            
+            return breed_type + ' ' + relevant_gene
     
     def notes_first_half(self, okay_line_length=25):
         """Return the first half of the notes. For CensusView display
@@ -777,12 +840,6 @@ class MouseGene(models.Model):
     Emx-Cre).
     
     TODO: Many2Many key from MouseGene to GenotypingSession.
-    
-    Here are the possible types of cages:
-    1.  Cage without breeding. May need to subset this into weaned pup cages?
-    2.  Maintenance cage: pure breeder mating with WT or another pure
-        breeder with the same MouseGene.
-    3.  Experimental cage: pure breeders with different MouseGenes mating.
     """
     gene_name = models.ForeignKey(Gene)
     mouse_name = models.ForeignKey(Mouse)

@@ -47,17 +47,8 @@ td
                         Litter {{ cage.litter }} 
                     {% endif %}   
                     <br>
-                    {# Third line: target genotype, if any #}
-                    {% if cage.litter %} 
-                        {% url 'colony:add_genotyping_info' cage.litter.pk as add_genotyping_url %} 
-                        <a href="{{ add_genotyping_url }}"> 
-                            {% if cage.target_genotype %}
-                                {{ cage.target_genotype }} 
-                            {% else %}
-                                Genotyping
-                            {% endif %}                       
-                        </a>
-                    {% endif %}
+                    {# Third line: type of cage #}
+                    {{ cage.cage_type }}
                 </td>
             {% endif %}
             {# Insert empty details for additional rows #}
@@ -69,17 +60,21 @@ td
             
             {# mouse's name #}
             <td>
-            {# Colorize the mouse name for breeding mothers and fathers #}                
-            {% if mouse.can_be_breeding_mother or cage.litter.mother == mouse %}
-                <font color='red'>
-            {% elif mouse.can_be_breeding_father or cage.litter.father == father %}
-                <font color='blue'>
-            {% else %}
-                <font>
-            {% endif %}
-            {{ mouse.name }}
-            {% if mouse.user %}[{{ mouse.user }}]{% endif %}
-            </font></td>
+                {# Colorize the mouse name for breeding mothers and fathers #}                
+                {% url 'admin:colony:mouse' mouse.pk as mouse_url %} 
+                <a href="/admin/colony/mouse/{{ mouse.pk }}">
+                    {% if mouse.can_be_breeding_mother or cage.litter.mother == mouse %}
+                        <span style="color: red !important;" >
+                    {% elif mouse.can_be_breeding_father or cage.litter.father == father %}
+                        <span style="color: blue !important;" >
+                    {% else %}
+                        <span style="color: black !important;">
+                    {% endif %}            
+                    {{ mouse.name }} 
+                    </span>
+                </a>
+                {% if mouse.user %}[{{ mouse.user }}]{% endif %}
+            </td>
             
             {# print sex, genotype, dob, notes #}
             <td>{{ mouse.get_sex_display }}</td>
@@ -142,15 +137,8 @@ td
                         Litter {{ cage.litter }} 
                     {% endif %}   
                     <br>
-                    {# Third line: target genotype, if any #}
-                    {% url 'colony:add_genotyping_info' litter.pk as add_genotyping_url %} 
-                    <a href="{{ add_genotyping_url }}"> 
-                        {% if cage.target_genotype %}
-                            {{ cage.target_genotype }} 
-                        {% else %}
-                            Genotyping
-                        {% endif %}                       
-                    </a>
+                    {# Third line: cage type #}
+                    {{ cage.cage_type }}
                 </td>                
                 
                 {# six empty spots #}
