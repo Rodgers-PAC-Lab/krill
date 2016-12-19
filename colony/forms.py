@@ -37,6 +37,11 @@ class SackForm(forms.Form):
 
 
 class AddGenotypingInfoForm(forms.Form):
+    """Form for adding genotyping info
+    
+    Todo: allow setting all mice to the same zygosity at once
+    Don't default to +/+ but rather to "---"
+    """
     # Dynamically add one results for each pup
     def __init__(self, *args, **kwargs):
         litter = kwargs.pop('litter')
