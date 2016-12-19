@@ -242,7 +242,7 @@ class Cage(models.Model):
             breeder with the same MouseGene
         -   "experimental": pure breeders with different MouseGenes mating
         -   "impure": impure breeders mating
-    -   Cages without breeding (litter is None)
+    -   Cages without breeding (litter is None, OR the litter has been weaned)
         -   "pure stock": all mice are pure breeders
         -   "crosses": not pure stock
     """
@@ -267,7 +267,7 @@ class Cage(models.Model):
     @property
     def cage_type(self):
         """Return the type of the cage"""
-        if not hasattr(self, 'litter'):
+        if not hasattr(self, 'litter') or self.litter.date_weaned is not None:
             # no breeding
             all_mice_pure = True
             relevant_mousegene_set = None
@@ -287,17 +287,20 @@ class Cage(models.Model):
             
             # Stringify relevant_mousegene_set
             if mixed_mousegene_sets:
-                mousegene_s = 'mixed'
+                mousegene_s = 'mixed genotype'
+            elif len(relevant_mousegene_set) == 0:
+                mousegene_s = 'TBD'
             else:
                 mousegene_s = ' x '.join(relevant_mousegene_set)
             
             if all_mice_pure:
-                return "pure stock " + mousegene_s
+                return "pure stock (%s)" % mousegene_s
             else:
-                return "impure " + mousegene_s
+                return "experiments (%s)" % mousegene_s
         
         else:
             # yes breeding
+            # determine whether it's a cross against WT or between two genotypes
             breed_type = 'none'
             if self.litter.mother.new_genotype == 'WT':
                 breed_type = 'line maintenance'
@@ -312,7 +315,7 @@ class Cage(models.Model):
                     self.litter.mother.new_genotype,
                 )
             
-            return breed_type + ' ' + relevant_gene
+            return "%s (%s)" % (breed_type, relevant_gene)
     
     def notes_first_half(self, okay_line_length=25):
         """Return the first half of the notes. For CensusView display
