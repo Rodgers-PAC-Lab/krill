@@ -327,6 +327,8 @@ class MouseAdmin(admin.ModelAdmin):
         #~ qs = super(MouseAdmin, self).get_queryset(request)
         #~ return qs.annotate(is_sacked=Count('sack_date'))
     
+class MouseGeneAdmin(admin.ModelAdmin):
+    list_display = ('mouse_name', 'gene_name', 'zygosity',)
 
 class GenotypeAdmin(admin.ModelAdmin):
     ordering = ('name',)
@@ -362,6 +364,7 @@ class HistoricalMouseAdmin(admin.ModelAdmin):
 admin.site.register(HistoricalMouse, HistoricalMouseAdmin)
 admin.site.register(Mouse, MouseAdmin)
 admin.site.register(Gene, GeneAdmin)
+admin.site.register(MouseGene, MouseGeneAdmin)
 admin.site.register(Genotype, GenotypeAdmin)
 admin.site.register(Litter, LitterAdmin)
 admin.site.register(Cage, CageAdmin)
