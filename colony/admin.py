@@ -306,7 +306,8 @@ class MouseAdmin(admin.ModelAdmin):
             'description': 'Optional properties',
         }),        
         (None, {
-            'fields': ('link_to_mother', 'link_to_father', 'link_to_progeny'),
+            'fields': ('link_to_mother', 'link_to_father', 'link_to_progeny',
+                'pure_breeder', 'wild_type',),
             'description': 'Genealogy',
         }),     
         (None, {
