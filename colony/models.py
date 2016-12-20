@@ -232,6 +232,25 @@ def my_slugify(s):
     """Don't apply any prettification to the slug, such as removing +"""
     return s
 
+def have_same_single_gene(mouse1, mouse2):
+    """Returns True if mouse1 and mouse2 have the same single MouseGene
+    
+    This is mainly useful for detecting homozygosing crosses
+    """
+    if mouse1.mousegene_set.count() != 1:
+        return False
+    if mouse2.mousegene_set.count() != 1:
+        return False
+    
+    mg1 = mouse1.mousegene_set.first()
+    mg2 = mouse2.mousegene_set.first()
+    
+    if mg1.id == mg2.id:
+        return True
+    else:
+        return False
+
+
 class Cage(models.Model):
     """Model for a cage.
     
@@ -269,13 +288,26 @@ class Cage(models.Model):
         """Return the type of the cage"""
         if not hasattr(self, 'litter') or self.litter.date_weaned is not None:
             # no breeding
+            
+            # If all mice are pure, we label it "pure stock"
             all_mice_pure = True
+            
+            # If all mice are wild-type, we label it "pure wild-type"
+            all_mice_wildtype = True
+            
+            # Otherwise keep track of which mousegenes each mouse has
             relevant_mousegene_set = None
             mixed_mousegene_sets = False
+            
+            # Iterate over each mouse
             for mouse in self.mouse_set.all():
                 # If any mouse is impure, the cage cannot be pure stock
                 if not mouse.pure_breeder:
                     all_mice_pure = False
+                
+                # If any mouse is not wild_type, the cage can't be WT
+                if not mouse.wild_type:
+                    all_mice_wildtype = False
                 
                 # Set relevant_mousegene_set if it's the same for all mice
                 this_mouse = list(mouse.mousegene_set.values_list(
@@ -288,27 +320,35 @@ class Cage(models.Model):
             # Stringify relevant_mousegene_set
             if mixed_mousegene_sets:
                 mousegene_s = 'mixed genotype'
+            elif all_mice_wildtype:
+                mousegene_s = 'WT'
             elif len(relevant_mousegene_set) == 0:
-                mousegene_s = 'TBD'
+                mousegene_s = 'no genotype'
             else:
                 mousegene_s = ' x '.join(relevant_mousegene_set)
             
             if all_mice_pure:
                 return "pure stock (%s)" % mousegene_s
             else:
-                return "experiments (%s)" % mousegene_s
+                return "progeny (%s)" % mousegene_s
         
         else:
             # yes breeding
             # determine whether it's a cross against WT or between two genotypes
             breed_type = 'none'
-            if self.litter.mother.new_genotype == 'WT':
-                breed_type = 'line maintenance'
+            if self.litter.mother.wild_type:
+                # Outcross, mother WT
+                breed_type = 'outcross'
                 relevant_gene = self.litter.father.new_genotype
-            elif self.litter.father.new_genotype == 'WT':
-                breed_type = 'line maintenance'
+            elif self.litter.father.wild_type:
+                # Outcross, father WT
+                breed_type = 'outcross'
                 relevant_gene = self.litter.mother.new_genotype
+            elif have_same_single_gene(self.litter.father, self.litter.mother):
+                breed_type = 'incross'
+                relevant_gene = self.litter.mother.mousegene_set.first().gene_name.name
             else:
+                # Cross
                 breed_type = 'cross'
                 relevant_gene = '%s x %s' % (
                     self.litter.father.new_genotype,
