@@ -245,7 +245,7 @@ def have_same_single_gene(mouse1, mouse2):
     mg1 = mouse1.mousegene_set.first()
     mg2 = mouse2.mousegene_set.first()
     
-    if mg1.id == mg2.id:
+    if mg1.gene_name.id == mg2.gene_name.id:
         return True
     else:
         return False
@@ -253,17 +253,7 @@ def have_same_single_gene(mouse1, mouse2):
 
 class Cage(models.Model):
     """Model for a cage.
-    
-    
-    Here are the possible types of cages:
-    -   Cages with breeding (litter is not None)
-        -   "line maintenance": pure breeder mating with WT or another pure
-            breeder with the same MouseGene
-        -   "experimental": pure breeders with different MouseGenes mating
-        -   "impure": impure breeders mating
-    -   Cages without breeding (litter is None, OR the litter has been weaned)
-        -   "pure stock": all mice are pure breeders
-        -   "crosses": not pure stock
+
     """
     name = models.CharField(max_length=10, unique=True)    
     notes = models.CharField(max_length=100, blank=True, null=True)
@@ -285,7 +275,30 @@ class Cage(models.Model):
     
     @property
     def cage_type(self):
-        """Return the type of the cage"""
+        """Return the type of the cage
+        
+        The type is always "type_string (relevant_gene_string)"
+        
+        Here are the possible types:
+        Breeding cages
+        *   "pure stock": all mice are pure_breeder
+            The relevant gene can be "mixed genotype", "WT", or "no genotype"
+        *   "progeny": at least one mouse is impure
+            The relevant gene can be "mixed genotype", "WT", "no genotype",
+            or "gene1 x gene2" (where all mice have the same gene1, gene2, etc.)
+        
+        Non-breeding cages
+        *   "outcross": at least one parent has wild_type=True
+            The relevant gene is the other parent's new_genotype
+        *   "incross": both parents have the same single gene
+            The relevant gene is that gene
+        *   "cross": anything else
+            The relevant gene is "mother_new_genotype x father_new_genotype"
+        
+        TODO: return type_string, relevant_gene_l in a more standard way,
+            always preferring gene not genotype, and making it amenable
+            to filtering by gene
+        """
         if not hasattr(self, 'litter') or self.litter.date_weaned is not None:
             # no breeding
             
