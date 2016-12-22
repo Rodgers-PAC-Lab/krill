@@ -434,9 +434,9 @@ class Cage(models.Model):
                 father.mousegene_set.values_list('gene_name__id', flat=True))
             mother_set = list(
                 mother.mousegene_set.values_list('gene_name__id', flat=True))
-            res = [Gene.objects.filter(
+            res = [tuple(Gene.objects.filter(
                 id__in=(father_set + mother_set)).values_list(
-                'name', flat=True)]
+                'name', flat=True))]
         elif cage_type in ['pure stock', 'progeny',]:
             # List of mousegene sets from each mouse
             res = []
