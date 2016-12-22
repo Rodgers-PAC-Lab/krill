@@ -76,6 +76,8 @@ class IndexView(generic.ListView):
             prefetch_related('litter__mouse_set').\
             prefetch_related('litter__father').\
             prefetch_related('litter__mother').\
+            prefetch_related('mouse_set__mousegene_set').\
+            prefetch_related('mouse_set__mousegene_set__gene_name').\
             select_related()
         
         return qs
