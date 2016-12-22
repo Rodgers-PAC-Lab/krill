@@ -128,10 +128,11 @@ def census_by_genotype(request):
     # Subset the qs by each geneset in unique_relevant_genesets
     sorted_by_geneset = []
     for geneset in unique_relevant_genesets:
-        cage_l = []
+        cage_id_l = []
         for cage, relevant_geneset in zip(qs.all(), relevant_genesets):
             if geneset in relevant_geneset:
-                cage_l.append(cage)
+                cage_id_l.append(cage.id)
+        cage_l = qs.filter(id__in=cage_id_l)
         
         sorted_by_geneset.append({
             'geneset': geneset,
