@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views import generic
 from django.db.models import FieldDoesNotExist
+from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 import datetime
 
@@ -395,26 +396,41 @@ def add_genotyping_information(request, litter_id):
                 new_number_of_pups = change_number_of_pups_form.cleaned_data[
                     'number_of_pups']
                 
-                # Determine the MouseGenes to add
-                gene_set = Gene.objects.filter(mouse_set__id__in=(
-                    litter.mother.id, litter.father.id)).distinct()
-                
                 if new_number_of_pups > litter.mouse_set.count():
-                    # Set pure_breeder and wild_type here
+                    # Determine the MouseGenes to add
+                    mother_genes = list(litter.mother.mousegene_set.values_list(
+                        'gene_name__id', flat=True))
+                    father_genes = list(litter.father.mousegene_set.values_list(
+                        'gene_name__id', flat=True))
+                    gene_set = Gene.objects.filter(id__in=(
+                        mother_genes + father_genes)).distinct()
                     
-                    mouse = Mouse(
-                        name='%s-%d' % (litter.breeding_cage.name, new_number_of_pups),
-                        sex=2,
-                        genotype=Genotype.objects.filter(name='TBD').first(),
-                        litter=litter,
-                        cage=litter.breeding_cage,
-                    )
-                    mouse.save()
-                    
-                    for gene in gene_set:
-                        mg = MouseGene(mouse_name=mouse, gene_name=gene,
-                            zygosity='?/?')
-                        mg.save()
+                    # pure_breeder if one parent is pure and other is wild
+                    pup_is_pure = (
+                        (litter.mother.pure_breeder and litter.father.wild_type) or
+                        (litter.father.pure_breeder and litter.mother.wild_type))
+
+                    for pupnum in range(litter.mouse_set.count(), new_number_of_pups):
+                        # Create a new mouse
+                        mouse = Mouse(
+                            name='%s-%d' % (litter.breeding_cage.name, pupnum + 1),
+                            sex=2,
+                            genotype=Genotype.objects.filter(name='TBD').first(),
+                            litter=litter,
+                            cage=litter.breeding_cage,
+                            pure_breeder=pup_is_pure,
+                        )
+                        try:
+                            mouse.save()
+                        except IntegrityError:
+                            # Mouse already exists due to naming the pups weirdly
+                            continue
+                        
+                        # Add its genes
+                        for gene in gene_set:
+                            mg = MouseGene(mouse_name=mouse, gene_name=gene,
+                                zygosity='?/?')
+                            mg.save()
         
         elif 'set_genotyping_info' in request.POST:
             # Make the other form, that we're not processing here
