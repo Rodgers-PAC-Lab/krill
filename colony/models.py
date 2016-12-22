@@ -994,7 +994,18 @@ class Litter(models.Model):
         return (today - self.dob).days
 
     def __str__(self):
-        return self.info
+        return str(self.breeding_cage)
+    
+    @property
+    def current_change_link(self):
+        """Returns to link to add pups, edit pups, or wean as necessary"""
+        if self.dob is None or self.mouse_set.count() == 0:
+            # Needs pups added
+            return 'add pups'
+        elif self.date_weaned is None:
+            return 'edit pups'
+        else:
+            return 'no action'
     
     @property
     def info(self):
