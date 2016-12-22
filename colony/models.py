@@ -610,7 +610,9 @@ class Mouse(models.Model):
             returns 'WT' (but should probably be a strain)
         If pure_breeder:
             prepends "pure "
-        Then it is a list of each linked MouseGene, or "TBD" if there are none.
+        Then it is a list of each linked MouseGene.
+        Exception: if it has no mousegenes, or only -/- mousegenes,
+        it just returns '-/-', regardless of purity.
         """
         if self.wild_type:
             return 'WT'
@@ -620,15 +622,18 @@ class Mouse(models.Model):
         else:
             prefix = ''
         
-        qs = self.mousegene_set
+        # Get all MouseGenes other than -/-
+        qs = self.mousegene_set.exclude(zygosity=MouseGene.zygosity_nn)
         if qs.count() == 0:
-            return prefix + '-/-'
+            # It has no mousegenes, or only -/- mouse genes
+            # Render as '-/-' REGARDLESS of whether it is pure or not
+            # Because "pure -/-" looks weird
+            return '-/-'
         else:
-            # Get all the mouse genes that aren't -/-
+            # Join remaining mousegenes
             res_l = []
             for mg in qs.all():
-                if mg.zygosity != MouseGene.zygosity_nn:
-                    res_l.append('%s(%s)' % (mg.gene_name, mg.zygosity))
+                res_l.append('%s(%s)' % (mg.gene_name, mg.zygosity))
             return prefix + '; '.join(res_l)
     
     def get_cage_history_list(self, only_cage_changes=True):
