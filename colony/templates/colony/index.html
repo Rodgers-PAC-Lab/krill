@@ -44,7 +44,10 @@ td
                     <br>
                     {# Second line: litter info, if any #}
                     {% if cage.litter %} 
-                        Litter {{ cage.litter }} ({{cage.litter.current_change_link}}) 
+                        {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
+                        <a href="{{ add_genotyping_url }}"> 
+                            Litter {{ cage.litter }} ({{ cage.litter.current_change_link }})
+                        </a>
                     {% endif %}   
                     <br>
                     {# Third line: type of cage #}
@@ -134,7 +137,10 @@ td
                     <br>
                     {# Second line: litter info, if any #}
                     {% if cage.litter %} 
-                        Litter {{ cage.litter }} 
+                        {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
+                        <a href="{{ add_genotyping_url }}"> 
+                            Litter {{ cage.litter }} ({{ cage.litter.current_change_link }})
+                        </a>
                     {% endif %}   
                     <br>
                     {# Third line: cage type #}
