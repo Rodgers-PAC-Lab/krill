@@ -20,6 +20,9 @@
         </tbody>
     </table>
     
+    {{ change_number_of_pups_form.as_p }}
+    <input type="submit" name="change_number_of_pups" value="Set number of pups" />    
+    
     <h1>Results thus far</h1>
     <table>
         <thead>
@@ -58,7 +61,7 @@
 
     <h1>New genotyping results</h1>
     {{ form.as_p }}
-    <input type="submit" value="Submit" />
+    <input type="submit" name="set_genotyping_info" value="Submit genotyping" />
     <br />
     {% url 'admin:gene:new' cage.pk as add_new_gene_url %} 
     <a href='/admin/colony/gene/add'>

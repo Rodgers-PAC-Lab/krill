@@ -62,4 +62,7 @@ class AddGenotypingInfoForm(forms.Form):
         queryset=Gene.objects.all(),
     )
     
-    
+class ChangeNumberOfPupsForm(forms.Form):
+    number_of_pups = forms.IntegerField(
+        label='Number of pups',
+    )

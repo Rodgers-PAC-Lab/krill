@@ -6,8 +6,9 @@ import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name,
-    HistoricalCage, HistoricalMouse, MouseGene, Gene)
-from .forms import MatingCageForm, SackForm, AddGenotypingInfoForm
+    HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype)
+from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
+    ChangeNumberOfPupsForm)
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
@@ -379,60 +380,114 @@ def add_genotyping_information(request, litter_id):
     
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = AddGenotypingInfoForm(request.POST, initial={}, litter=litter)
-        
-        # See if any genes were requested for deletion
-        for gene in Gene.objects.filter(
-            mousegene__mouse_name__litter=litter).distinct():
-            # Check for deletion request
-            if 'delete_gene_id_%d' % gene.id in request.POST:
-                # Delete all matching MouseGenes
-                MouseGene.objects.filter(
-                    gene_name__id=gene.id,
-                    mouse_name__litter=litter).delete()
-                
-                # Ignore the rest of the input and start over
-                form = AddGenotypingInfoForm(initial={}, litter=litter)
-        
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            gene_name = form.cleaned_data['gene_name']
-            for mouse in litter.mouse_set.all():
-                result = form.cleaned_data['result_%s' % mouse.name]
-                
-                # If the mouse gene already exists, change it
-                mgqs = MouseGene.objects.filter(
-                    mouse_name=mouse, gene_name=gene_name)
-                
-                if mgqs.count() == 0:
-                    # Create it
-                    mg = MouseGene(
-                        gene_name=gene_name,
-                        mouse_name=mouse,
-                        zygosity=result,
-                    )
-                    mg.save()
-                else:
-                    # Edit it
-                    mg = mgqs.first()
-                    mg.zygosity = result
-                    mg.save()
+        ## A POST, so determine which button was pressed
+        if 'change_number_of_pups' in request.POST:
+            # Make the other form, that we're not processing here
+            form = AddGenotypingInfoForm(
+                litter=litter, prefix='add_genotyping_info')                 
             
-            # Create a new, blank form (so the fields default to blank
-            # rather than to the values we just entered_
-            form = AddGenotypingInfoForm(litter=litter)
+            # Make this one with the POST info
+            change_number_of_pups_form = ChangeNumberOfPupsForm(
+                request.POST, prefix='change_pup')
+            
+            if change_number_of_pups_form.is_valid():
+                # change number of pups
+                new_number_of_pups = change_number_of_pups_form.cleaned_data[
+                    'number_of_pups']
+                
+                # Determine the MouseGenes to add
+                gene_set = Gene.objects.filter(mouse_set__id__in=(
+                    litter.mother.id, litter.father.id)).distinct()
+                
+                if new_number_of_pups > litter.mouse_set.count():
+                    # Set pure_breeder and wild_type here
+                    
+                    mouse = Mouse(
+                        name='%s-%d' % (litter.breeding_cage.name, new_number_of_pups),
+                        sex=2,
+                        genotype=Genotype.objects.filter(name='TBD').first(),
+                        litter=litter,
+                        cage=litter.breeding_cage,
+                    )
+                    mouse.save()
+                    
+                    for gene in gene_set:
+                        mg = MouseGene(mouse_name=mouse, gene_name=gene,
+                            zygosity='?/?')
+                        mg.save()
+        
+        elif 'set_genotyping_info' in request.POST:
+            # Make the other form, that we're not processing here
+            change_number_of_pups_form = ChangeNumberOfPupsForm(
+                prefix='change_pup')            
+            
+            # create a form instance and populate it with data from the request:
+            form = AddGenotypingInfoForm(request.POST, 
+                initial={}, litter=litter, prefix='add_genotyping_info')
+            
+            # check whether it's valid:
+            if form.is_valid():
+                # process the data in form.cleaned_data as required
+                gene_name = form.cleaned_data['gene_name']
+                for mouse in litter.mouse_set.all():
+                    result = form.cleaned_data['result_%s' % mouse.name]
+                    
+                    # If the mouse gene already exists, change it
+                    mgqs = MouseGene.objects.filter(
+                        mouse_name=mouse, gene_name=gene_name)
+                    
+                    if mgqs.count() == 0:
+                        # Create it
+                        mg = MouseGene(
+                            gene_name=gene_name,
+                            mouse_name=mouse,
+                            zygosity=result,
+                        )
+                        mg.save()
+                    else:
+                        # Edit it
+                        mg = mgqs.first()
+                        mg.zygosity = result
+                        mg.save()
+                
+                # Create a new, blank form (so the fields default to blank
+                # rather than to the values we just entered_
+                form = AddGenotypingInfoForm(litter=litter)
+            else:
+                # If not valid, I think it returns the same form, and magically
+                # inserts the error messages
+                pass
         else:
-            # If not valid, I think it returns the same form, and magically
-            # inserts the error messages
-            pass
-
-    # if a GET (or any other method) we'll create a blank form
+            ## See if any genes were requested for deletion
+            for gene in Gene.objects.filter(
+                mousegene__mouse_name__litter=litter).distinct():
+                # Check for deletion request
+                if 'delete_gene_id_%d' % gene.id in request.POST:
+                    # Delete all matching MouseGenes
+                    MouseGene.objects.filter(
+                        gene_name__id=gene.id,
+                        mouse_name__litter=litter).delete()
+                    break
+            
+            # Initialize blank forms
+            # We also end up here if a POST occurred without any
+            # submit button somehow (e.g., wrong button name in template)
+            # A POST without clicking either submit button
+            change_number_of_pups_form = ChangeNumberOfPupsForm(
+                initial={}, prefix='change_pup',
+                )
+            form = AddGenotypingInfoForm(initial={}, litter=litter)
     else:
+        ## GET, so create a blank form
+        change_number_of_pups_form = ChangeNumberOfPupsForm(
+            initial={}, prefix='change_pup',
+        )
+        
         # Should probably default to one of the MouseGenes
         form = AddGenotypingInfoForm(initial={}, litter=litter)
 
     return render(request, 'colony/add_genotyping_info.html', 
-        {'form': form, 'litter': litter})
+        {   'form': form, 
+            'change_number_of_pups_form': change_number_of_pups_form,
+            'litter': litter})
 
