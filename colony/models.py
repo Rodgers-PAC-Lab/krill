@@ -454,8 +454,15 @@ class Cage(models.Model):
     @property
     def printable_relevant_genesets(self):
         """Convert relevant genesets to a string"""
-        return '; '.join([
-            ' x '.join(geneset) for geneset in self.relevant_genesets])
+        if len(self.relevant_genesets) == 0:
+            # This shouldn't really happen
+            return 'WT'
+        elif len(self.relevant_genesets) == 1 and len(self.relevant_genesets[0]) == 0:
+            # Only contains mice with no relevant genes
+            return 'WT'
+        else:
+            return '; '.join([
+                ' x '.join(geneset) for geneset in self.relevant_genesets])
     
     @property
     def type_of_cage(self):
