@@ -1,0 +1,199 @@
+{# specifies the overall style #}
+<style type="text/css">
+tr
+{
+    font-family: Sans;
+    font-size: 9;
+}
+td
+{
+    padding:2px 6px 2px 6px; {# space between rows and columns #}
+    font-family: Sans;
+    font-size: 9;
+}
+*{
+    font-family: arial, sans-serif;
+}
+</style>
+
+<h1>Census View</h1>
+Sort by: (cage number, geneset and cage type)<br />
+Filter by: (proprietor, geneset, cage_type)<br />
+<br />
+
+
+<table border="0" style="text-align: center; border-collapse: collapse">
+    {# header row #}
+    <tr>
+        <th>cage</th>
+        <th>mouse</th>
+        <th>sex</th>
+        <th>genotype</th>
+        <th>DOB</th>
+        <th>age</th>
+        <th>mouse notes</th>
+        <th>auto needs</th>
+        <th>cage notes</th>
+        <th>make defunct</th>
+    </tr>
+
+
+    {% for geneset_data in sorted_by_geneset %}
+        <tr style="border-top: solid">
+            <td colspan="10" align="left"><b>{{ geneset_data.dname }}</b></td>
+        </tr>
+        
+        {# iterate over every cage #}
+        {% for cage in geneset_data.cage_l %}
+            {# loop over mice in the cage, with a border above the first one #}
+            {% for mouse in cage.mouse_set.all %}
+            <tr {% if forloop.counter0 == 0%} style="border-top: thin solid" {% endif %}>
+                {# The first column is Cage Detail, and it has a certain #}
+                {# number of lines of info regardless of the number of mice #}
+                {% if forloop.counter0 == 0 %}
+                    <td rowspan="3" style="width:100px;"> 
+                        {# First line: cage name and proprietor #}
+                            <a href={{ cage.change_link }}>
+                            <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
+                        <br>
+                        {# Second line: litter info, if any #}
+                        {% if cage.litter %} 
+                            {% url 'colony:add_genotyping_info' cage.litter.pk as add_genotyping_url %} 
+                            <a href="{{ add_genotyping_url }}"> 
+                                Litter {{ cage.litter }} ({{ cage.litter.current_change_link }})
+                            </a>
+                        {% endif %}   
+                        <br>
+                        {# Third line: type of cage #}
+                        {{ cage.type_of_cage }}: 
+                        {{ cage.printable_relevant_genesets }}
+                    </td>
+                {% endif %}
+                {# Insert empty details for additional rows #}
+                {% if forloop.counter0 >= 3 %}
+                    <td />
+                {% endif %}
+                
+                {# These columns are specific to each mouse #}
+                
+                {# mouse's name #}
+                <td>
+                    {# Colorize the mouse name for breeding mothers and fathers #}                
+                    {% url 'admin:colony:mouse' mouse.pk as mouse_url %} 
+                    <a href="/admin/colony/mouse/{{ mouse.pk }}">
+                        {% if mouse.can_be_breeding_mother or cage.litter.mother == mouse %}
+                            <span style="color: red !important;" >
+                        {% elif mouse.can_be_breeding_father or cage.litter.father == father %}
+                            <span style="color: blue !important;" >
+                        {% else %}
+                            <span style="color: black !important;">
+                        {% endif %}            
+                        {{ mouse.name }} 
+                        </span>
+                    </a>
+                    {% if mouse.user %}[{{ mouse.user }}]{% endif %}
+                </td>
+                
+                {# print sex, genotype, dob, notes #}
+                <td>{{ mouse.get_sex_display }}</td>
+                <td>
+                    {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
+                    <a href="{{ add_genotyping_url }}"> 
+                        {{ mouse.new_genotype }} 
+                    </a>
+                    <font color='green'>{{ mouse.genotype }}</font>
+                </td>
+                <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>
+                <td>{% if mouse.age %} {{ mouse.age }} {% endif %}</td>
+                <td style="width:200px;">{% if mouse.notes %} {{ mouse.notes }} {% endif %}</td>
+                
+                {# auto needs: one td with rowspan 3 #}
+                {% if forloop.counter0 == 0 %}
+                    <td style="width:150px;" rowspan="3">
+                        {{ cage.auto_needs_message | safe }}
+                    </td>
+                {% elif forlooop.counter0 >= 3 %}
+                    <td />
+                {% endif %}
+                
+                {# cage notes: one td with rowspan 3 #}
+                {% if forloop.counter0 == 0 %}
+                    <td style="width:150px;" rowspan="3">
+                        {{ cage.notes }}
+                    </td>
+                {% elif forlooop.counter0 >= 3 %}
+                    <td />
+                {% endif %}
+
+                {% if forloop.counter0 == 0 %}
+                    {% url 'colony:sack' cage.pk as sack_cage %} 
+                    <td>
+                        <a href="{{ sack_cage }}"> Sack Mice </a>
+                    </td>
+                {% endif %}
+            </tr>
+            {% endfor %} {# for mouse in cage.mouse_set.all #}
+
+
+            {# This is kind of a hack: #}
+            {# If there are fewer mice in the cage than there are lines #}
+            {# of cage detail in the first column, then add empty rows here #}
+            {# because the mouse_set iteration will have finished too soon. #}
+            {# Then we always have 3 rows of 8 columns #}
+            {% if cage.n_mice == 0 %}
+                {# Special case of an empty cage #}
+                {# We always want to display the name, needs, notes, and sack link #}
+                <tr style="border-top: thin solid">
+                    {# Cage name #}
+                    <td rowspan="3" style="width:100px;"> 
+                        {# First line: cage name and proprietor #}
+                            <a href={{ cage.change_link }}>
+                            <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
+                        <br>
+                        {# Second line: litter info, if any #}
+                        {% if cage.litter %} 
+                            {% url 'colony:add_genotyping_info' cage.litter.pk as add_genotyping_url %} 
+                            <a href="{{ add_genotyping_url }}"> 
+                                Litter {{ cage.litter }} ({{ cage.litter.current_change_link }})
+                            </a>
+                        {% endif %}   
+                        <br>
+                        {# Third line: cage type #}
+                        {{ cage.cage_type }}
+                    </td>                
+                    
+                    {# six empty spots #}
+                    <td /><td /><td /><td /><td /><td />
+
+                    {# auto needs and special requests #}
+                    <td style="width:150px;">
+                        {{ cage.auto_needs_message | safe }}
+                    </td>                
+
+                    {# cage notes #}
+                    <td style="width:150px;">
+                        {{ cage.notes }}
+                    </td>
+
+                    {# Sack link #}
+                    {% url 'colony:sack' cage.pk as sack_cage %} 
+                    <td>
+                        <a href="{{ sack_cage }}"> Sack Mice </a>
+                    </td>                
+                </tr>
+            {% endif %} 
+            {% if cage.n_mice <= 1 %}
+                <tr><td /><td /><td /><td /><td /><td /><td /><td /><td /><td /></tr>
+            {% endif %} 
+            {% if cage.n_mice <= 2 %}
+                <tr><td /><td /><td /><td /><td /><td /><td /><td /><td /><td /></tr>
+            {% endif %} 
+
+        {% endfor %} {# for cage in object.list #}
+    {% endfor %}
+</table>
+    
+    
+    
+    
+    

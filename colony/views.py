@@ -79,8 +79,68 @@ class IndexView(generic.ListView):
             prefetch_related('mouse_set__mousegene_set').\
             prefetch_related('mouse_set__mousegene_set__gene_name').\
             select_related()
-        
+
         return qs
+
+def census_by_genotype(request):
+    """View cages sorted by genotype"""
+    pname = request.GET.get('person')
+    order_by = request.GET.get('order_by', 'name')
+
+    # Get all non-defunct cages
+    qs = Cage.objects.filter(defunct=False)    
+
+    # Filter by proprietor
+    if pname:
+        qs = qs.filter(proprietor__name__icontains=pname) 
+
+    # Now select related
+    qs = qs.prefetch_related('mouse_set').\
+        prefetch_related('specialrequest_set').\
+        prefetch_related('specialrequest_set__requester').\
+        prefetch_related('specialrequest_set__requestee').\
+        prefetch_related('mouse_set__litter').\
+        prefetch_related('mouse_set__user').\
+        prefetch_related('mouse_set__genotype').\
+        prefetch_related('litter').\
+        prefetch_related('litter__mouse_set').\
+        prefetch_related('litter__father').\
+        prefetch_related('litter__mother').\
+        prefetch_related('mouse_set__mousegene_set').\
+        prefetch_related('mouse_set__mousegene_set__gene_name').\
+        select_related()
+    
+    # Extract relevant genesets
+    relevant_genesets = [cage.relevant_genesets for cage in qs.all()]
+    unique_relevant_genesets = []
+    for rg in relevant_genesets:
+        for srg in rg:
+            tsrg = tuple(srg)
+            if tsrg not in unique_relevant_genesets:
+                unique_relevant_genesets.append(tsrg)
+    
+    # Sort first by number of genes, then by the first one
+    unique_relevant_genesets = sorted(unique_relevant_genesets, 
+        key=lambda v: (len(v), v[0] if len(v) > 0 else ''))
+    
+    # Subset the qs by each geneset in unique_relevant_genesets
+    sorted_by_geneset = []
+    for geneset in unique_relevant_genesets:
+        cage_l = []
+        for cage, relevant_geneset in zip(qs.all(), relevant_genesets):
+            if geneset in relevant_geneset:
+                cage_l.append(cage)
+        
+        sorted_by_geneset.append({
+            'geneset': geneset,
+            'dname': (' x '.join(geneset)),
+            'cage_l': cage_l,
+        })
+        
+    return render(request, 'colony/census_by_genotype.html', {
+        'sorted_by_geneset': sorted_by_geneset, 
+    })
+    
 
 def make_mating_cage(request):
     """View for making a new mating cage.
