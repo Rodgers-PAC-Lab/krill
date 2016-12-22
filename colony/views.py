@@ -380,7 +380,7 @@ def add_genotyping_information(request, litter_id):
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
-        form = AddGenotypingInfoForm(request.POST, litter=litter)
+        form = AddGenotypingInfoForm(request.POST, initial={}, litter=litter)
         
         # check whether it's valid:
         if form.is_valid():
@@ -406,14 +406,19 @@ def add_genotyping_information(request, litter_id):
                     mg = mgqs.first()
                     mg.zygosity = result
                     mg.save()
-        
-        # What if it's not valid? I think maybe it just returns form below
+            
+            # Create a new, blank form (so the fields default to blank
+            # rather than to the values we just entered_
+            form = AddGenotypingInfoForm(litter=litter)
+        else:
+            # If not valid, I think it returns the same form, and magically
+            # inserts the error messages
+            pass
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        initial = {
-        }
-        form = AddGenotypingInfoForm(initial=initial, litter=litter)
+        # Should probably default to one of the MouseGenes
+        form = AddGenotypingInfoForm(initial={}, litter=litter)
 
     return render(request, 'colony/add_genotyping_info.html', 
         {'form': form, 'litter': litter})

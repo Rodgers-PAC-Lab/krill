@@ -47,16 +47,19 @@ class AddGenotypingInfoForm(forms.Form):
         litter = kwargs.pop('litter')
         super(AddGenotypingInfoForm, self).__init__(*args, **kwargs)
         
+        # Create a choices that includes ---
+        choices = list(MouseGene.zygosity_choices_dbl)
+        choices.insert(0, ('', '---'))
+        
         for mouse in litter.mouse_set.all():
             self.fields['result_%s' % mouse.name] = forms.ChoiceField(
-                label='result_%s' % mouse.name,
-                choices=MouseGene.zygosity_choices_dbl,
-                help_text="The results for mouse %s" % mouse.name,
+                label="Result for mouse %s" % mouse.name,
+                choices=choices,
             )
     
-    gene_name = forms.ModelChoiceField(label='gene_name',
+    gene_name = forms.ModelChoiceField(
+        label="Choose the gene that was tested",
         queryset=Gene.objects.all(),
-        help_text="The gene that was tested",
     )
     
     

@@ -885,6 +885,9 @@ class Gene(models.Model):
     
     def __str__(self):
         return self.name
+    
+    class Meta:
+        ordering = ['gene_type', 'name',]
 
 class MouseGene(models.Model):
     """Particular gene for a particular mouse
