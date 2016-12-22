@@ -108,8 +108,6 @@ def census_by_genotype(request):
         prefetch_related('litter__mother').\
         prefetch_related('litter__father__mousegene_set').\
         prefetch_related('litter__mother__mousegene_set').\
-        prefetch_related('litter__father__mousegene_set__gene_name').\
-        prefetch_related('litter__mother__mousegene_set__gene_name').\
         prefetch_related('mouse_set__mousegene_set').\
         prefetch_related('mouse_set__mousegene_set__gene_name').\
         select_related()
