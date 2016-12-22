@@ -121,7 +121,7 @@ def census_by_genotype(request):
     
     # Sort first by number of genes, then by the first one
     unique_relevant_genesets = sorted(unique_relevant_genesets, 
-        key=lambda v: (len(v), v[0] if len(v) > 0 else ''))
+        key=lambda v: v[0] if len(v) > 0 else '')
     
     # Subset the qs by each geneset in unique_relevant_genesets
     sorted_by_geneset = []
@@ -133,7 +133,7 @@ def census_by_genotype(request):
         
         sorted_by_geneset.append({
             'geneset': geneset,
-            'dname': (' x '.join(geneset)),
+            'dname': (' x '.join(geneset)) if len(geneset) > 0 else 'WT',
             'cage_l': cage_l,
         })
         
