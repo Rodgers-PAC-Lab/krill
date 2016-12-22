@@ -97,10 +97,14 @@ Filter by: (proprietor, geneset, cage_type)<br />
                 {# print sex, genotype, dob, notes #}
                 <td>{{ mouse.get_sex_display }}</td>
                 <td>
-                    {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
-                    <a href="{{ add_genotyping_url }}"> 
-                        {{ mouse.new_genotype }} 
-                    </a>
+                    {% if mouse.litter %}
+                        {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
+                        <a href="{{ add_genotyping_url }}"> 
+                            {{ mouse.new_genotype }} 
+                        </a>
+                    {% else %}
+                        {{ mouse.new_genotype }}
+                    {% endif %}
                     <font color='green'>{{ mouse.genotype }}</font>
                 </td>
                 <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>
