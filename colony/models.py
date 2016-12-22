@@ -622,7 +622,7 @@ class Mouse(models.Model):
         
         qs = self.mousegene_set
         if qs.count() == 0:
-            return prefix + 'TBD'
+            return prefix + '-/-'
         else:
             # Get all the mouse genes that aren't -/-
             res_l = []
