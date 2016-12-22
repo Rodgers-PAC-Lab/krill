@@ -121,9 +121,9 @@ def census_by_genotype(request):
             if tsrg not in unique_relevant_genesets:
                 unique_relevant_genesets.append(tsrg)
     
-    # Sort first by number of genes, then by the first one
+    # Sort by first gene, then number of genes
     unique_relevant_genesets = sorted(unique_relevant_genesets, 
-        key=lambda v: v[0] if len(v) > 0 else '')
+        key=lambda v: (v[0] if len(v) > 0 else '', len(v)))
     
     # Subset the qs by each geneset in unique_relevant_genesets
     sorted_by_geneset = []
