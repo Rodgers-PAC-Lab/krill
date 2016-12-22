@@ -4,8 +4,23 @@
 
 <form method="post">
     {% csrf_token %}
-    <p>Previous genotyping results</p>
-
+    <h1>Genotyping results for litter {{litter.breeding_cage.name}} </h1>
+    <table style="display: inlne">
+        <tbody>
+            <tr>
+                <td>Father</td>
+                <td>{{litter.father.name}}<td/>
+                <td>{{litter.father.new_genotype}}</td>
+            </tr>
+            <tr>
+                <td>Mother</td>
+                <td>{{litter.mother.name}}<td/>
+                <td>{{litter.mother.new_genotype}}</td>
+            </tr>            
+        </tbody>
+    </table>
+    
+    <h1>Results thus far</h1>
     <table style="display: inline">
         <thead>
             <tr>
@@ -32,10 +47,12 @@
         </tbody>
     </table>
 
-    <p>Enter the genotyping results</p>
-    {% url 'admin:gene:new' cage.pk as add_new_gene_url %} 
-    <a href='/admin/colony/gene/add'>Add a new gene</a>
-    
+    <h1>New genotyping results</h1>
     {{ form.as_p }}
     <input type="submit" value="Submit" />
+    <br />
+    {% url 'admin:gene:new' cage.pk as add_new_gene_url %} 
+    <a href='/admin/colony/gene/add'>
+        My gene is not in the drop-down list; I need to add it
+    </a>
 </form>
