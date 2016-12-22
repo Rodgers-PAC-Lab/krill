@@ -44,7 +44,7 @@ td
                     <br>
                     {# Second line: litter info, if any #}
                     {% if cage.litter %} 
-                        Litter {{ cage.litter }} 
+                        Litter {{ cage.litter }} ({{cage.litter.current_change_link}}) 
                     {% endif %}   
                     <br>
                     {# Third line: type of cage #}
