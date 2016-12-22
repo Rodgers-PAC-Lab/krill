@@ -6,7 +6,7 @@ import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name,
-    HistoricalCage, HistoricalMouse, MouseGene)
+    HistoricalCage, HistoricalMouse, MouseGene, Gene)
 from .forms import MatingCageForm, SackForm, AddGenotypingInfoForm
 from simple_history.models import HistoricalRecords
 from itertools import chain
@@ -381,6 +381,19 @@ def add_genotyping_information(request, litter_id):
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         form = AddGenotypingInfoForm(request.POST, initial={}, litter=litter)
+        
+        # See if any genes were requested for deletion
+        for gene in Gene.objects.filter(
+            mousegene__mouse_name__litter=litter).distinct():
+            # Check for deletion request
+            if 'delete_gene_id_%d' % gene.id in request.POST:
+                # Delete all matching MouseGenes
+                MouseGene.objects.filter(
+                    gene_name__id=gene.id,
+                    mouse_name__litter=litter).delete()
+                
+                # Ignore the rest of the input and start over
+                form = AddGenotypingInfoForm(initial={}, litter=litter)
         
         # check whether it's valid:
         if form.is_valid():

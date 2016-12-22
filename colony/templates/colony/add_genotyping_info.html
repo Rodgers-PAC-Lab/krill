@@ -5,7 +5,7 @@
 <form method="post">
     {% csrf_token %}
     <h1>Genotyping results for litter {{litter.breeding_cage.name}} </h1>
-    <table style="display: inlne">
+    <table>
         <tbody>
             <tr>
                 <td>Father</td>
@@ -21,7 +21,7 @@
     </table>
     
     <h1>Results thus far</h1>
-    <table style="display: inline">
+    <table>
         <thead>
             <tr>
                 <th>Mouse</th>
@@ -46,6 +46,15 @@
         {% endfor %}
         </tbody>
     </table>
+    
+    {% if litter.mouse_set %}
+        {% for mg in litter.mouse_set.first.mousegene_set.all %}
+            <input type="submit" 
+                name="delete_gene_id_{{mg.gene_name.id}}" 
+                value="Delete results for {{mg.gene_name}}" />
+            <br />
+        {% endfor %}
+    {% endif %}
 
     <h1>New genotyping results</h1>
     {{ form.as_p }}
