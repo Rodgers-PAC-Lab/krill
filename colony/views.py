@@ -470,7 +470,8 @@ def add_genotyping_information(request, litter_id):
                 
                 # Create a new, blank form (so the fields default to blank
                 # rather than to the values we just entered_
-                form = AddGenotypingInfoForm(litter=litter)
+                form = AddGenotypingInfoForm(litter=litter, 
+                    prefix='add_genotyping_info')
             else:
                 # If not valid, I think it returns the same form, and magically
                 # inserts the error messages
@@ -494,7 +495,8 @@ def add_genotyping_information(request, litter_id):
             change_number_of_pups_form = ChangeNumberOfPupsForm(
                 initial={}, prefix='change_pup',
                 )
-            form = AddGenotypingInfoForm(initial={}, litter=litter)
+            form = AddGenotypingInfoForm(initial={}, litter=litter,
+                prefix='add_genotyping_info')
     else:
         ## GET, so create a blank form
         change_number_of_pups_form = ChangeNumberOfPupsForm(
@@ -502,7 +504,8 @@ def add_genotyping_information(request, litter_id):
         )
         
         # Should probably default to one of the MouseGenes
-        form = AddGenotypingInfoForm(initial={}, litter=litter)
+        form = AddGenotypingInfoForm(initial={}, litter=litter,
+            prefix='add_genotyping_info')
 
     return render(request, 'colony/add_genotyping_info.html', 
         {   'form': form, 
