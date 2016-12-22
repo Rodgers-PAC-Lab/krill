@@ -385,11 +385,7 @@ def add_genotyping_information(request, litter_id):
     if request.method == 'POST':
         ## A POST, so determine which button was pressed
         if 'change_number_of_pups' in request.POST:
-            # Make the other form, that we're not processing here
-            form = AddGenotypingInfoForm(
-                litter=litter, prefix='add_genotyping_info')                 
-            
-            # Make this one with the POST info
+            # Make the form with the POST info
             change_number_of_pups_form = ChangeNumberOfPupsForm(
                 request.POST, prefix='change_pup')
             
@@ -433,6 +429,11 @@ def add_genotyping_information(request, litter_id):
                             mg = MouseGene(mouse_name=mouse, gene_name=gene,
                                 zygosity='?/?')
                             mg.save()
+            
+            # Make the other form, that we're not processing here
+            # Have to do it after the pups have been added
+            form = AddGenotypingInfoForm(
+                litter=litter, prefix='add_genotyping_info')     
         
         elif 'set_genotyping_info' in request.POST:
             # Make the other form, that we're not processing here
