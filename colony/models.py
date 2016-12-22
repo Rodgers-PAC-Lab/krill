@@ -396,6 +396,107 @@ class Cage(models.Model):
             
             return "%s (%s)" % (mousegene_s, breed_type)
     
+    @property
+    def relevant_genesets(self):
+        """The relevant genes for the colony view
+        
+        If it's a breeding cage (litter is defined and unweaned), then 
+        the result is a list with one item: set of all mousegenes from 
+        either parent.
+        
+        If it's not a breeding cage (litter weaned, or undefined), then
+        the result is a list of distinct mousegene sets from each pup.
+        
+        The interpretation depends on type_of_cage
+        Examples:
+            * A cage of Cux2-CreER breeders
+                type_of_cage = 'pure stock'
+                relevant_genes = [('Cux2-CreER',)]
+            * A mating cage of Cux2 and Halo
+                type_of_cage = 'cross'
+                relevant_genes = [('Cux2-CreER', 'flex-halo',)]
+            * A cage of Cux2-Halo progeny
+                type_of_cage = 'progeny'
+                relevant_genes = [('Cux2-CreER', 'flex-halo',)]
+        
+        The most reasonable sort is probably by relevant_genes, and then
+        by type_of_cage.
+        """
+        cage_type = self.type_of_cage
+        
+        if cage_type == 'empty':
+            res = []
+        elif cage_type in ['outcross', 'incross', 'cross',]:
+            # Combine mousegenes from all parents
+            father = self.litter.father
+            mother = self.litter.mother
+            father_set = list(
+                father.mousegene_set.values_list('gene_name__id', flat=True))
+            mother_set = list(
+                mother.mousegene_set.values_list('gene_name__id', flat=True))
+            res = [Gene.objects.filter(
+                id__in=(father_set + mother_set)).values_list(
+                'name', flat=True)]
+        elif cage_type in ['pure stock', 'progeny',]:
+            # List of mousegene sets from each mouse
+            res = []
+            for mouse in self.mouse_set.all():
+                mg_set = tuple(mouse.mousegene_set.values_list(
+                    'gene_name__name', flat=True))
+                if mg_set not in res:
+                    res.append(mg_set)
+        else:
+            # This is an error
+            res = []
+        
+        return res
+    
+    @property
+    def printable_relevant_genesets(self):
+        """Convert relevant genesets to a string"""
+        return '; '.join([
+            ' x '.join(geneset) for geneset in self.relevant_genesets])
+    
+    @property
+    def type_of_cage(self):
+        """Return the type of the cage as a string
+        
+        Breeding cages (litter is defined and unweaned)
+        * 'outcross' : one parent WT
+        * 'incross' : both parents have_same_single_gene
+        * 'cross' : anything else
+        
+        Non-breeding cages (litter is undefined or weaned)
+        * 'empty' : no mice
+        * 'pure stock' : all mice pure_breeder
+        * 'progeny' : anything else
+        """
+        res = None
+        qs = self.mouse_set
+        
+        # Depends on whether there's a litter or not
+        if not hasattr(self, 'litter') or self.litter.date_weaned is not None:
+            # no breeding
+            if qs.count() == 0:
+                res = 'empty'
+            elif qs.filter(pure_breeder=False).count() == 0:
+                res = 'pure stock'
+            else:
+                res = 'progeny'
+        else:
+            # yes breeding
+            mother = self.litter.mother
+            father = self.litter.father
+            if mother.wild_type or father.wild_type:
+                res = 'outcross'
+            elif have_same_single_gene(mother, father):
+                res = 'incross'
+            else:
+                res = 'cross'
+        
+        return res
+    
+    
     def notes_first_half(self, okay_line_length=25):
         """Return the first half of the notes. For CensusView display
         
@@ -1030,11 +1131,13 @@ class Litter(models.Model):
     @property
     def current_change_link(self):
         """Returns to link to add pups, edit pups, or wean as necessary"""
-        if self.dob is None or self.mouse_set.count() == 0:
+        if self.date_weaned is not None:
+            return 'weaned'
+        elif self.dob is None or self.mouse_set.count() == 0:
             # Needs pups added
-            return 'add pups'
+            return '%s; add pups' % self.info
         else:
-            return 'edit'
+            return '%s; edit' % self.info
     
     @property
     def info(self):
