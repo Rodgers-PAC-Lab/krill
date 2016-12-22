@@ -713,6 +713,8 @@ class Mouse(models.Model):
     
     # Whether this mouse is a wild type. It should not have any MouseGene
     # in this case. May need to have another field for "strain".
+    # This should be renamed "pure_wild_type" to clarify that it
+    # implies "pure_breeder" even if "pure_breeder" is not set.
     wild_type = models.BooleanField(default=False)
     
     # Optional fields that can be set by the user
@@ -752,7 +754,7 @@ class Mouse(models.Model):
         it just returns '-/-', regardless of purity.
         """
         if self.wild_type:
-            return 'WT'
+            return 'pure WT'
         
         if self.pure_breeder:
             prefix = 'pure '
@@ -763,9 +765,10 @@ class Mouse(models.Model):
         qs = self.mousegene_set.exclude(zygosity=MouseGene.zygosity_nn)
         if qs.count() == 0:
             # It has no mousegenes, or only -/- mouse genes
-            # Render as '-/-' REGARDLESS of whether it is pure or not
-            # Because "pure -/-" looks weird
-            return '-/-'
+            # Render as 'negative'. Avoid confusion with 'WT'
+            # Also don't include the 'pure' because 'pure negative'
+            # is confusing.
+            return 'negative'
         else:
             # Join remaining mousegenes
             res_l = []
