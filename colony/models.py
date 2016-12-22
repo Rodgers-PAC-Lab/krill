@@ -300,7 +300,9 @@ class Cage(models.Model):
             to filtering by gene
         """
         if not hasattr(self, 'litter') or self.litter.date_weaned is not None:
-            # no breeding
+            ## no breeding
+            if self.mouse_set.count() == 0:
+                return 'empty (empty)'
             
             # If all mice are pure, we label it "pure stock"
             all_mice_pure = True
@@ -341,34 +343,58 @@ class Cage(models.Model):
                 mousegene_s = ' x '.join(relevant_mousegene_set)
             
             if all_mice_pure:
-                return "pure stock (%s)" % mousegene_s
+                return "%s (pure stock)" % mousegene_s
             else:
-                return "progeny (%s)" % mousegene_s
+                return "%s (progeny)" % mousegene_s
         
         else:
-            # yes breeding
+            ## yes breeding
+            # relevant genes
+            father_mousegene_set = list(
+                self.litter.father.mousegene_set.values_list(
+                    'gene_name__name', flat=True))
+            mother_mousegene_set = list(
+                self.litter.mother.mousegene_set.values_list(
+                    'gene_name__name', flat=True))
+                    
             # determine whether it's a cross against WT or between two genotypes
             breed_type = 'none'
             if self.litter.mother.wild_type:
                 # Outcross, mother WT
                 breed_type = 'outcross'
-                relevant_gene = self.litter.father.new_genotype
+                relevant_mousegene_set = father_mousegene_set
+                mousegene_s = ', '.join(relevant_mousegene_set)
             elif self.litter.father.wild_type:
                 # Outcross, father WT
                 breed_type = 'outcross'
-                relevant_gene = self.litter.mother.new_genotype
+                relevant_mousegene_set = mother_mousegene_set
+                mousegene_s = ', '.join(relevant_mousegene_set)
             elif have_same_single_gene(self.litter.father, self.litter.mother):
                 breed_type = 'incross'
-                relevant_gene = self.litter.mother.mousegene_set.first().gene_name.name
+                relevant_mousegene_set = father_mousegene_set
+                mousegene_s = ', '.join(relevant_mousegene_set)
             else:
                 # Cross
                 breed_type = 'cross'
-                relevant_gene = '%s x %s' % (
-                    self.litter.father.new_genotype,
-                    self.litter.mother.new_genotype,
-                )
+                if (
+                    (self.litter.father.mousegene_set.count() == 1) and
+                    (self.litter.mother.mousegene_set.count() == 1)):
+                    # Exactly one mousegene from each
+                    # Do driver and then reporter
+                    if self.litter.father.mousegene_set.first().gene_name.gene_type == 'reporter':
+                        mousegene_s = '%s x %s' % (
+                            mother_mousegene_set[0], father_mousegene_set[0],
+                        )
+                    else:
+                        mousegene_s = '%s x %s' % (
+                            father_mousegene_set[0], mother_mousegene_set[0],
+                        )                        
+                else:
+                    # Something complicated
+                    relevant_mousegene_set = father_mousegene_set + mother_mousegene_set
+                    mousegene_s = ', '.join(relevant_mousegene_set)
             
-            return "%s (%s)" % (breed_type, relevant_gene)
+            return "%s (%s)" % (mousegene_s, breed_type)
     
     def notes_first_half(self, okay_line_length=25):
         """Return the first half of the notes. For CensusView display
