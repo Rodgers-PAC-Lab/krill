@@ -429,6 +429,19 @@ def add_genotyping_information(request, litter_id):
                             mg = MouseGene(mouse_name=mouse, gene_name=gene,
                                 zygosity='?/?')
                             mg.save()
+                elif new_number_of_pups < litter.mouse_set.count():
+                    # Delete unneeded pups
+                    # Assume the pup numbering is correct, so if we want
+                    # to go from 6 to 4, delete 5 and 6
+                    for pupnum in range(new_number_of_pups, litter.mouse_set.count()):
+                        # Find the matching pup
+                        mouse_name = '%s-%d' % (
+                            litter.breeding_cage.name, pupnum + 1)
+                        mouse = Mouse.objects.filter(name=mouse_name)
+                        
+                        # Delete, but do nothing if we didn't find any pups
+                        if mouse.count() == 1:
+                            mouse.delete()
             
             # Make the other form, that we're not processing here
             # Have to do it after the pups have been added
