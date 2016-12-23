@@ -110,7 +110,7 @@ def census_by_genotype(request):
         prefetch_related('litter__mother__mousegene_set').\
         prefetch_related('mouse_set__mousegene_set').\
         prefetch_related('mouse_set__mousegene_set__gene_name').\
-        select_related()
+        select_related('litter', 'litter__father', 'litter__mother', 'proprietor')
     
     # Extract relevant genesets
     relevant_genesets = [cage.relevant_genesets for cage in qs.all()]
