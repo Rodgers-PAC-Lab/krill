@@ -766,7 +766,7 @@ class Mouse(models.Model):
         
         # Get all MouseGenes other than -/-
         res_l = []
-        for mg in self.mousegene_set:
+        for mg in self.mousegene_set.all():
             if mg.zygosity == MouseGene.zygosity_nn:
                 continue
             res_l.append('%s(%s)' % (mg.gene_name, mg.zygosity))
