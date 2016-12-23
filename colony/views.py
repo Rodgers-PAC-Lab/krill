@@ -102,15 +102,15 @@ def census_by_genotype(request):
         prefetch_related('mouse_set__litter').\
         prefetch_related('mouse_set__user').\
         prefetch_related('mouse_set__genotype').\
-        prefetch_related('litter').\
         prefetch_related('litter__mouse_set').\
-        prefetch_related('litter__father').\
-        prefetch_related('litter__mother').\
         prefetch_related('litter__father__mousegene_set').\
         prefetch_related('litter__mother__mousegene_set').\
+        prefetch_related('litter__father__mousegene_set__gene_name').\
+        prefetch_related('litter__mother__mousegene_set__gene_name').\
         prefetch_related('mouse_set__mousegene_set').\
         prefetch_related('mouse_set__mousegene_set__gene_name').\
-        select_related('litter', 'litter__father', 'litter__mother', 'proprietor')
+        select_related('litter', 'litter__father', 'litter__mother', 
+            'proprietor', 'litter__proprietor')
     
     # Extract relevant genesets
     relevant_genesets = [cage.relevant_genesets for cage in qs.all()]
@@ -124,11 +124,14 @@ def census_by_genotype(request):
     # Sort by first gene, then number of genes
     unique_relevant_genesets = sorted(unique_relevant_genesets, 
         key=lambda v: (v[0] if len(v) > 0 else '', len(v)))
-    
+
     # Subset the qs by each geneset in unique_relevant_genesets
     sorted_by_geneset = []
     for geneset in unique_relevant_genesets:
         cage_l = []
+        
+        # This loop triggers a lot of SQL queries
+        # I think it's just evaluating cage which has to happen anyway
         for cage, relevant_geneset in zip(qs.all(), relevant_genesets):
             if geneset in relevant_geneset:
                 cage_l.append(cage)
@@ -138,7 +141,7 @@ def census_by_genotype(request):
             'dname': (' x '.join(geneset)) if len(geneset) > 0 else 'WT',
             'cage_l': cage_l,
         })
-        
+
     return render(request, 'colony/census_by_genotype.html', {
         'sorted_by_geneset': sorted_by_geneset, 
     })
