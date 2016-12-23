@@ -7,13 +7,13 @@ import colony.models
 
 
 cq0 = len(connection.queries)
-v = colony.views.IndexView.as_view()
+v = colony.views.census_by_genotype
 
 factory = RequestFactory()
-request = factory.get('/colony')
+request = factory.get('/colony/census_by_genotype.html')
 
 response = v(request)
-tr = response.render()
+#~ tr = response.render()
 
 #~ print tr.content
 cq1 = len(connection.queries)
