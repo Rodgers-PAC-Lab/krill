@@ -1,10 +1,27 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'colony/table.css' %}" />
 
+<style type="text/css">
+tr
+{
+    font-family: arial, sans-serif;
+    font-size: 12;
+}
+td
+{
+    font-family: arial, sans-serif;
+    font-size: 12;
+}
+body
+{
+    font-family: arial, sans-serif;
+    font-size: 12;
+}
+</style>
 
 <form method="post">
     {% csrf_token %}
-    <h1>Genotyping results for litter {{litter.breeding_cage.name}} </h1>
+    <h1>Managing litter {{litter.breeding_cage.name}}</h1>
     <table>
         <tbody>
             <tr>
@@ -19,16 +36,23 @@
             </tr>            
         </tbody>
     </table>
-    
+
+    <h2>Current information about the litter</h2>
+    <p>Change the number of pups in the litter here:</p>
     {{ change_number_of_pups_form.as_p }}
     <input type="submit" name="change_number_of_pups" value="Set number of pups" />    
     
-    <h1>Results thus far</h1>
+    <br /><br /><p>
+    Change the date of birth, date of toe clipping, mouse sex, mouse name, and 
+    special requests on the 
+    <a href={{ litter.breeding_cage.change_link }}>cage page</a>.
+    </p>
+
+    <p>Each column shows the litter's genotyping results for a single transgene.</p>
     <table>
         <thead>
             <tr>
                 <th>Mouse</th>
-                <th>Old Genotype</th>
                 <th>Gene</th>
                 <th>Zygosity</th>
                 <th>Gene</th>
@@ -40,7 +64,6 @@
         {% for mouse in litter.mouse_set.all %}
             <tr>
                 <td>{{ mouse.name }}</td>
-                <td>{{ mouse.genotype }}</td>
                 {% for mg in mouse.mousegene_set.all %}
                     <td>{{ mg.gene_name }}</td>
                     <td>{{ mg.zygosity }}</td>
@@ -51,6 +74,8 @@
     </table>
     
     {% if litter.mouse_set %}
+        <p>Click these buttons to delete all of the results for one of the transgenes.
+        They can also be edited by entering them again below.</p>
         {% for mg in litter.mouse_set.first.mousegene_set.all %}
             <input type="submit" 
                 name="delete_gene_id_{{mg.gene_name.id}}" 
@@ -59,12 +84,16 @@
         {% endfor %}
     {% endif %}
 
-    <h1>New genotyping results</h1>
-    {{ form.as_p }}
-    <input type="submit" name="set_genotyping_info" value="Submit genotyping" />
-    <br />
+    <h2>Enter new genotyping results</h2>
+    <p>Enter new results here, for a new or existing transgene.
     {% url 'admin:gene:new' cage.pk as add_new_gene_url %} 
     <a href='/admin/colony/gene/add'>
         My gene is not in the drop-down list; I need to add it
-    </a>
+    </a></p>  
+    <p>You can use tab and arrow keys to edit and move between the drop-downs.</p>
+    {{ form.as_p }}
+    
+    <p>Click the button to submit the results. This page will refresh and display the new results.</p>
+    <input type="submit" name="set_genotyping_info" value="Submit genotyping" />
+    <br />
 </form>
