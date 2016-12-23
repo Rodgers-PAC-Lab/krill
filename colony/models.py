@@ -430,19 +430,20 @@ class Cage(models.Model):
             # Combine mousegenes from all parents
             father = self.litter.father
             mother = self.litter.mother
-            father_set = list(
-                father.mousegene_set.values_list('gene_name__id', flat=True))
-            mother_set = list(
-                mother.mousegene_set.values_list('gene_name__id', flat=True))
-            res = [tuple(Gene.objects.filter(
-                id__in=(father_set + mother_set)).values_list(
-                'name', flat=True))]
+            
+            # This syntax was chosen to be SQL efficient with prefetching
+            res = []
+            for parent in [father, mother]:
+                for mg in parent.mousegene_set.all():
+                    if mg.gene_name.name not in res:
+                        res.append(mg.gene_name.name)
         elif cage_type in ['pure stock', 'progeny',]:
             # List of mousegene sets from each mouse
             res = []
             for mouse in self.mouse_set.all():
-                mg_set = tuple(mouse.mousegene_set.values_list(
-                    'gene_name__name', flat=True))
+                # This syntax was chosen to be SQL efficient with prefetching
+                mg_set = tuple([
+                    mg.gene_name.name for mg in mouse.mousegene_set.all()])
                 if mg_set not in res:
                     res.append(mg_set)
         else:
