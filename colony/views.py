@@ -125,22 +125,24 @@ def census_by_genotype(request):
     unique_relevant_genesets = sorted(unique_relevant_genesets, 
         key=lambda v: (v[0] if len(v) > 0 else '', len(v)))
 
-    # Subset the qs by each geneset in unique_relevant_genesets
+    # Iterate once over cages and group by geneset
+    geneset2cage_l = {}
+    for cage in qs.all():
+        for geneset in cage.relevant_genesets:
+            if geneset in geneset2cage_l:
+                geneset2cage_l[geneset].append(cage)
+            else:
+                geneset2cage_l[geneset] = [cage]
+
+    # Now refactor
     sorted_by_geneset = []
     for geneset in unique_relevant_genesets:
-        cage_l = []
-        
-        # This loop triggers a lot of SQL queries
-        # I think it's just evaluating cage which has to happen anyway
-        for cage, relevant_geneset in zip(qs.all(), relevant_genesets):
-            if geneset in relevant_geneset:
-                cage_l.append(cage)
-        
         sorted_by_geneset.append({
             'geneset': geneset,
             'dname': (' x '.join(geneset)) if len(geneset) > 0 else 'WT',
-            'cage_l': cage_l,
+            'cage_l': geneset2cage_l[geneset]
         })
+
 
     return render(request, 'colony/census_by_genotype.html', {
         'sorted_by_geneset': sorted_by_geneset, 
