@@ -489,8 +489,9 @@ class Cage(models.Model):
             # no breeding
             if qs.count() == 0:
                 res = 'empty'
-            elif qs.filter(pure_breeder=False).count() == 0:
-                res = 'pure stock'
+            elif False not in [mouse.pure_breeder for mouse in qs.all()]:
+                # The syntax of this conditional was chosen to be efficient
+                res = 'pure stock'                   
             else:
                 res = 'progeny'
         else:
