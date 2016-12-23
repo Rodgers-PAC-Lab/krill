@@ -437,6 +437,7 @@ class Cage(models.Model):
                 for mg in parent.mousegene_set.all():
                     if mg.gene_name.name not in res:
                         res.append(mg.gene_name.name)
+            res = [tuple(res)]
         elif cage_type in ['pure stock', 'progeny',]:
             # List of mousegene sets from each mouse
             res = []
