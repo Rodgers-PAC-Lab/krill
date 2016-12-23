@@ -764,18 +764,20 @@ class Mouse(models.Model):
             prefix = ''
         
         # Get all MouseGenes other than -/-
-        qs = self.mousegene_set.exclude(zygosity=MouseGene.zygosity_nn)
-        if qs.count() == 0:
+        res_l = []
+        for mg in self.mousegene_set:
+            if mg.zygosity == MouseGene.zygosity_nn:
+                continue
+            res_l.append('%s(%s)' % (mg.gene_name, mg.zygosity))
+        
+        if len(res_l) == 0:
             # It has no mousegenes, or only -/- mouse genes
             # Render as 'negative'. Avoid confusion with 'WT'
             # Also don't include the 'pure' because 'pure negative'
-            # is confusing.
+            # is confusing.            
             return 'negative'
         else:
             # Join remaining mousegenes
-            res_l = []
-            for mg in qs.all():
-                res_l.append('%s(%s)' % (mg.gene_name, mg.zygosity))
             return prefix + '; '.join(res_l)
     
     def get_cage_history_list(self, only_cage_changes=True):
