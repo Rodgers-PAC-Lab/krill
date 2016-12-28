@@ -19,14 +19,15 @@ class MouseGeneInline(nested_inline.admin.NestedTabularInline):
 class MouseInline(nested_inline.admin.NestedTabularInline):
     """Nested within Litter, so this is for adding pups"""
     model = Mouse
-    extra = 1
+    extra = 0
+    max_num = 0
     
     # Exclude the stuff that isn't normally specified when adding pups
     exclude = ('manual_dob', 'manual_mother', 'manual_father', 
-        'sack_date', 'user', 'breeder')
+        'sack_date', 'user', 'breeder', 'genotype', 'pure_breeder', 'wild_type')
     show_change_link = True    
     
-    inlines = [MouseGeneInline,]
+    #~ inlines = [MouseGeneInline,]
     
     # How can we make "notes" the right-most field?
 
