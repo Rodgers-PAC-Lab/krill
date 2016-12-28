@@ -37,7 +37,48 @@ class LitterInline(nested_inline.admin.NestedStackedInline):
     extra = 0
     show_change_link = True
     inlines = [MouseInline]#, MouseGeneInline,]
+    readonly_fields = ('link_to_management_page',)
 
+    # We need access to obj.management_link, so have to put it in this
+    # function
+    def link_to_management_page(self, obj):
+        """Generate link to litter management page"""
+        link_html_code = u'<a href="%s">%s</a><br />' % (
+            obj.management_link, 'Litter management page')
+        return link_html_code
+    link_to_management_page.allow_tags = True        
+    link_to_management_page.short_description = 'Litter management page'
+
+    
+    # The purpose of this fieldset is simply to display help text above
+    # the Mouse Pup inline, but then we have to explicitly declare all
+    # the other fields above it
+    fieldsets = (
+        (None, {
+            'fields': (
+                'proprietor', 'father', 'mother', 'date_mated', 'dob',
+                'date_toeclipped', 'date_weaned', 'date_checked',
+                'notes', 'pcr_info',
+            ),
+            #~ 'description': 'Help text goes here',
+        }),
+        (None, {
+            'fields': ('link_to_management_page',),
+            'description': (
+                '<font size="3">To add pups or provide genotyping ' + 
+                'information, go to the litter management page</font>'),
+        }),
+        (None, {
+            'fields': (),
+            'description': (
+                'Use the lines below to change pup names, sex, or ' + 
+                'cage (i.e., weaning). ' +
+                'In the future this will all be done on the ' + 
+                'litter management page.'
+                )
+        }),        
+    )
+    
 class SpecialRequestInline(admin.TabularInline):
     model = SpecialRequest
     extra = 1

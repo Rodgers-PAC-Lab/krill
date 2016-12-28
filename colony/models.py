@@ -1148,7 +1148,16 @@ class Litter(models.Model):
     
     @property
     def current_change_link(self):
-        """Returns to link to add pups, edit pups, or wean as necessary"""
+        """Returns a string about the status of the litter for the census
+        
+        Will be:
+            'weaned'
+            '%s; add pups'
+            '%s; edit'
+        where %s is self.info()
+        
+        This should be renamed as it is not a link
+        """
         if self.date_weaned is not None:
             return 'weaned'
         elif self.dob is None or self.mouse_set.count() == 0:
@@ -1156,6 +1165,12 @@ class Litter(models.Model):
             return '%s; add pups' % self.info
         else:
             return '%s; edit' % self.info
+
+    @property
+    def management_link(self):
+        """Get a link to the litter management page"""
+        return urlresolvers.reverse("colony:add_genotyping_info", 
+            args=[self.pk])   
     
     @property
     def info(self):
