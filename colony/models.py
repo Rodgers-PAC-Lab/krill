@@ -651,20 +651,16 @@ class Mouse(models.Model):
         """Return a genotype string by concatenating linked MouseGene objects
         
         If wild_type:
-            returns 'WT' (but should probably be a strain)
-        If pure_breeder:
-            prepends "pure "
-        Then it is a list of each linked MouseGene.
-        Exception: if it has no mousegenes, or only -/- mousegenes,
-        it just returns '-/-', regardless of purity.
+            returns 'pure WT'
+        Elif the mouse has no mousegenes, or only -/- mousegenes:
+            returns 'negative'
+        Otherwise:
+            returns a string of the format 
+                "GENE1(ZYGOSITY1); GENE2(ZYGOSITY2)..."
+            Genes with zygosity -/- are not included in this string.
         """
         if self.wild_type:
             return 'pure WT'
-        
-        if self.pure_breeder:
-            prefix = 'pure '
-        else:
-            prefix = ''
         
         # Get all MouseGenes other than -/-
         res_l = []
@@ -681,7 +677,7 @@ class Mouse(models.Model):
             return 'negative'
         else:
             # Join remaining mousegenes
-            return prefix + '; '.join(res_l)
+            return '; '.join(res_l)
     
     def get_cage_history_list(self, only_cage_changes=True):
         """Return list of cage info at every historical timepoint.
