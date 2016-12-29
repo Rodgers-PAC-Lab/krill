@@ -141,7 +141,9 @@ For example, a Halo +/- mouse would be pure stock if it were derived from a Halo
                     {% else %}
                         {{ mouse.new_genotype }}
                     {% endif %}
-                    <font color='green'>{{ mouse.genotype }}</font>
+                    {% if not hide_old_genotype %}
+                        <font color='green'>{{ mouse.genotype }}</font>
+                    {% endif %}                    
                 </td>
                 <td>{% if mouse.pure_breeder %}y{%endif%}</td>
                 <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>

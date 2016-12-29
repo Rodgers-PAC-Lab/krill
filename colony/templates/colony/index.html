@@ -104,7 +104,9 @@ body
                 <a href="{{ add_genotyping_url }}"> 
                     {{ mouse.new_genotype }} 
                 </a>
-                <font color='green'>{{ mouse.genotype }}</font>
+                {% if not hide_old_genotype %}
+                    <font color='green'>{{ mouse.genotype }}</font>
+                {% endif %}
             </td>
             <td>{% if mouse.pure_breeder %}y{%endif%}</td>
             <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>

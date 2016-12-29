@@ -127,15 +127,15 @@ def census(request):
     """
     # Default values for form parameters
     sort_by = request.GET.get('sort_by', 'cage number')
-    hide_old_genotype = ('hide_old_genotype', False)
+    hide_old_genotype = request.GET.get('hide_old_genotype', False)
     
     # Get proprietor name
     proprietor = None
     proprietor_name = request.GET.get('proprietor', None)
     
-    # Also allow person for backwards compatibility
-    if proprietor_name is None:
-        proprietor_name = request.GET.get('person', None)
+    #~ # Also allow person for backwards compatibility
+    #~ if proprietor_name is None:
+        #~ proprietor_name = request.GET.get('person', None)
     
     # Convert to person object
     if proprietor_name is not None:
