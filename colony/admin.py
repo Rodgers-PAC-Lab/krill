@@ -14,22 +14,25 @@ class GeneAdmin(admin.ModelAdmin):
 class MouseGeneInline(nested_inline.admin.NestedTabularInline):
     """Nested within Litter, for adding genotyping information"""
     model = MouseGene
-    extra = 1
+    extra = 0
 
 class MouseInline(nested_inline.admin.NestedTabularInline):
-    """Nested within Litter, so this is for adding pups"""
+    """Inline of pups within litter
+    
+    This is used for setting the sex, cage, and name of the pups.
+    Genotyping and adding pups should be done from litter management.
+    """
     model = Mouse
     extra = 0
+    
+    # Disallow adding mice from the Litter admin
+    # This is because we want to add mice using the genotyping form instead
     max_num = 0
     
     # Exclude the stuff that isn't normally specified when adding pups
     exclude = ('manual_dob', 'manual_mother', 'manual_father', 
         'sack_date', 'user', 'breeder', 'genotype', 'pure_breeder', 'wild_type')
     show_change_link = True    
-    
-    #~ inlines = [MouseGeneInline,]
-    
-    # How can we make "notes" the right-most field?
 
 class LitterInline(nested_inline.admin.NestedStackedInline):
     """For adding a Litter to a Cage"""
@@ -369,7 +372,17 @@ class MouseAdmin(admin.ModelAdmin):
                 'These properties are normally derived from the litter. '
                 'Override mother, father, and DOB here if necessary.'),
         }),        
+            (None, {
+            'fields': (),
+            'description': (
+                'Add a gene for a newly acquired pure breeder here. ' +
+                'For progeny mice, genotyping info should instead be added ' + 
+                'using the "litter management page" linked above.')
+        }),    
     )
+    
+    # Inlines for adding mouse genes
+    inlines = [MouseGeneInline,]
     
 class MouseGeneAdmin(admin.ModelAdmin):
     list_display = ('mouse_name', 'gene_name', 'zygosity',)
