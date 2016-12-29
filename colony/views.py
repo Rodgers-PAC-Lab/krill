@@ -28,6 +28,9 @@ def census_by_cage_number(request, census_filter_form, proprietor,
         # pname = self.request.user.username
         qs = qs.filter(proprietor=proprietor) 
     
+    # Order by name
+    qs = qs.order_by('name')
+    
     # Now select related
     qs = qs.prefetch_related('mouse_set').\
         prefetch_related('specialrequest_set').\
