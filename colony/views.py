@@ -133,9 +133,10 @@ def census(request):
     proprietor = None
     proprietor_name = request.GET.get('proprietor', None)
     
-    #~ # Also allow person for backwards compatibility
-    #~ if proprietor_name is None:
-        #~ proprietor_name = request.GET.get('person', None)
+    # Also allow the login name to be specified by the person parameter
+    if proprietor_name is None:
+        person_name = request.GET.get('person', None)
+        proprietor_name = get_person_name_from_user_name(person_name)
     
     # Convert to person object
     if proprietor_name is not None:
