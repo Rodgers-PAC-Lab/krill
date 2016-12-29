@@ -85,12 +85,8 @@ body
     {% endif %}
 
     <h2>Enter new genotyping results</h2>
-    <p>Enter new results here, for a new or existing transgene.
-    {% url 'admin:gene:new' cage.pk as add_new_gene_url %} 
-    <a href='/admin/colony/gene/add'>
-        My gene is not in the drop-down list; I need to add it
-    </a></p>  
-    <p>You can use tab and arrow keys to edit and move between the drop-downs.</p>
+    <p>Enter new results here, for a new or existing transgene. You can use 
+    tab and arrow keys to edit and move between the drop-downs.</p>
     {{ form.as_p }}
     
     <p>Click the button to submit the results. This page will refresh and display the new results.</p>
