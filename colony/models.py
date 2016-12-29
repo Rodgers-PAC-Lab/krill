@@ -596,11 +596,13 @@ class Mouse(models.Model):
     Required fields
         name: unique. Should almost always be LITTERNUM-TOENUM
         sex: M, F, or ?
-        genotype: foreign key to genotype
     
     Optional fields that are often set
         cage: cage object in which this mouse is physically located
         sack_date: date of death
+
+    Deprecated:
+        genotype: foreign key to genotype
         breeder: boolean, used mainly for filtering in MouseList to see
             whether we have enough breeders
 
@@ -624,8 +626,8 @@ class Mouse(models.Model):
             (2, '?'),
             )
         )
-    genotype = models.ForeignKey(Genotype)
     
+    ## Optional fields that can be set by the user
     # Whether this mouse is a pure breeder
     # This means that any offspring it has with WT mice will also be
     # pure breeders. We will mainly use this to identify maintenance
@@ -646,10 +648,9 @@ class Mouse(models.Model):
         help_text=(
             'Check this box if this mouse was acquired as a pure wild type.'))
     
-    # Optional fields that can be set by the user
+    
     cage = models.ForeignKey(Cage, null=True, blank=True)
     sack_date = models.DateField('sac date', blank=True, null=True)
-    breeder = models.BooleanField(default=False)
     user = models.ForeignKey(Person, null=True, blank=True)    
     notes = models.CharField(max_length=100, null=True, blank=True)    
     
@@ -662,6 +663,10 @@ class Mouse(models.Model):
 
     # This field is almost always set at the time of creation of a new Litter
     litter = models.ForeignKey('Litter', null=True, blank=True)
+
+    ## Deprecated fields
+    breeder = models.BooleanField(default=False)
+    genotype = models.ForeignKey(Genotype, null=True, blank=True)
     
     # track history with simple_history
     history = HistoricalRecords()
@@ -921,22 +926,6 @@ class Mouse(models.Model):
     
     def __str__(self):
         return str(self.name)
-    
-    # This is no longer necessary because the manual_dob field is used
-    # to contain this information. In fact we *don't* want to autosave
-    # the DOB in this way, because if the litter DOB is changed later, then
-    # we want the mouse DOB to automatically update.
-    #~ def save(self, *args, **kwargs):
-        #~ if self.litter and not self.pk:
-            #~ self.manual_dob = self.litter.dob
-        #~ return super(Mouse, self).save(*args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        # When creating pup in a litter nested inline, automatically place
-        # in the breeding cage
-        if self.litter and self.litter.breeding_cage and not self.pk:
-            self.cage = self.litter.breeding_cage
-        return super(Mouse, self).save(*args, **kwargs)
 
 class Gene(models.Model):
     """A particular gene, such as Emx-Cre.
