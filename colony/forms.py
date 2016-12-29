@@ -92,3 +92,15 @@ class ChangeNumberOfPupsForm(forms.Form):
     number_of_pups = forms.IntegerField(
         label='Number of pups',
     )
+
+class CensusFilterForm(forms.Form):
+    """Allows various sorting and filtering of the census"""
+    sort_method = forms.ChoiceField(
+        label='Sort by',
+        choices=[(c, c) for c in ('cage number', 'genotype',)]
+    )
+    
+    hide_old_genotype = forms.BooleanField(
+        label='Hide old genotype',
+        required=False,
+    )

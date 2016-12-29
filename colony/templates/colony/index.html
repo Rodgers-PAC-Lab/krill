@@ -18,6 +18,11 @@ body
 }
 </style>
 
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Apply">
+</form>
 
 {# big table of cages #}
 <table border="0" style="text-align: center; border-collapse: collapse">

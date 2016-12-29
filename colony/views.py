@@ -9,83 +9,53 @@ from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name,
     HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype)
 from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
-    ChangeNumberOfPupsForm)
+    ChangeNumberOfPupsForm, CensusFilterForm)
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
-# Create your views here.
-
-class IndexView(generic.ListView):
-    """Returns all cages sorted by name for the CensusView to display
+def census_by_cage_number(request, census_filter_form):
+    """View for displaying by cage number
     
-    See the template in templates/colony/index.html
+    Usually dispatched from census
     """
-    template_name = 'colony/index.html'
-    model = Cage
-
-    def get_queryset(self):
-        """Return cages relating to a certain user.
-        
-        'person' can be passed as a query parameter
-        For now this is applied to the proprietor field of the cage.
-        
-        'order_by' can be passed as a query parameter
-        
-        TODO: also apply to user field of mouse, and special request
-        field.
-        
-        TODO: Link this to the Person class, to account for usernames
-        that don't exactly match Person names. Right now we're using
-        'proprietor_name_icontains', which works for 'Amanda/Georgia',
-        but wouldn't work for names that are subsets of other names.
-        """
-        # could also do:
-        # pname = self.request.user.username
-        pname = self.request.GET.get('person')
-        order_by = self.request.GET.get('order_by', 'name')
-        
-        # ensure order_by is valid
-        # this fucks up ordering by -column_name
-        # so disregard this check and let the user enter it correctly
-        # http://stackoverflow.com/questions/7173856/django-order-by-fielderror-exception-can-not-be-catched
-        #~ try:
-            #~ Cage._meta.get_field_by_name(order_by)
-        #~ except FieldDoesNotExist:
-            #~ order_by = None
-        
-        qs = Cage.objects.filter(defunct=False)
-        
-        # First filter
-        if pname:
-            qs = qs.filter(proprietor__name__icontains=pname) 
-        
-        # Now order
-        if order_by:
-            # What if order_by == 'name'?
-            qs = qs.order_by(order_by, 'name')
-        
-        # Now select related
-        qs = qs.prefetch_related('mouse_set').\
-            prefetch_related('specialrequest_set').\
-            prefetch_related('specialrequest_set__requester').\
-            prefetch_related('specialrequest_set__requestee').\
-            prefetch_related('mouse_set__litter').\
-            prefetch_related('mouse_set__user').\
-            prefetch_related('mouse_set__genotype').\
-            prefetch_related('litter').\
-            prefetch_related('litter__mouse_set').\
-            prefetch_related('litter__father').\
-            prefetch_related('litter__mother').\
-            prefetch_related('mouse_set__mousegene_set').\
-            prefetch_related('mouse_set__mousegene_set__gene_name').\
-            select_related()
-
-        return qs
-
-def census_by_genotype(request):
-    """View cages sorted by genotype"""
+    # could also do:
+    # pname = self.request.user.username
     pname = request.GET.get('person')
-    order_by = request.GET.get('order_by', 'name')
+    qs = Cage.objects.filter(defunct=False)
+    
+    # First filter
+    if pname:
+        qs = qs.filter(proprietor__name__icontains=pname) 
+    
+    # Now select related
+    qs = qs.prefetch_related('mouse_set').\
+        prefetch_related('specialrequest_set').\
+        prefetch_related('specialrequest_set__requester').\
+        prefetch_related('specialrequest_set__requestee').\
+        prefetch_related('mouse_set__litter').\
+        prefetch_related('mouse_set__user').\
+        prefetch_related('mouse_set__genotype').\
+        prefetch_related('litter').\
+        prefetch_related('litter__mouse_set').\
+        prefetch_related('litter__father').\
+        prefetch_related('litter__mother').\
+        prefetch_related('mouse_set__mousegene_set').\
+        prefetch_related('mouse_set__mousegene_set__gene_name').\
+        select_related()
+
+    return render(request, 'colony/index.html', {
+        'form': census_filter_form,
+        'object_list': qs,
+    })
+
+
+def census_by_genotype(request, census_filter_form):
+    """View cages sorted by genotype
+    
+    Usually dispatched from census
+    sorted_by_geneset is added to context
+    """
+    pname = request.GET.get('person')
 
     # Get all non-defunct cages
     qs = Cage.objects.filter(defunct=False)    
@@ -143,10 +113,46 @@ def census_by_genotype(request):
             'cage_l': geneset2cage_l[geneset]
         })
 
-
     return render(request, 'colony/census_by_genotype.html', {
-        'sorted_by_geneset': sorted_by_geneset, 
+        'form': census_filter_form,
+        'sorted_by_geneset': sorted_by_geneset,
     })
+
+def census(request):
+    """Display cages and option for sorting or filtering"""
+    
+    sort_by = 'cage number'
+    
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # Make the form with the POST info
+        census_filter_form = CensusFilterForm(request.POST)
+        
+        if census_filter_form.is_valid():
+            # Set the new sort method if it was chosen
+            new_sort_method = census_filter_form.cleaned_data['sort_method']
+            sort_by = new_sort_method
+        else:
+            # If not valid, I think it returns the same form, and magically
+            # inserts the error messages
+            pass
+    else:
+        ## GET, so create a blank form
+        new_sort_method = request.GET.get('sort_by')
+        if new_sort_method is not None:
+            sort_by = new_sort_method
+        initial = {
+            'sort_method': sort_by,
+            'hide_old_genotype': False,
+        }
+        census_filter_form = CensusFilterForm(initial=initial)
+
+    # Dispatch to appropriate view, with the form
+    if sort_by == 'cage number':
+        view = census_by_cage_number
+    elif sort_by == 'genotype':
+        view = census_by_genotype
+    return view(request, census_filter_form=census_filter_form)
     
 
 def make_mating_cage(request):
