@@ -379,6 +379,8 @@ class Cage(models.Model):
         * 'outcross' : one parent WT
         * 'incross' : both parents have_same_single_gene
         * 'cross' : anything else
+        This result is prepended with 'impure' if either of the parents
+        are not pure_breeder. (wild_type implies pure_breeder.)
         
         Non-breeding cages (litter is undefined or weaned)
         * 'empty' : no mice
@@ -402,12 +404,27 @@ class Cage(models.Model):
             # yes breeding
             mother = self.litter.mother
             father = self.litter.father
+            
+            # wild_type implies pure_breeder
+            mother_pure = mother.wild_type or mother.pure_breeder
+            father_pure = father.wild_type or father.pure_breeder
+            
+            # determine the type of cross
             if mother.wild_type or father.wild_type:
-                res = 'outcross'
+                if mother_pure and father_pure:
+                    res = 'outcross'
+                else:
+                    res = 'impure outcross'
             elif have_same_single_gene(mother, father):
-                res = 'incross'
+                if mother_pure and father_pure:
+                    res = 'incross'
+                else:
+                    res = 'impure incross'
             else:
-                res = 'cross'
+                if mother_pure and father_pure:
+                    res = 'cross'
+                else:
+                    res = 'impure cross'
         
         return res
     
@@ -614,13 +631,19 @@ class Mouse(models.Model):
     # cages vs experimental cages. I can't think of a reason why
     # a pure breeder would have more than one MouseGene, but maybe it's
     # possible.
-    pure_breeder = models.BooleanField(default=False)
+    pure_breeder = models.BooleanField(default=False,
+        help_text=(
+            'Check this box if this mouse was acquired as a pure breeder. ' +
+            'Its progeny with a wild type will automatically inherit ' +
+            'this status.'))
     
     # Whether this mouse is a wild type. It should not have any MouseGene
     # in this case. May need to have another field for "strain".
     # This should be renamed "pure_wild_type" to clarify that it
     # implies "pure_breeder" even if "pure_breeder" is not set.
-    wild_type = models.BooleanField(default=False)
+    wild_type = models.BooleanField(default=False,
+        help_text=(
+            'Check this box if this mouse was acquired as a pure wild type.'))
     
     # Optional fields that can be set by the user
     cage = models.ForeignKey(Cage, null=True, blank=True)

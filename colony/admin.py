@@ -281,19 +281,19 @@ class SackFilter(admin.SimpleListFilter):
             return queryset.filter(sack_date__isnull=True)
 
 class MouseAdmin(admin.ModelAdmin):
-    #search_fields = ['name']
-    
-    # This controls the columns that show up on the Admin page for Mouse
+    """Mouse administration: list view and individual admin page"""
+    ## List view for mice
+    # The columns that show up
     list_display = ('name', 'user', 'dob', 'age', 'sacked', 'sex', 'cage', 
-        'breeder', 'genotype', 'notes',)
+        'genotype', 'notes',)
     list_editable = ('notes',)
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
         'link_to_mother', 'link_to_father', 'link_to_progeny',
-        'link_to_cage', 'cage_history_string',)
-    #~ list_display_links = ('name', 'litter', 'cage')
+        'link_to_cage', 'cage_history_string', 'litter_management',)
+
+    # How to filter and search
     list_filter = ['cage__proprietor', 'breeder', SackFilter, 
         'genotype__name', ]
-    
     search_fields = ('name', 'genotype__name',)
     
     # How it is sorted by default
@@ -336,20 +336,27 @@ class MouseAdmin(admin.ModelAdmin):
         return link_html_code
     link_to_progeny.allow_tags=True    
 
-    ## Define what shows up on the individual mouse admin page
+    def litter_management(self, obj):
+        """Generate link to litter management page"""
+        link_html_code = u'<a href="%s">%s</a><br />' % (
+            obj.litter.management_link, 'Litter management page')
+        return link_html_code
+    litter_management.allow_tags = True        
+
+    ## Individual Mouse admin page
     fieldsets = (
         (None, {
-            'fields': ('name', 'sex', 'genotype',),
+            'fields': ('name', 'sex',),
             'description': 'Required properties',
         }),
         (None, {
             'fields': ('cage', 'link_to_cage', 'sack_date', 
-                'breeder', 'user', 'notes', 'litter',),
+                'user', 'notes',),
             'description': 'Optional properties',
         }),        
         (None, {
             'fields': ('link_to_mother', 'link_to_father', 'link_to_progeny',
-                'pure_breeder', 'wild_type',),
+                'pure_breeder', 'wild_type', 'litter_management'),
             'description': 'Genealogy',
         }),     
         (None, {
@@ -363,11 +370,6 @@ class MouseAdmin(admin.ModelAdmin):
                 'Override mother, father, and DOB here if necessary.'),
         }),        
     )
-
-    #~ # Was hoping to get filtering by sacked working, but doesn't seem to
-    #~ def get_queryset(self, request):
-        #~ qs = super(MouseAdmin, self).get_queryset(request)
-        #~ return qs.annotate(is_sacked=Count('sack_date'))
     
 class MouseGeneAdmin(admin.ModelAdmin):
     list_display = ('mouse_name', 'gene_name', 'zygosity',)
