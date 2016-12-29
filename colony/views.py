@@ -121,7 +121,10 @@ def census_by_genotype(request, census_filter_form, proprietor,
     })
 
 def census(request):
-    """Display cages and option for sorting or filtering"""
+    """Display cages and option for sorting or filtering
+    
+    This also handles all getting of GET parameters
+    """
     # Default values for form parameters
     sort_by = request.GET.get('sort_by', 'cage number')
     hide_old_genotype = ('hide_old_genotype', False)
