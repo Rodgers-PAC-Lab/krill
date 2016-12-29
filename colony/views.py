@@ -13,19 +13,20 @@ from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
-def census_by_cage_number(request, census_filter_form):
+def census_by_cage_number(request, census_filter_form, proprietor, 
+    hide_old_genotype):
     """View for displaying by cage number
     
     Usually dispatched from census
     """
-    # could also do:
-    # pname = self.request.user.username
-    pname = request.GET.get('person')
+    # Get all non-defunct cages
     qs = Cage.objects.filter(defunct=False)
     
-    # First filter
-    if pname:
-        qs = qs.filter(proprietor__name__icontains=pname) 
+    # Filter by proprietor
+    if proprietor is not None:
+        # could also do:
+        # pname = self.request.user.username
+        qs = qs.filter(proprietor=proprietor) 
     
     # Now select related
     qs = qs.prefetch_related('mouse_set').\
@@ -46,23 +47,23 @@ def census_by_cage_number(request, census_filter_form):
     return render(request, 'colony/index.html', {
         'form': census_filter_form,
         'object_list': qs,
+        'hide_old_genotype': hide_old_genotype,
     })
 
 
-def census_by_genotype(request, census_filter_form):
+def census_by_genotype(request, census_filter_form, proprietor, 
+    hide_old_genotype):
     """View cages sorted by genotype
     
     Usually dispatched from census
     sorted_by_geneset is added to context
     """
-    pname = request.GET.get('person')
-
     # Get all non-defunct cages
     qs = Cage.objects.filter(defunct=False)    
 
     # Filter by proprietor
-    if pname:
-        qs = qs.filter(proprietor__name__icontains=pname) 
+    if proprietor is not None:
+        qs = qs.filter(proprietor=proprietor) 
 
     # Now select related
     qs = qs.prefetch_related('mouse_set').\
@@ -116,13 +117,29 @@ def census_by_genotype(request, census_filter_form):
     return render(request, 'colony/census_by_genotype.html', {
         'form': census_filter_form,
         'sorted_by_geneset': sorted_by_geneset,
+        'hide_old_genotype': hide_old_genotype,
     })
 
 def census(request):
     """Display cages and option for sorting or filtering"""
+    # Default values for form parameters
+    sort_by = request.GET.get('sort_by', 'cage number')
+    hide_old_genotype = ('hide_old_genotype', False)
     
-    sort_by = 'cage number'
+    # Get proprietor name
+    proprietor = None
+    proprietor_name = request.GET.get('proprietor', None)
     
+    # Also allow person for backwards compatibility
+    if proprietor_name is None:
+        proprietor_name = request.GET.get('person', None)
+    
+    # Convert to person object
+    if proprietor_name is not None:
+        proprietor_qs = Person.objects.filter(name=proprietor_name)
+        if proprietor_qs.count() > 0:
+            proprietor = proprietor_qs.first()
+
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # Make the form with the POST info
@@ -130,20 +147,23 @@ def census(request):
         
         if census_filter_form.is_valid():
             # Set the new sort method if it was chosen
-            new_sort_method = census_filter_form.cleaned_data['sort_method']
-            sort_by = new_sort_method
+            sort_by = census_filter_form.cleaned_data['sort_method']
+            
+            # Set other parameters
+            proprietor = census_filter_form.cleaned_data['proprietor']
+            hide_old_genotype = census_filter_form.cleaned_data[
+                'hide_old_genotype']
         else:
             # If not valid, I think it returns the same form, and magically
             # inserts the error messages
             pass
     else:
         ## GET, so create a blank form
-        new_sort_method = request.GET.get('sort_by')
-        if new_sort_method is not None:
-            sort_by = new_sort_method
+        # Set up the initial values
         initial = {
             'sort_method': sort_by,
-            'hide_old_genotype': False,
+            'proprietor': proprietor,
+            'hide_old_genotype': hide_old_genotype,
         }
         census_filter_form = CensusFilterForm(initial=initial)
 
@@ -152,7 +172,8 @@ def census(request):
         view = census_by_cage_number
     elif sort_by == 'genotype':
         view = census_by_genotype
-    return view(request, census_filter_form=census_filter_form)
+    return view(request, census_filter_form=census_filter_form,
+        proprietor=proprietor, hide_old_genotype=hide_old_genotype)
     
 
 def make_mating_cage(request):

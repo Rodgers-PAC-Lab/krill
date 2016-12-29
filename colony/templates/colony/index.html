@@ -20,10 +20,16 @@ body
 
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Apply">
+    <p style="font-size: 14;">
+    Selection filters:
+    Proprietor {{ form.proprietor }}
+    Sort by {{ form.sort_method }}
+    Hide old genotype {{ form.hide_old_genotype }}
+    <input type="submit" value="Apply selection filters">
+    </p>
 </form>
-
+<h2>Census View, sorted by cage number</h2>
+<p>This is a list of all cages in the colony, sorted by cage number.</p>
 {# big table of cages #}
 <table border="0" style="text-align: center; border-collapse: collapse">
     {# header row #}

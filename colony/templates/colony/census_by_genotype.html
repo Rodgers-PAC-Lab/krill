@@ -17,7 +17,16 @@ body
     font-size: 10;
 }
 </style>
-
+<form method="post">
+    {% csrf_token %}
+    <p style="font-size: 14;">
+    Selection filters:
+    Proprietor {{ form.proprietor }}
+    Sort by {{ form.sort_method }}
+    Hide old genotype {{ form.hide_old_genotype }}
+    <input type="submit" value="Apply selection filters">
+    </p>
+</form>
 <h2>Census View, sorted by genotype</h2>
 <p>This is a list of all cages in the colony, sorted by genotype. Cages may be
 listed multiple times if they contain a mixture of genotypes.</p>
@@ -46,17 +55,6 @@ Each non-breeding cage is one of the following types:
 <p>
 For example, a Halo +/- mouse would be pure stock if it were derived from a Halo x WT outcross, but would be progeny if it were derived from a Nr5a x Halo cross and did not inherit the Nr5a.
 </p>
-
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Apply">
-</form>
-
-Sort by: dropdown with choice of (cage number, geneset: first gene then # genes; geneset: first # genes then gene)<br />
-Filter by proprietor: dropdown of person<br />
-Filter by geneset: dropdown of genes<br />
-Filter by cage type: dropdown of cage types<br />
 <br />
 
 <table border="0" style="text-align: center; border-collapse: collapse">

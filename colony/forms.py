@@ -95,6 +95,12 @@ class ChangeNumberOfPupsForm(forms.Form):
 
 class CensusFilterForm(forms.Form):
     """Allows various sorting and filtering of the census"""
+    proprietor = forms.ModelChoiceField(
+        label='Cage proprietor',
+        queryset=Person.objects.all(),
+        required=False,
+    )
+    
     sort_method = forms.ChoiceField(
         label='Sort by',
         choices=[(c, c) for c in ('cage number', 'genotype',)]

@@ -5,7 +5,7 @@ from . import views
 
 app_name = 'colony'
 urlpatterns = [
-    url(r'^$', login_required(views.IndexView.as_view()), name='index'),
+    url(r'^$', login_required(views.census), name='index'),
     url(r'^census$', login_required(views.census), name='census'),
     url(r'^census_by_genotype$', login_required(views.census_by_genotype), name='census_by_genotype'),
     url(r'^new_mating_cage$', login_required(views.make_mating_cage), name='new_mating_cage'),
