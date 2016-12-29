@@ -304,26 +304,51 @@ class Cage(models.Model):
         if cage_type == 'empty':
             res = []
         elif cage_type in ['outcross', 'incross', 'cross',]:
-            # Combine mousegenes from all parents
+            ## Combine mousegenes from all parents
+            # The result will be a list with one element
+            # That element will be a tuple of all the distinct gene names
+            # in the parents.
             father = self.litter.father
             mother = self.litter.mother
             
+            # Extract the gene names and types from each parent
             # This syntax was chosen to be SQL efficient with prefetching
-            res = []
+            gene_name_res = []
+            gene_type_res = []
             for parent in [father, mother]:
                 for mg in parent.mousegene_set.all():
-                    if mg.gene_name.name not in res:
-                        res.append(mg.gene_name.name)
-            res = [tuple(res)]
+                    if mg.gene_name.name not in gene_name_res:
+                        gene_name_res.append(mg.gene_name.name)
+                        gene_type_res.append(mg.gene_name.gene_type)
+            
+            # Sort the gene names by the gene types
+            sorted_gene_names = [gene_name for gene_type, gene_name in 
+                sorted(zip(gene_type_res, gene_name_res))]
+            
+            res = [tuple(sorted_gene_names)]
         elif cage_type in ['pure stock', 'progeny',]:
-            # List of mousegene sets from each mouse
+            ## List of mousegene sets from each mouse
+            # The result will be a list of distinct tuples of gene names
+            # in each mouse in the cage.
             res = []
             for mouse in self.mouse_set.all():
+                # Extract the gene names and types from this pup                
+                gene_name_res = []
+                gene_type_res = []  
+        
                 # This syntax was chosen to be SQL efficient with prefetching
-                mg_set = tuple([
-                    mg.gene_name.name for mg in mouse.mousegene_set.all()])
-                if mg_set not in res:
-                    res.append(mg_set)
+                for mg in mouse.mousegene_set.all():
+                    gene_name_res.append(mg.gene_name.name)
+                    gene_type_res.append(mg.gene_name.gene_type)
+                
+                # Sort the gene names by the gene types
+                sorted_gene_names = tuple([
+                    gene_name for gene_type, gene_name in 
+                    sorted(zip(gene_type_res, gene_name_res))])
+                
+                # Append if distinct
+                if sorted_gene_names not in res:
+                    res.append(sorted_gene_names)
         else:
             # This is an error
             res = []
