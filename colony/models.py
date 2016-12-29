@@ -303,7 +303,8 @@ class Cage(models.Model):
         
         if cage_type == 'empty':
             res = []
-        elif cage_type in ['outcross', 'incross', 'cross',]:
+        elif cage_type in ['outcross', 'incross', 'cross', 
+            'impure outcross', 'impure incross', 'impure cross', ]:
             ## Combine mousegenes from all parents
             # The result will be a list with one element
             # That element will be a tuple of all the distinct gene names
