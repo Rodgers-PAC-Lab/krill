@@ -55,6 +55,20 @@ class AddGenotypingInfoForm(forms.Form):
     def __init__(self, *args, **kwargs):
         litter = kwargs.pop('litter')
         super(AddGenotypingInfoForm, self).__init__(*args, **kwargs)
+
+        # Identify relevant genes for this litter
+        relevant_genes = litter.breeding_cage.relevant_genesets
+        try:
+            relevant_genes = relevant_genes[0]
+        except IndexError:
+            # This shouldn't happen
+            pass
+        
+        # Select from the relevant genes
+        self.fields['gene_name'] = forms.ModelChoiceField(
+            label="Choose the gene that was tested",
+            queryset=Gene.objects.filter(name__in=relevant_genes).all(),
+        )
         
         # Reorder the choices in order more likely to be clicked
         choices = [(c, c) for c in (
@@ -73,11 +87,6 @@ class AddGenotypingInfoForm(forms.Form):
                 choices=choices,
                 widget=forms.RadioSelect(renderer=HorizontalRadioRenderer)
             )
-    
-    gene_name = forms.ModelChoiceField(
-        label="Choose the gene that was tested",
-        queryset=Gene.objects.all(),
-    )
     
 class ChangeNumberOfPupsForm(forms.Form):
     number_of_pups = forms.IntegerField(
