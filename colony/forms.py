@@ -2,6 +2,15 @@ from django import forms
 
 from .models import Mouse, Cage, Person, Gene, MouseGene
 
+from django.utils.safestring import mark_safe
+
+class HorizontalRadioRenderer(forms.RadioSelect.renderer):
+    """Arrange the radio select buttons for genotyping horizontally
+    
+    http://stackoverflow.com/questions/5935546/align-radio-buttons-horizontally-in-django-forms
+    """
+    def render(self):
+        return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
 
 class MatingCageForm(forms.Form):
     """Form for creating a new mating cage"""
@@ -47,14 +56,22 @@ class AddGenotypingInfoForm(forms.Form):
         litter = kwargs.pop('litter')
         super(AddGenotypingInfoForm, self).__init__(*args, **kwargs)
         
-        # Create a choices that includes ---
-        choices = list(MouseGene.zygosity_choices_dbl)
-        choices.insert(0, ('', '---'))
+        # Reorder the choices in order more likely to be clicked
+        choices = [(c, c) for c in (
+            MouseGene.zygosity_nn,
+            MouseGene.zygosity_yn,
+            MouseGene.zygosity_yy,
+            MouseGene.zygosity_mn,
+            MouseGene.zygosity_ym,
+            MouseGene.zygosity_mm,
+        )]
         
+        # Add a field for each mouse
         for mouse in litter.mouse_set.all():
             self.fields['result_%s' % mouse.name] = forms.ChoiceField(
                 label="Result for mouse %s" % mouse.name,
                 choices=choices,
+                widget=forms.RadioSelect(renderer=HorizontalRadioRenderer)
             )
     
     gene_name = forms.ModelChoiceField(
