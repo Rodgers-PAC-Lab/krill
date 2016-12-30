@@ -69,7 +69,8 @@ body
                     {% endif %}   
                     <br>
                     {# Third line: type of cage #}
-                    {{ cage.type_of_cage }}
+                    {{ cage.type_of_cage }}:
+                    {{ cage.printable_relevant_genesets }}
                 </td>
             {% endif %}
             {# Insert empty details for additional rows #}
@@ -164,8 +165,9 @@ body
                         </a>
                     {% endif %}   
                     <br>
-                    {# Third line: cage type #}
-                    {{ cage.type_of_cage }}   
+                    {# Third line: type of cage #}
+                    {{ cage.type_of_cage }}: 
+                    {{ cage.printable_relevant_genesets }}
                 </td>                
                 
                 {# six empty spots #}
