@@ -130,7 +130,7 @@ def census(request):
     """
     # Default values for form parameters
     sort_by = request.GET.get('sort_by', 'cage number')
-    hide_old_genotype = request.GET.get('hide_old_genotype', False)
+    hide_old_genotype = request.GET.get('hide_old_genotype', True)
     
     # Get proprietor name
     proprietor = None
