@@ -375,6 +375,16 @@ class Cage(models.Model):
     @property
     def type_of_cage(self):
         """Return the type of the cage as a string
+    
+        It is a breeding cage if it has a litter attribute AND (the mother
+        is still in the cage, or the cage is empty). This includes the 
+        case where the pups were weaned into another cage and the 
+        mother left behind. It also includes the case where all the mice
+        are gone.
+        
+        It is not a breeding cage if it does not have a litter attribute,
+        or (the cage has some mice but not the mother). This includes the 
+        case where the pups were weaned by moving the mother somewhere else.
         
         Breeding cages (litter is defined and unweaned)
         * 'outcross' : one parent WT
@@ -391,18 +401,13 @@ class Cage(models.Model):
         res = None
         qs = self.mouse_set
         
+        mother_in_cage = self.contains_mother_of_this_litter
+        is_empty = qs.count() == 0
+        has_litter_obj = hasattr(self, 'litter')
+        
         # Depends on whether there's a litter or not
-        if not hasattr(self, 'litter') or self.litter.date_weaned is not None:
-            # no breeding
-            if qs.count() == 0:
-                res = 'empty'
-            elif False not in [mouse.pure_breeder for mouse in qs.all()]:
-                # The syntax of this conditional was chosen to be efficient
-                res = 'pure stock'                   
-            else:
-                res = 'progeny'
-        else:
-            # yes breeding
+        if has_litter_obj and (mother_in_cage or is_empty):
+            # It is a breeding cage
             mother = self.litter.mother
             father = self.litter.father
             
@@ -425,10 +430,18 @@ class Cage(models.Model):
                 if mother_pure and father_pure:
                     res = 'cross'
                 else:
-                    res = 'impure cross'
+                    res = 'impure cross'        
+        else:
+            # no breeding
+            if qs.count() == 0:
+                res = 'empty'
+            elif False not in [mouse.pure_breeder for mouse in qs.all()]:
+                # The syntax of this conditional was chosen to be efficient
+                res = 'pure stock'                   
+            else:
+                res = 'progeny'
         
         return res
-    
     
     def notes_first_half(self, okay_line_length=25):
         """Return the first half of the notes. For CensusView display
