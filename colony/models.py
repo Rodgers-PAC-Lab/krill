@@ -1024,7 +1024,7 @@ class Litter(models.Model):
         primary_key=True)    
     
     # Required field
-    proprietor = models.ForeignKey(Person, default=1)
+    proprietor = models.ForeignKey(Person, null=True, blank=True)
 
     # ForeignKey to father and mother of Litter
     father = models.ForeignKey('Mouse',
@@ -1243,11 +1243,6 @@ class Litter(models.Model):
         result_s = '<br />'.join(results_s_l)
         return result_s
     auto_needs_message.allow_tags = True
-
-    def save(self, *args, **kwargs):
-        if self.breeding_cage and not self.pk:
-            self.proprietor = self.breeding_cage.proprietor
-        return super(Litter, self).save(*args, **kwargs)
 
 class SpecialRequest(models.Model):
     cage = models.ForeignKey(Cage)
