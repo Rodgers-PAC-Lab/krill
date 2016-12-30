@@ -850,7 +850,7 @@ class Mouse(models.Model):
             res += 'P%d ' % age
         
         # Always add genotype
-        res += str(self.genotype)
+        res += str(self.new_genotype)
         
         # Add user if we know it
         if self.user:
