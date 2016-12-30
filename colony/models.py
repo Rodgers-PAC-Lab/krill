@@ -1071,7 +1071,9 @@ class Litter(models.Model):
         """
         if self.date_weaned is not None:
             return 'weaned'
-        elif self.dob is None or self.mouse_set.count() == 0:
+        elif self.dob is None:
+            return self.info
+        elif self.mouse_set.count() == 0:
             # Needs pups added
             return '%s; add pups' % self.info
         else:
