@@ -701,7 +701,8 @@ class Mouse(models.Model):
                 "GENE1(ZYGOSITY1); GENE2(ZYGOSITY2)..."
             Genes with zygosity -/- are not included in this string.
         """
-        if self.wild_type:
+        # If it's wild type, it shouldn't have any genes
+        if not self.mousegene_set.exists() and self.wild_type:
             return 'pure WT'
         
         # Get all MouseGenes other than -/-
