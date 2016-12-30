@@ -72,21 +72,9 @@ body
         {% endfor %}
         </tbody>
     </table>
-    
-    {% if litter.mouse_set %}
-        <p>Click these buttons to delete all of the results for one of the transgenes.
-        They can also be edited by entering them again below.</p>
-        {% for mg in litter.mouse_set.first.mousegene_set.all %}
-            <input type="submit" 
-                name="delete_gene_id_{{mg.gene_name.id}}" 
-                value="Delete results for {{mg.gene_name}}" />
-            <br />
-        {% endfor %}
-    {% endif %}
 
     <h2>Enter new genotyping results</h2>
-    <p>Enter new results here, for a new or existing transgene. You can use 
-    tab and arrow keys to edit and move between the drop-downs.</p>
+    <p>Select the gene that was tested and the results for each pup.</p>
     {{ form.as_p }}
     
     <p>Click the button to submit the results. This page will refresh and display the new results.</p>
