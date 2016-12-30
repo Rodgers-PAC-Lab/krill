@@ -101,13 +101,17 @@ body
             {# print sex, genotype, pure, dob, notes #}
             <td>{{ mouse.get_sex_display }}</td>
             <td>
-                {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
-                <a href="{{ add_genotyping_url }}"> 
-                    {{ mouse.new_genotype }} 
-                </a>
+                {% if mouse.litter %}
+                    {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
+                    <a href="{{ add_genotyping_url }}"> 
+                        {{ mouse.new_genotype }} 
+                    </a>
+                {% else %}
+                    {{ mouse.new_genotype }}
+                {% endif %}
                 {% if not hide_old_genotype %}
                     <font color='green'>{{ mouse.genotype }}</font>
-                {% endif %}
+                {% endif %}                 
             </td>
             <td>{% if mouse.pure_breeder %}y{%endif%}</td>
             <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>
