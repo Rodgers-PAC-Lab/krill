@@ -89,13 +89,48 @@ class SpecialRequestInline(admin.TabularInline):
     inlines = []
 
 class LitterAdmin(admin.ModelAdmin):
-    list_display = ('breeding_cage', 'proprietor', 'info', 'target_genotype',
-        'date_mated', 'age', 'father', 'mother', 'notes',)
+    list_display = ('name', 'dob', 'date_toeclipped', 'cross', 'info',
+        'get_special_request_message', 'cage_notes', 'notes', )
     inlines = [MouseInline] 
     list_editable = ('notes',)
     list_filter = ('proprietor__name',)
-    readonly_fields = ('target_genotype', 'info',)
-    ordering = ('breeding_cage__name', )
+    readonly_fields = ('target_genotype', 'info', 'cross', 'age', 
+        'get_special_request_message', 'name',)
+    ordering = ('dob', 'date_toeclipped', 'breeding_cage__name',)
+
+    def get_queryset(self, request):
+        """Only return litters that haven't been weaned.
+        
+        This really should be litters that haven't been genotyped.
+        But not clear how we're marking date_genotyped yet.
+        Also have to filter by non-defunct breeding cage to get rid of
+        some old junk.
+        """
+        qs = super(LitterAdmin, self).get_queryset(request)
+        return qs.filter(date_weaned=None, dob__isnull=False, 
+            breeding_cage__defunct=False)
+
+    def name(self, obj):
+        return str(obj)
+
+    def get_special_request_message(self, obj):
+        return obj.breeding_cage.get_special_request_message()
+    get_special_request_message.allow_tags = True
+    get_special_request_message.short_description = 'Requests'
+
+    def cage_notes(self, obj):
+        return obj.breeding_cage.notes
+
+    def cross(self, obj):
+        return obj.breeding_cage.printable_relevant_genesets
+    cross.short_description = 'Cross'
+    
+    def n_pups(self, obj):
+        return obj.mouse_set.count()
+    n_pups.short_description = 'Size'
+
+    # Pagination to save time
+    list_per_page = 5
 
 class DefunctFilter(admin.SimpleListFilter):
     """By default, filter by defunct=False
