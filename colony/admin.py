@@ -313,11 +313,12 @@ class MouseAdmin(admin.ModelAdmin):
     ## List view for mice
     # The columns that show up
     list_display = ('name', 'user', 'dob', 'age', 'sacked', 'sex', 'cage', 
-        'genotype', 'notes',)
+        'new_genotype', 'notes',)
     list_editable = ('notes',)
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
         'link_to_mother', 'link_to_father', 'link_to_progeny',
-        'link_to_cage', 'cage_history_string', 'litter_management',)
+        'link_to_cage', 'cage_history_string', 'litter_management',
+        'old_genotype', 'new_genotype',)
 
     # How to filter and search
     list_filter = ['cage__proprietor', 'breeder', SackFilter, 
@@ -371,6 +372,15 @@ class MouseAdmin(admin.ModelAdmin):
         return link_html_code
     litter_management.allow_tags = True        
 
+    # Shortcuts to display read-only genotype
+    def old_genotype(self, obj):
+        return obj.genotype
+    old_genotype.short_description = 'Old genotype (historical mice only)'
+    
+    def new_genotype(self, obj):
+        return obj.new_genotype
+    new_genotype.short_description = 'Genotype'
+
     ## Individual Mouse admin page
     fieldsets = (
         (None, {
@@ -383,8 +393,12 @@ class MouseAdmin(admin.ModelAdmin):
             'description': 'Optional properties',
         }),        
         (None, {
-            'fields': ('link_to_mother', 'link_to_father', 'link_to_progeny',
-                'pure_breeder', 'wild_type', 'litter_management'),
+            'fields': ('new_genotype', 'pure_breeder', 'wild_type', 
+                'litter_management', 'old_genotype',),
+            'description': 'Genotyping',
+        }),             
+        (None, {
+            'fields': ('link_to_mother', 'link_to_father', 'link_to_progeny',),
             'description': 'Genealogy',
         }),     
         (None, {
