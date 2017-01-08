@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'nested_inline',
     'simple_history',
+    'axes',
 ]
 
 MIDDLEWARE_CLASSES = [
