@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 import dj_database_url
+import datetime
 
 # set DATABASE_URL and DJANGO_SECRET_KEY environment variables
 # this does nothing if we are in the heroku environment, which is
@@ -174,3 +175,6 @@ LOGGING = {
 
 # Where users go if they are not logged in and try to view the census
 LOGIN_URL = '/admin/login/'
+
+# Time after lockout before restoring
+AXES_COOLOFF_TIME = datetime.timedelta(minutes=10)
