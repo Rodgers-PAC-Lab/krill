@@ -110,3 +110,8 @@ class CensusFilterForm(forms.Form):
         label='Hide old genotype',
         required=False,
     )
+
+    include_by_user = forms.BooleanField(
+        label="Also include mice by 'user'",
+        required=False,
+    )

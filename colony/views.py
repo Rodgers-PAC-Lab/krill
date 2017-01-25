@@ -14,7 +14,7 @@ from simple_history.models import HistoricalRecords
 from itertools import chain
 
 def census_by_cage_number(request, census_filter_form, proprietor, 
-    hide_old_genotype):
+    hide_old_genotype, include_by_user):
     """View for displaying by cage number
     
     Usually dispatched from census
@@ -26,7 +26,21 @@ def census_by_cage_number(request, census_filter_form, proprietor,
     if proprietor is not None:
         # could also do:
         # pname = self.request.user.username
+        
+        # Cages owned by proprietor
         qs = qs.filter(proprietor=proprietor) 
+    
+        if include_by_user:
+            # Mice with this user who are not sacked
+            mice_id_l = Mouse.objects.filter(
+                user=proprietor, sack_date__isnull=True).values_list(
+                'cage__id', flat=True)
+            
+            # Cages containing mice with this user
+            user_cages_qs = Cage.objects.filter(id__in=mice_id_l, defunct=False)
+            
+            # Full qs is the union
+            qs = qs | user_cages_qs
     
     # Order by name
     qs = qs.order_by('name')
@@ -51,11 +65,12 @@ def census_by_cage_number(request, census_filter_form, proprietor,
         'form': census_filter_form,
         'object_list': qs,
         'hide_old_genotype': hide_old_genotype,
+        'include_by_user': include_by_user,
     })
 
 
 def census_by_genotype(request, census_filter_form, proprietor, 
-    hide_old_genotype):
+    hide_old_genotype, include_by_user):
     """View cages sorted by genotype
     
     Usually dispatched from census
@@ -67,6 +82,18 @@ def census_by_genotype(request, census_filter_form, proprietor,
     # Filter by proprietor
     if proprietor is not None:
         qs = qs.filter(proprietor=proprietor) 
+
+        if include_by_user:
+            # Mice with this user who are not sacked
+            mice_id_l = Mouse.objects.filter(
+                user=proprietor, sack_date__isnull=True).values_list(
+                'cage__id', flat=True)
+            
+            # Cages containing mice with this user
+            user_cages_qs = Cage.objects.filter(id__in=mice_id_l, defunct=False)
+            
+            # Full qs is the union
+            qs = qs | user_cages_qs
 
     # Now select related
     qs = qs.prefetch_related('mouse_set').\
@@ -131,6 +158,7 @@ def census(request):
     # Default values for form parameters
     sort_by = request.GET.get('sort_by', 'cage number')
     hide_old_genotype = request.GET.get('hide_old_genotype', True)
+    include_by_user = request.GET.get('include_by_user', False)
     
     # Get proprietor name
     proprietor = None
@@ -160,6 +188,8 @@ def census(request):
             proprietor = census_filter_form.cleaned_data['proprietor']
             hide_old_genotype = census_filter_form.cleaned_data[
                 'hide_old_genotype']
+            include_by_user = census_filter_form.cleaned_data[
+                'include_by_user']
         else:
             # If not valid, I think it returns the same form, and magically
             # inserts the error messages
@@ -171,6 +201,7 @@ def census(request):
             'sort_method': sort_by,
             'proprietor': proprietor,
             'hide_old_genotype': hide_old_genotype,
+            'include_by_user': include_by_user,
         }
         census_filter_form = CensusFilterForm(initial=initial)
 
@@ -180,7 +211,8 @@ def census(request):
     elif sort_by == 'genotype':
         view = census_by_genotype
     return view(request, census_filter_form=census_filter_form,
-        proprietor=proprietor, hide_old_genotype=hide_old_genotype)
+        proprietor=proprietor, hide_old_genotype=hide_old_genotype,
+        include_by_user=include_by_user)
     
 
 def make_mating_cage(request):
