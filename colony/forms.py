@@ -105,11 +105,6 @@ class CensusFilterForm(forms.Form):
         label='Sort by',
         choices=[(c, c) for c in ('cage number', 'genotype',)]
     )
-    
-    hide_old_genotype = forms.BooleanField(
-        label='Hide old genotype',
-        required=False,
-    )
 
     include_by_user = forms.BooleanField(
         label="Also include mice by 'user'",

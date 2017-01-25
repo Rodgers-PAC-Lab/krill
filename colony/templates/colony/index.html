@@ -24,7 +24,6 @@ body
     Selection filters:
     Proprietor {{ form.proprietor }}
     Sort by {{ form.sort_method }}
-    Hide old genotype {{ form.hide_old_genotype }}
     Include by mouse's user {{ form.include_by_user }}
     <input type="submit" value="Apply selection filters">
     </p>
@@ -110,9 +109,6 @@ body
                 {% else %}
                     {{ mouse.new_genotype }}
                 {% endif %}
-                {% if not hide_old_genotype %}
-                    <font color='green'>{{ mouse.genotype }}</font>
-                {% endif %}                 
             </td>
             <td>{% if mouse.pure_breeder %}y{%endif%}</td>
             <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>

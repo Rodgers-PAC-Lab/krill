@@ -14,7 +14,7 @@ from simple_history.models import HistoricalRecords
 from itertools import chain
 
 def census_by_cage_number(request, census_filter_form, proprietor, 
-    hide_old_genotype, include_by_user):
+    include_by_user):
     """View for displaying by cage number
     
     Usually dispatched from census
@@ -64,13 +64,12 @@ def census_by_cage_number(request, census_filter_form, proprietor,
     return render(request, 'colony/index.html', {
         'form': census_filter_form,
         'object_list': qs,
-        'hide_old_genotype': hide_old_genotype,
         'include_by_user': include_by_user,
     })
 
 
 def census_by_genotype(request, census_filter_form, proprietor, 
-    hide_old_genotype, include_by_user):
+    include_by_user):
     """View cages sorted by genotype
     
     Usually dispatched from census
@@ -147,7 +146,6 @@ def census_by_genotype(request, census_filter_form, proprietor,
     return render(request, 'colony/census_by_genotype.html', {
         'form': census_filter_form,
         'sorted_by_geneset': sorted_by_geneset,
-        'hide_old_genotype': hide_old_genotype,
     })
 
 def census(request):
@@ -157,7 +155,6 @@ def census(request):
     """
     # Default values for form parameters
     sort_by = request.GET.get('sort_by', 'cage number')
-    hide_old_genotype = request.GET.get('hide_old_genotype', True)
     include_by_user = request.GET.get('include_by_user', False)
     
     # Get proprietor name
@@ -186,8 +183,6 @@ def census(request):
             
             # Set other parameters
             proprietor = census_filter_form.cleaned_data['proprietor']
-            hide_old_genotype = census_filter_form.cleaned_data[
-                'hide_old_genotype']
             include_by_user = census_filter_form.cleaned_data[
                 'include_by_user']
         else:
@@ -200,7 +195,6 @@ def census(request):
         initial = {
             'sort_method': sort_by,
             'proprietor': proprietor,
-            'hide_old_genotype': hide_old_genotype,
             'include_by_user': include_by_user,
         }
         census_filter_form = CensusFilterForm(initial=initial)
@@ -211,7 +205,7 @@ def census(request):
     elif sort_by == 'genotype':
         view = census_by_genotype
     return view(request, census_filter_form=census_filter_form,
-        proprietor=proprietor, hide_old_genotype=hide_old_genotype,
+        proprietor=proprietor, 
         include_by_user=include_by_user)
     
 
