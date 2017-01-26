@@ -231,11 +231,16 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     list_editable = ('notes', )
     
     # This allows filtering by proprietor name and defunctness
-    list_filter = ('proprietor__name', DefunctFilter, 'litter__target_genotype')
+    # Also filter by genotype of contained mice
+    list_filter = ('proprietor__name', DefunctFilter, 
+        'mouse__mousegene__gene_name',)
     
     # Allow searching cages by mouse info
-    search_fields = ('name', 'mouse__genotype__name',
-        'mouse__name', 'litter__target_genotype')
+    # Searching by litter__target_genotype allows us to include relevant
+    # breeding cages even if the father is out of the picture.
+    search_fields = ('name', 
+        'mouse__name', 'litter__target_genotype', 
+        'mouse__mousegene__gene_name__name')
     
     # Sorting in the list page
     ordering = ('defunct', 'name',)
