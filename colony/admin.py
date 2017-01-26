@@ -326,9 +326,10 @@ class MouseAdmin(admin.ModelAdmin):
         'old_genotype', 'new_genotype',)
 
     # How to filter and search
-    list_filter = ['cage__proprietor', 'breeder', SackFilter, 
-        'genotype__name', ]
-    search_fields = ('name', 'genotype__name',)
+    list_filter = ['cage__proprietor', 'user', 'breeder', SackFilter, 
+        'mousegene__gene_name',
+    ]
+    search_fields = ('name', 'mousegene__gene_name__name')
     
     # How it is sorted by default
     ordering = ('name',)
