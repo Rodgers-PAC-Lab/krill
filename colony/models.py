@@ -275,6 +275,10 @@ class Cage(models.Model):
     # track history with simple_history
     history = HistoricalRecords()
     
+    # Always order by name
+    class Meta:
+        ordering = ['name']
+    
     @property
     def relevant_genesets(self):
         """The relevant genes for the colony view
