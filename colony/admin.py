@@ -335,7 +335,17 @@ class MouseAdmin(admin.ModelAdmin):
     
     # Pagination to save time
     list_per_page = 20
-    
+
+    ## Ordering for choosing cage for mouse
+    # http://stackoverflow.com/questions/8992865/django-admin-sort-foreign-key-field-list
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        # Would like to exclude defunct cages here but I think people are
+        # moving mice to defunct cages
+        if db_field.name == "cage":
+            kwargs["queryset"] = Cage.objects.order_by('name')
+        return super(MouseAdmin, self).formfield_for_foreignkey(
+            db_field, request, **kwargs)
+
     ## Create fields that are HTML links to other mice
     # http://stackoverflow.com/questions/28832897/link-in-django-admin-to-foreign-key-object
     def link_to_mother(self, obj):
