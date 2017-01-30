@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views import generic
 from django.db.models import FieldDoesNotExist
 from django.db import IntegrityError
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
@@ -12,6 +12,47 @@ from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
     ChangeNumberOfPupsForm, CensusFilterForm)
 from simple_history.models import HistoricalRecords
 from itertools import chain
+
+import colony.models
+import numpy as np
+import pandas
+
+def counts_by_person(request):
+    # Define dates to test
+    target_dates = pandas.date_range(
+        datetime.date.today() - datetime.timedelta(weeks=20),
+        datetime.date.today(), 
+        freq='W-WED')[::-1]
+    pandas.set_option('display.width', 160)
+
+    pc_l = []
+    for target_date in target_dates:
+        # Find the most recent historical cage record before target date, distinct
+        # by each cage
+        qs1 = colony.models.HistoricalCage.objects.filter(
+            history_date__lte=target_date).order_by(
+            'id', '-history_date').distinct('id')
+
+        # Exclude cages that were defunct at that time
+        qs2 = colony.models.HistoricalCage.objects.filter(
+            history_id__in=qs1.values_list('history_id', flat=True), defunct=False)
+
+        # Extract proprietor names
+        proprietor_names = qs2.values_list('proprietor__name', flat=True)
+
+        # Count them
+        proprietor_counts = pandas.Series(list(proprietor_names)).value_counts()
+
+        # Store
+        pc_l.append(proprietor_counts)
+
+    # Concat
+    df = pandas.concat(pc_l, axis=1).fillna(0).astype(np.int)
+    df.columns = target_dates
+    df.ix['total'] = df.sum(0)
+
+    return HttpResponse('<pre>' + str(df) + '</pre>')
+
 
 def census_by_cage_number(request, census_filter_form, proprietor, 
     hide_old_genotype):

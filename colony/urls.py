@@ -12,5 +12,6 @@ urlpatterns = [
     url(r'^add_genotyping_info/([0-9]+)/$', login_required(views.add_genotyping_information), name='add_genotyping_info'),
     url(r'^summary$', login_required(views.summary), name='summary'),
     url(r'^records$', login_required(views.records), name='records'),
+    url(r'^counts_by_person$', login_required(views.counts_by_person), name='counts_by_person'),
     url(r'^sack/([0-9]+)/$', login_required(views.sack), name='sack'),
 ]
