@@ -14,7 +14,6 @@ from simple_history.models import HistoricalRecords
 from itertools import chain
 
 import colony.models
-import numpy as np
 import pandas
 
 def counts_by_person(request):
@@ -47,7 +46,7 @@ def counts_by_person(request):
         pc_l.append(proprietor_counts)
 
     # Concat
-    df = pandas.concat(pc_l, axis=1).fillna(0).astype(np.int)
+    df = pandas.concat(pc_l, axis=1).fillna(0).astype(int)
     df.columns = target_dates
     df.ix['total'] = df.sum(0)
 
