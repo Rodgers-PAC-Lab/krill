@@ -203,12 +203,14 @@ def slug_target_genotype(litter):
     To generate the slug, we first get the genotype of both parents. Then
     try to put the driver line first and the reporter second. If we
     can't identify which is which, return in alphabetical order.
+    
+    TODO: redo this using the new genotype detection logic
     """
     if litter.breeding_cage.defunct:
         return 'NA'
     
-    g1 = str(litter.father.genotype)
-    g2 = str(litter.mother.genotype)
+    g1 = str(litter.father.new_genotype)
+    g2 = str(litter.mother.new_genotype)
     drivers = ['cre']
     reporters = ['flex', 'halo', 'tdtomato', 'mcherry']
     for driver in drivers:
@@ -272,6 +274,10 @@ class Cage(models.Model):
     
     # track history with simple_history
     history = HistoricalRecords()
+    
+    # Always order by name
+    class Meta:
+        ordering = ['name']
     
     @property
     def relevant_genesets(self):

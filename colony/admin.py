@@ -231,11 +231,16 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     list_editable = ('notes', )
     
     # This allows filtering by proprietor name and defunctness
-    list_filter = ('proprietor__name', DefunctFilter, 'litter__target_genotype')
+    # Also filter by genotype of contained mice
+    list_filter = ('proprietor__name', DefunctFilter, 
+        'mouse__mousegene__gene_name', 'location',)
     
     # Allow searching cages by mouse info
-    search_fields = ('name', 'mouse__genotype__name',
-        'mouse__name', 'litter__target_genotype')
+    # Searching by litter__target_genotype allows us to include relevant
+    # breeding cages even if the father is out of the picture.
+    search_fields = ('name', 
+        'mouse__name', 'litter__target_genotype', 
+        'mouse__mousegene__gene_name__name')
     
     # Sorting in the list page
     ordering = ('defunct', 'name',)
@@ -321,16 +326,27 @@ class MouseAdmin(admin.ModelAdmin):
         'old_genotype', 'new_genotype',)
 
     # How to filter and search
-    list_filter = ['cage__proprietor', 'breeder', SackFilter, 
-        'genotype__name', ]
-    search_fields = ('name', 'genotype__name',)
+    list_filter = ['cage__proprietor', 'user', 'breeder', SackFilter, 
+        'mousegene__gene_name',
+    ]
+    search_fields = ('name', 'mousegene__gene_name__name')
     
     # How it is sorted by default
     ordering = ('name',)
     
     # Pagination to save time
     list_per_page = 20
-    
+
+    ## Ordering for choosing cage for mouse
+    # http://stackoverflow.com/questions/8992865/django-admin-sort-foreign-key-field-list
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        # Would like to exclude defunct cages here but I think people are
+        # moving mice to defunct cages
+        if db_field.name == "cage":
+            kwargs["queryset"] = Cage.objects.order_by('name')
+        return super(MouseAdmin, self).formfield_for_foreignkey(
+            db_field, request, **kwargs)
+
     ## Create fields that are HTML links to other mice
     # http://stackoverflow.com/questions/28832897/link-in-django-admin-to-foreign-key-object
     def link_to_mother(self, obj):
