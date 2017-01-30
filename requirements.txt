@@ -7,3 +7,4 @@ django-simple-history
 django-autoslug
 git+git://github.com/cxrodgers/django-nested-inline.git
 django-axes
+pandas
