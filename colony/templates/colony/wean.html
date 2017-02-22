@@ -1,0 +1,79 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'colony/table.css' %}" />
+{% url 'colony:wean' cage.pk as wean_cage %} 
+
+<h3>Are you sure you want to wean Cage {{ cage.name }}?</h1>
+
+{% if male_pups %}
+    <table style="margin-bottom:20px">
+        <caption>Male pups to move to new cage {{ cage.name }}M</caption>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>Genotype</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for mouse in male_pups %}
+                <tr>
+                    <td>{{ mouse.name }}</td>
+                    <td>{{ mouse.get_sex_display }}</td>
+                    <td>{{ mouse.genotype }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if female_pups %}
+    <table style="margin-bottom:20px">
+        <caption>Female pups to move to new cage {{ cage.name }}F</caption>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>Genotype</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for mouse in female_pups %}
+                <tr>
+                    <td>{{ mouse.name }}</td>
+                    <td>{{ mouse.get_sex_display }}</td>
+                    <td>{{ mouse.genotype }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+{% if unk_pups %}
+    <table style="margin-bottom:20px">
+        <caption>Pups of unknown sex to move to new cage {{ cage.name }}PUP</caption>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>Genotype</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for mouse in unk_pups %}
+                <tr>
+                    <td>{{ mouse.name }}</td>
+                    <td>{{ mouse.get_sex_display }}</td>
+                    <td>{{ mouse.genotype }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<form action="{{ wean_cage }}" method="post">
+	{% csrf_token %}
+	<input type="submit", value="Wean" />
+</form>

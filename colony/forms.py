@@ -43,7 +43,8 @@ class SackForm(forms.Form):
    "Form for making cage defunct and sacking its mice" 
    pass 
 
-
+class WeanForm(forms.Form):
+    pass
 
 class AddGenotypingInfoForm(forms.Form):
     """Form for adding genotyping info

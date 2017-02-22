@@ -9,7 +9,7 @@ from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name,
     HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype)
 from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
-    ChangeNumberOfPupsForm, CensusFilterForm)
+    ChangeNumberOfPupsForm, CensusFilterForm, WeanForm)
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
@@ -693,3 +693,67 @@ def add_genotyping_information(request, litter_id):
             'change_number_of_pups_form': change_number_of_pups_form,
             'litter': litter})
 
+
+def wean(request, cage_id):
+    """Wean pups in the cage's litter into new cages"""
+    cage = Cage.objects.get(pk=cage_id)
+    male_pups = cage.litter.mouse_set.filter(sex=0).all()
+    female_pups = cage.litter.mouse_set.filter(sex=1).all()
+    unk_pups = cage.litter.mouse_set.filter(sex=2).all()
+
+    #If the form is being submitted
+    if request.method == 'POST':
+        form = WeanForm(request.POST)
+
+        if form.is_valid():
+            # Create the cages and move the mice
+            if male_pups.count() > 0:
+                cage_name = cage.name + 'M'
+                male_cage = colony.models.Cage(
+                    name=cage_name,
+                    location=cage.location,
+                    proprietor=cage.proprietor,
+                )
+                male_cage.save()
+                for mouse in male_pups.all():
+                    mouse.cage = male_cage
+                    mouse.save()
+            
+            # same with females
+            if female_pups.count() > 0:
+                cage_name = cage.name + 'F'
+                female_cage = colony.models.Cage(
+                    name=cage_name,
+                    location=cage.location,
+                    proprietor=cage.proprietor,
+                )
+                female_cage.save()
+                for mouse in female_pups.all():
+                    mouse.cage = female_cage
+                    mouse.save()    
+
+            # same with unknown gender
+            if unk_pups.count() > 0:
+                cage_name = cage.name + 'PUP'
+                unk_cage = colony.models.Cage(
+                    name=cage_name,
+                    location=cage.location,
+                    proprietor=cage.proprietor,
+                )
+                unk_cage.save()
+                for mouse in unk_pups.all():
+                    mouse.cage = unk_cage
+                    mouse.save()    
+            
+            cage.litter.date_weaned = datetime.date.today()
+            cage.save()
+
+            #redirect to census
+            return HttpResponseRedirect('/colony/') 
+
+    return render(request, 'colony/wean.html', {
+        'cage' : cage,
+        'male_pups' : male_pups,
+        'female_pups' : female_pups,
+        'unk_pups' : unk_pups,
+    })

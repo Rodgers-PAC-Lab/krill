@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^records$', login_required(views.records), name='records'),
     url(r'^counts_by_person$', login_required(views.counts_by_person), name='counts_by_person'),
     url(r'^sack/([0-9]+)/$', login_required(views.sack), name='sack'),
+    url(r'^wean/([0-9]+)/$', login_required(views.wean), name='wean'),
 ]
