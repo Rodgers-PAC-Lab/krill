@@ -713,6 +713,7 @@ def wean(request, cage_id):
                     name=cage_name,
                     location=cage.location,
                     proprietor=cage.proprietor,
+                    notes='',
                 )
                 male_cage.save()
                 for mouse in male_pups.all():
@@ -726,6 +727,7 @@ def wean(request, cage_id):
                     name=cage_name,
                     location=cage.location,
                     proprietor=cage.proprietor,
+                    notes='',
                 )
                 female_cage.save()
                 for mouse in female_pups.all():
@@ -739,6 +741,7 @@ def wean(request, cage_id):
                     name=cage_name,
                     location=cage.location,
                     proprietor=cage.proprietor,
+                    notes='',
                 )
                 unk_cage.save()
                 for mouse in unk_pups.all():
@@ -746,7 +749,7 @@ def wean(request, cage_id):
                     mouse.save()    
             
             cage.litter.date_weaned = datetime.date.today()
-            cage.save()
+            cage.litter.save()
 
             #redirect to census
             return HttpResponseRedirect('/colony/') 
