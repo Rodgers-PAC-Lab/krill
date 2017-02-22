@@ -751,8 +751,10 @@ def wean(request, cage_id):
             cage.litter.date_weaned = datetime.date.today()
             cage.litter.save()
 
-            #redirect to census
-            return HttpResponseRedirect('/colony/') 
+            ## Redirect to a new mating cage form for the parents
+            # Should redirect to a new mating cage form, or do that above
+            # For now just redirect to the litter maintenance page
+            return HttpResponseRedirect('/colony/')
 
     return render(request, 'colony/wean.html', {
         'cage' : cage,
