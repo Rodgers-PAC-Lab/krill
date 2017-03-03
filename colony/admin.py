@@ -6,6 +6,7 @@ from django.db.models import Count
 import nested_inline.admin
 from django.core import urlresolvers
 from simple_history.admin import SimpleHistoryAdmin
+from django.contrib.admin.views.main import ChangeList
 from django import forms
 
 class GeneAdmin(admin.ModelAdmin):
@@ -89,6 +90,13 @@ class SpecialRequestInline(admin.TabularInline):
     show_change_link = True
     inlines = []
 
+class LitterAdminChangeList(ChangeList):
+    """Override the Litter changelist to go to Cage instead"""
+    def url_for_result(self, result):
+        """Clicking the Litter name takes you to the cage page"""
+        pk = result.breeding_cage.pk
+        return '/admin/colony/cage/%d' % pk
+
 class LitterAdmin(admin.ModelAdmin):
     list_display = ('name', 'dob', 'date_toeclipped', 'cross', 'info',
         'get_special_request_message', 'cage_notes', 'notes', 'date_genotyped',)
@@ -97,6 +105,10 @@ class LitterAdmin(admin.ModelAdmin):
     readonly_fields = ('target_genotype', 'info', 'cross', 'age', 
         'get_special_request_message', 'name',)
     ordering = ('dob', 'date_toeclipped', 'breeding_cage__name',)
+
+    def get_changelist(self, request, **kwargs):
+        """Overrule changelist so that clicking litter name goes to page"""
+        return LitterAdminChangeList
 
     def get_queryset(self, request):
         """Only return litters that are born but haven't been genotyped."""
