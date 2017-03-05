@@ -13,6 +13,11 @@ from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
+# I think there's a thread problem with importing pyplot here
+# Maybe if you specify matplotlib.use('Agg') it would be okay
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+
 import colony.models
 import pandas
 
@@ -48,9 +53,68 @@ def counts_by_person(request):
     # Concat
     df = pandas.concat(pc_l, axis=1).fillna(0).astype(int)
     df.columns = target_dates
+    
+    # Sort by usage
+    df = df.ix[df.sum(1).argsort()[::-1]]
+    
+    # Add a total
     df.ix['total'] = df.sum(0)
 
-    return HttpResponse('<pre>' + str(df) + '</pre>')
+    # Format in pre tags
+    string_result = '<pre>' + str(df) + '</pre>'
+
+    ## Plot
+    # Extract only people with enough cages
+    subdf = df.ix[
+        (df.mean(1) > 5) |
+        (df.iloc[:, 0] > 5)
+    ]
+
+    # Create the figure
+    f = Figure(figsize=(10, 7))
+    f.subplots_adjust(right=.85)
+    ax = f.add_subplot(1, 1, 1)
+
+    
+    # Always plot total first
+    if 'total' in subdf.index:
+        subdf = subdf.drop('total')
+    ax.plot(df.ix['total'], color='k', label='total')
+    
+    # Now plot the rest
+    ax.plot(subdf.T)
+    
+    # Pretty
+    ax.grid()
+    ax.set_xlabel('date')
+    ax.set_ylabel('number of cages')
+    
+    # Legend
+    ax.legend(['total'] + list(subdf.index), loc='center left', bbox_to_anchor=(1, 0.5))
+    #~ ax.set_xticklabels(ax.get_xticks(), rotation=90)
+
+    # Print
+    # This is just to directly display it
+    #~ canvas = FigureCanvas(f)
+    #~ response = HttpResponse(content_type='image/png')
+    #~ canvas.print_png(response)
+    
+    # Put it into an img tag
+    # http://stackoverflow.com/questions/31492525/converting-matplotlib-png-to-base64-for-viewing-in-html-template
+    from io import BytesIO
+    import base64
+    figfile = BytesIO()
+    canvas = FigureCanvas(f)
+    canvas.print_png(figfile)
+    figfile.seek(0)
+    figdata_png = base64.b64encode(figfile.getvalue())
+    img_result = '<img src="data:image/png;base64,%s"\\>' % figdata_png
+    
+    
+    ## Return both
+    response = HttpResponse(img_result + string_result)
+    return response
+
 
 
 def census_by_cage_number(request, census_filter_form, proprietor, 
