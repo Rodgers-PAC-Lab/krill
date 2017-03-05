@@ -9,7 +9,7 @@ from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name,
     HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype)
 from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
-    ChangeNumberOfPupsForm, CensusFilterForm, WeanForm)
+    ChangeNumberOfPupsForm, CensusFilterForm, WeanForm, SetMouseSexForm)
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
@@ -543,10 +543,30 @@ def sack(request, cage_id):
     })
 
 def add_genotyping_information(request, litter_id):
-    """Add genotyping results for litter
+    """A view with multiple forms for managing litter.
     
+    Forms:
+    * Button for setting number of pups
+    * Form to enter genotyping result for each mouse
+    * Form to set the sex of each mouse
+    * Button to wean the litter
+    
+    Blank forms are created for each. If a submit button was pressed,
+    a new form is created with the POST data and the result is processed.
     """
     litter = Litter.objects.get(pk=litter_id)
+    
+    ## Create blank instances of each form
+    # These will be replaced below if the litter object has changed,
+    # or if they need to be populated with POST data
+    change_number_of_pups_form = ChangeNumberOfPupsForm(
+        initial={}, prefix='change_pup',
+    )
+    set_sex_form = SetMouseSexForm(
+        initial={}, litter=litter, prefix='set_sex',
+    )
+    form = AddGenotypingInfoForm(initial={}, litter=litter,
+        prefix='add_genotyping_info')    
     
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
@@ -610,16 +630,14 @@ def add_genotyping_information(request, litter_id):
                         if mouse.count() == 1:
                             mouse.delete()
             
-            # Make the other form, that we're not processing here
-            # Have to do it after the pups have been added
-            form = AddGenotypingInfoForm(
-                litter=litter, prefix='add_genotyping_info')     
+                # Remake the forms that depend on litter with the POST data
+                form = AddGenotypingInfoForm(
+                    litter=litter, prefix='add_genotyping_info') 
+                set_sex_form = SetMouseSexForm(
+                    initial={}, litter=litter, prefix='set_sex',
+                )
         
         elif 'set_genotyping_info' in request.POST:
-            # Make the other form, that we're not processing here
-            change_number_of_pups_form = ChangeNumberOfPupsForm(
-                prefix='change_pup')            
-            
             # create a form instance and populate it with data from the request:
             form = AddGenotypingInfoForm(request.POST, 
                 initial={}, litter=litter, prefix='add_genotyping_info')
@@ -650,47 +668,46 @@ def add_genotyping_information(request, litter_id):
                         mg.save()
                 
                 # Create a new, blank form (so the fields default to blank
-                # rather than to the values we just entered_
+                # rather than to the values we just entered)
                 form = AddGenotypingInfoForm(litter=litter, 
                     prefix='add_genotyping_info')
-            else:
-                # If not valid, I think it returns the same form, and magically
-                # inserts the error messages
-                pass
-        else:
-            ## See if any genes were requested for deletion
-            for gene in Gene.objects.filter(
-                mousegene__mouse_name__litter=litter).distinct():
-                # Check for deletion request
-                if 'delete_gene_id_%d' % gene.id in request.POST:
-                    # Delete all matching MouseGenes
-                    MouseGene.objects.filter(
-                        gene_name__id=gene.id,
-                        mouse_name__litter=litter).delete()
-                    break
-            
-            # Initialize blank forms
-            # We also end up here if a POST occurred without any
-            # submit button somehow (e.g., wrong button name in template)
-            # A POST without clicking either submit button
+        
+        elif 'set_sex' in request.POST:
+            ## We are setting the sex of the mice
+            # Make the other forms, that we're not processing here
             change_number_of_pups_form = ChangeNumberOfPupsForm(
-                initial={}, prefix='change_pup',
-                )
-            form = AddGenotypingInfoForm(initial={}, litter=litter,
-                prefix='add_genotyping_info')
+                prefix='change_pup')   
+            form = AddGenotypingInfoForm(
+                litter=litter, prefix='add_genotyping_info')   
+
+            # create a form instance and populate it with data from the request:
+            set_sex_form = SetMouseSexForm(request.POST, 
+                initial={}, litter=litter, prefix='set_sex')            
+            
+            # Process if valid
+            if set_sex_form.is_valid():
+                # Set the sex of each submitted mouse
+                for mouse in litter.mouse_set.all():
+                    sex = set_sex_form.cleaned_data['sex_%s' % mouse.name]
+                    mouse.sex = sex
+                    mouse.save()
+
+        else:
+            # A POST without clicking any submit button
+            # (e.g., wrong button name in template)
+            # blank forms already created above
+            pass
+
     else:
         ## GET, so create a blank form
-        change_number_of_pups_form = ChangeNumberOfPupsForm(
-            initial={}, prefix='change_pup',
-        )
-        
-        # Should probably default to one of the MouseGenes
-        form = AddGenotypingInfoForm(initial={}, litter=litter,
-            prefix='add_genotyping_info')
+        # blank forms already created above
+        pass
+
 
     return render(request, 'colony/add_genotyping_info.html', 
         {   'form': form, 
             'change_number_of_pups_form': change_number_of_pups_form,
+            'set_sex_form': set_sex_form,
             'litter': litter})
 
 

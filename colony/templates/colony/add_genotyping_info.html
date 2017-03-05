@@ -53,6 +53,8 @@ body
         <thead>
             <tr>
                 <th>Mouse</th>
+                <th>Cage</th>
+                <th>Sex</th>
                 <th>Gene</th>
                 <th>Zygosity</th>
                 <th>Gene</th>
@@ -64,6 +66,8 @@ body
         {% for mouse in litter.mouse_set.all %}
             <tr>
                 <td>{{ mouse.name }}</td>
+                <td>{{ mouse.cage }}</td>
+                <td>{{ mouse.get_sex_display }}</td>
                 {% for mg in mouse.mousegene_set.all %}
                     <td>{{ mg.gene_name }}</td>
                     <td>{{ mg.zygosity }}</td>
@@ -73,10 +77,6 @@ body
         </tbody>
     </table>
 
-    <a href="/colony/wean/{{ litter.breeding_cage.pk }}">
-        Click here to wean the litter.
-    </a>
-
     <h2>Enter new genotyping results</h2>
     <p>Select the gene that was tested and the results for each pup.</p>
     {{ form.as_p }}
@@ -84,4 +84,19 @@ body
     <p>Click the button to submit the results. This page will refresh and display the new results.</p>
     <input type="submit" name="set_genotyping_info" value="Submit genotyping" />
     <br />
+    
+    <h2>Set the sex of each mouse</h2>
+    {{ set_sex_form.as_p }}
+    
+    <input type="submit" name="set_sex" value="Set sex" />
+    
+
+    <h2>Wean the litter</h2>
+    <p>
+        <a href="/colony/wean/{{ litter.breeding_cage.pk }}">
+            Click here to wean the litter.</a>
+        Male and female pups will be separated into new cage objects.
+    </p>
+    <br />    
+    
 </form>

@@ -88,7 +88,29 @@ class AddGenotypingInfoForm(forms.Form):
                 choices=choices,
                 widget=forms.RadioSelect(renderer=HorizontalRadioRenderer)
             )
-    
+
+class SetMouseSexForm(forms.Form):
+    """Form to set mouse sex on litter management page"""
+    # Dynamically add one results for each pup
+    def __init__(self, *args, **kwargs):
+        litter = kwargs.pop('litter')
+        super(SetMouseSexForm, self).__init__(*args, **kwargs)
+
+        # Reorder the choices in order more likely to be clicked
+        choices = [
+            (2, '?'),
+            (0, 'male'),
+            (1, 'female'),
+        ]
+        
+        # Add a field for each mouse
+        for mouse in litter.mouse_set.all():
+            self.fields['sex_%s' % mouse.name] = forms.ChoiceField(
+                label="Sex of mouse %s" % mouse.name,
+                choices=choices,
+                widget=forms.RadioSelect(renderer=HorizontalRadioRenderer)
+            )    
+
 class ChangeNumberOfPupsForm(forms.Form):
     number_of_pups = forms.IntegerField(
         label='Number of pups',
