@@ -157,13 +157,15 @@ def census_by_cage_number(request, census_filter_form, proprietor,
         prefetch_related('mouse_set__litter').\
         prefetch_related('mouse_set__user').\
         prefetch_related('mouse_set__genotype').\
-        prefetch_related('litter').\
         prefetch_related('litter__mouse_set').\
-        prefetch_related('litter__father').\
-        prefetch_related('litter__mother').\
+        prefetch_related('litter__father__mousegene_set').\
+        prefetch_related('litter__mother__mousegene_set').\
+        prefetch_related('litter__father__mousegene_set__gene_name').\
+        prefetch_related('litter__mother__mousegene_set__gene_name').\
         prefetch_related('mouse_set__mousegene_set').\
         prefetch_related('mouse_set__mousegene_set__gene_name').\
-        select_related()
+        select_related('litter', 'litter__father', 'litter__mother', 
+            'proprietor', 'litter__proprietor')
 
     return render(request, 'colony/index.html', {
         'form': census_filter_form,
