@@ -165,6 +165,7 @@ def census_by_cage_number(request, census_filter_form, proprietor,
         prefetch_related('mouse_set__mousegene_set').\
         prefetch_related('mouse_set__mousegene_set__gene_name').\
         select_related('litter', 'litter__father', 'litter__mother', 
+            'litter__mother__cage', # for contains_mother_of_this_litter
             'proprietor', 'litter__proprietor')
 
     return render(request, 'colony/index.html', {
@@ -216,6 +217,7 @@ def census_by_genotype(request, census_filter_form, proprietor,
         prefetch_related('mouse_set__mousegene_set').\
         prefetch_related('mouse_set__mousegene_set__gene_name').\
         select_related('litter', 'litter__father', 'litter__mother', 
+            'litter__mother__cage', # for contains_mother_of_this_litter
             'proprietor', 'litter__proprietor')
     
     # Extract relevant genesets
