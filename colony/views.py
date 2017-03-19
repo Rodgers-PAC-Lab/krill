@@ -233,6 +233,9 @@ def census_by_genotype(request, census_filter_form, proprietor,
     unique_relevant_genesets = sorted(unique_relevant_genesets, 
         key=lambda v: (v[0] if len(v) > 0 else '', len(v)))
 
+    # Should remove this second iteration over qs.all() for SQL efficiency
+    # Just iterate once and save everything necessary
+    #
     # Iterate once over cages and group by geneset
     geneset2cage_l = {}
     for cage in qs.all():
