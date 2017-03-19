@@ -50,10 +50,10 @@ def test1():
 
 def test2():
     """Test for loading the whole page"""
-    v = colony.views.census_by_genotype
+    v = colony.views.census
 
     factory = RequestFactory()
-    request = factory.get('/colony/census_by_genotype.html')
+    request = factory.get('/colony')
 
     response = v(request)
     #~ tr = response.render()
