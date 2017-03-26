@@ -7,6 +7,7 @@ import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
     get_person_name_from_user_name, Person, get_user_name_from_person_name,
+    have_same_single_gene,
     HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype)
 from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
     ChangeNumberOfPupsForm, CensusFilterForm, WeanForm, SetMouseSexForm)
@@ -662,9 +663,14 @@ def add_genotyping_information(request, litter_id):
                         mother_genes + father_genes)).distinct()
                     
                     # pure_breeder if one parent is pure and other is wild
+                    # or if both are pure breeders of the same gene
                     pup_is_pure = (
                         (litter.mother.pure_breeder and litter.father.wild_type) or
-                        (litter.father.pure_breeder and litter.mother.wild_type))
+                        (litter.father.pure_breeder and litter.mother.wild_type) or
+                        (litter.father.pure_breeder and 
+                        litter.mother.pure_breeder and
+                        have_same_single_gene(litter.mother, litter.father))
+                    )
 
                     for pupnum in range(litter.mouse_set.count(), new_number_of_pups):
                         # Create a new mouse
