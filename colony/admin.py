@@ -102,6 +102,7 @@ class LitterAdmin(admin.ModelAdmin):
         'get_special_request_message', 'cage_notes', 'notes', 'date_genotyped',)
     inlines = [MouseInline] 
     list_editable = ('notes', 'date_genotyped')
+    list_filter = ('breeding_cage__proprietor',)
     readonly_fields = ('target_genotype', 'info', 'cross', 'age', 
         'get_special_request_message', 'name',)
     ordering = ('dob', 'date_toeclipped', 'breeding_cage__name',)
