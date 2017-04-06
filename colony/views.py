@@ -119,7 +119,7 @@ def counts_by_person(request):
 
 
 def census_by_cage_number(request, census_filter_form, proprietor, 
-    include_by_user):
+    include_by_user, location='All'):
     """View for displaying by cage number
     
     Usually dispatched from census
@@ -146,6 +146,10 @@ def census_by_cage_number(request, census_filter_form, proprietor,
             
             # Full qs is the union
             qs = qs | user_cages_qs
+    
+    # Filter by location
+    if location != 'All':
+        qs = qs.filter(location=location)
     
     # Order by name
     qs = qs.order_by('name')
@@ -177,7 +181,7 @@ def census_by_cage_number(request, census_filter_form, proprietor,
 
 
 def census_by_genotype(request, census_filter_form, proprietor, 
-    include_by_user):
+    include_by_user, location='All'):
     """View cages sorted by genotype
     
     Usually dispatched from census
@@ -201,6 +205,10 @@ def census_by_genotype(request, census_filter_form, proprietor,
             
             # Full qs is the union
             qs = qs | user_cages_qs
+
+    # Filter by location
+    if location != 'All':
+        qs = qs.filter(location=location)
 
     # Now select related
     qs = qs.prefetch_related('mouse_set').\
@@ -268,6 +276,7 @@ def census(request):
     # Default values for form parameters
     sort_by = request.GET.get('sort_by', 'cage number')
     include_by_user = request.GET.get('include_by_user', False)
+    location = request.GET.get('location', 0) # 1710
     
     # Get proprietor name
     proprietor = None
@@ -289,6 +298,7 @@ def census(request):
         # Make the form with the POST info
         census_filter_form = CensusFilterForm(request.POST)
         
+        
         if census_filter_form.is_valid():
             # Set the new sort method if it was chosen
             sort_by = census_filter_form.cleaned_data['sort_method']
@@ -297,6 +307,8 @@ def census(request):
             proprietor = census_filter_form.cleaned_data['proprietor']
             include_by_user = census_filter_form.cleaned_data[
                 'include_by_user']
+            location = census_filter_form.cleaned_data[
+                'location']
         else:
             # If not valid, I think it returns the same form, and magically
             # inserts the error messages
@@ -308,6 +320,7 @@ def census(request):
             'sort_method': sort_by,
             'proprietor': proprietor,
             'include_by_user': include_by_user,
+            'location': 0, # 1710
         }
         census_filter_form = CensusFilterForm(initial=initial)
 
@@ -318,7 +331,8 @@ def census(request):
         view = census_by_genotype
     return view(request, census_filter_form=census_filter_form,
         proprietor=proprietor, 
-        include_by_user=include_by_user)
+        include_by_user=include_by_user,
+        location=location)
     
 
 def make_mating_cage(request):

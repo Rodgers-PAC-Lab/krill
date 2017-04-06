@@ -133,3 +133,13 @@ class CensusFilterForm(forms.Form):
         label="Also include mice by 'user'",
         required=False,
     )
+    
+    location = forms.ChoiceField(
+        label='Location',
+        choices=[
+            ('All', 'All'),
+            (0, '1710'),
+            (3, '1736'),
+        ],
+        required=False,
+    )
