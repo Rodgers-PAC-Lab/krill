@@ -447,9 +447,11 @@ def summary(request):
 
     # Contains information about only non-defunct cages
     # Exclude empty cages
+    # Include only cages in 1710
     current_table_data = [{ 
         'name': person.name, 
-        'cages': cages.filter(proprietor=person, defunct=False).exclude( 
+        'cages': cages.filter(
+            proprietor=person, defunct=False, location=0).exclude( 
             mouse__isnull=True).count(),
         'mice': mice.filter(cage__proprietor=person, 
             cage__defunct=False).count(),
