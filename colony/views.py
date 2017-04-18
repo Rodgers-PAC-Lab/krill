@@ -38,9 +38,10 @@ def counts_by_person(request):
             history_date__lte=target_date).order_by(
             'id', '-history_date').distinct('id')
 
-        # Exclude cages that were defunct at that time
+        # Include only cages that were non-defunct and in 1710 at that time
         qs2 = colony.models.HistoricalCage.objects.filter(
-            history_id__in=qs1.values_list('history_id', flat=True), defunct=False)
+            history_id__in=qs1.values_list('history_id', flat=True), 
+            defunct=False, location=0)
 
         # Extract proprietor names
         proprietor_names = qs2.values_list('proprietor__name', flat=True)
