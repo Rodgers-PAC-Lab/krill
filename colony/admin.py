@@ -63,7 +63,7 @@ class LitterInline(nested_inline.admin.NestedStackedInline):
                 'proprietor', 'father', 'mother', 'date_mated', 'dob',
                 'date_toeclipped', 'date_weaned', 'date_checked',
                 'date_genotyped',
-                'notes', 'pcr_info',
+                'notes',
             ),
             #~ 'description': 'Help text goes here',
         }),

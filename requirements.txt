@@ -7,5 +7,5 @@ django-simple-history
 django-autoslug
 git+git://github.com/cxrodgers/django-nested-inline.git
 django-axes
-pandas
-matplotlib
+pandas==0.19.1
+matplotlib==2.0.0
