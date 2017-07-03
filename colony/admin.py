@@ -153,7 +153,7 @@ class LitterAdmin(admin.ModelAdmin):
     # ones that have already been genotyped)
     # then by dob and date_toeclipped (in case we are viewing the ones
     # that haven't been genotyped yet)
-    ordering = ('date_genotyped', 'dob', 'date_toeclipped', 
+    ordering = ('-date_genotyped', 'dob', 'date_toeclipped', 
         'breeding_cage__name',)
 
     def get_changelist(self, request, **kwargs):
