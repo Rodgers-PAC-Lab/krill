@@ -9,6 +9,48 @@ from simple_history.admin import SimpleHistoryAdmin
 from django.contrib.admin.views.main import ChangeList
 from django import forms
 
+class GenotypedFilter(admin.SimpleListFilter):
+    """Filter by whether the genotype date is null or not
+    
+    https://www.elements.nl/2015/03/16/getting-the-most-out-of-django-admin-filters/
+    """
+    title = 'Genotyped'
+    parameter_name = 'date_genotyped' # not sure this does anything
+    
+    def lookups(self, request, model_admin):
+        """Map the choice strings in the URL to human-readable text
+        
+        Note that an "All" choice is always presented, but we're breaking
+        it, so we need no provide an "Actually All".
+        """
+        return(
+            ('yes', 'yes'),
+            ('no', 'no'),
+            ('all', 'Actually All'),
+        )
+        
+    def queryset(self, request, queryset):
+        filter_value = self.value()
+        if filter_value == 'no':
+            return queryset.filter(date_genotyped__isnull=True)
+        elif filter_value == 'yes':
+            return queryset.filter(date_genotyped__isnull=False)
+        elif filter_value == 'all':
+            return queryset
+        else:
+            raise ValueError("unexpected value %s" % filter_value)
+    
+    def value(self):
+        """Override value() to be 'no' by default
+        
+        Bug here because selecting the hardwired "All" option will still
+        choose 'no'.
+        """
+        value = super(GenotypedFilter, self).value()
+        if value is None:
+            value = 'no'
+        return value
+
 class GeneAdmin(admin.ModelAdmin):
     list_display = ('name', 'gene_type',)
 
@@ -98,23 +140,30 @@ class LitterAdminChangeList(ChangeList):
         return '/admin/colony/cage/%d' % pk
 
 class LitterAdmin(admin.ModelAdmin):
+    """View for identifying litters that need to be genotyped"""
     list_display = ('name', 'dob', 'date_toeclipped', 'cross', 'info',
         'get_special_request_message', 'cage_notes', 'notes', 'date_genotyped',)
     inlines = [MouseInline] 
-    list_editable = ('notes', 'date_genotyped')
-    list_filter = ('breeding_cage__proprietor',)
+    list_editable = ('notes', 'date_genotyped', 'date_toeclipped',)
+    list_filter = ('breeding_cage__proprietor', GenotypedFilter)
     readonly_fields = ('target_genotype', 'info', 'cross', 'age', 
         'get_special_request_message', 'name',)
-    ordering = ('dob', 'date_toeclipped', 'breeding_cage__name',)
+    
+    # Order first by date_genotyped (in case we are viewing the
+    # ones that have already been genotyped)
+    # then by dob and date_toeclipped (in case we are viewing the ones
+    # that haven't been genotyped yet)
+    ordering = ('date_genotyped', 'dob', 'date_toeclipped', 
+        'breeding_cage__name',)
 
     def get_changelist(self, request, **kwargs):
         """Overrule changelist so that clicking litter name goes to page"""
         return LitterAdminChangeList
 
     def get_queryset(self, request):
-        """Only return litters that are born but haven't been genotyped."""
+        """Only return litters that are born."""
         qs = super(LitterAdmin, self).get_queryset(request)
-        return qs.filter(date_genotyped=None, dob__isnull=False)
+        return qs.filter(dob__isnull=False)
 
     def name(self, obj):
         return str(obj)
