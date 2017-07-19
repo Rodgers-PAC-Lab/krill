@@ -30,7 +30,14 @@ body
     </p>
 </form>
 <h2>Census View, sorted by cage number</h2>
-<p>This is a list of all cages in the colony, sorted by cage number.</p>
+<p style="font-size: 14;">This is a list of all cages in the colony, sorted by cage number.
+<br />See also: 
+<a href="{% url 'admin:colony_cage_changelist' %}">Cages</a> 
+<a href="{% url 'admin:colony_mouse_changelist' %}">Mouses</a> 
+<a href="{% url 'admin:colony_litter_changelist' %}">Litters</a> 
+<a href="{% url 'colony:census' %}">Census</a> 
+<br />
+</p>
 {# big table of cages #}
 <table border="0" style="text-align: center; border-collapse: collapse">
     {# header row #}
