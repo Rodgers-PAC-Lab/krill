@@ -526,6 +526,7 @@ class PersonAdmin(admin.ModelAdmin):
 class SpecialRequestAdmin(admin.ModelAdmin):
     list_display = ('cage', 'requester', 'requestee', 'date_requested', 
         'date_completed', 'message',)
+    list_filter = ('requester', 'requestee')
 
 class HistoricalMouseAdmin(admin.ModelAdmin):
     list_filter = ('cage__name', 'name',)
