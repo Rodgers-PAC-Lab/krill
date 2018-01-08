@@ -295,7 +295,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     # This allows filtering by proprietor name and defunctness
     # Also filter by genotype of contained mice
     list_filter = ('proprietor__name', DefunctFilter, 
-        'mouse__mousegene__gene_name', 'location',)
+        'mouse__mousegene__gene_name', 'location', 'transfer_JLG',)
     
     # Allow searching cages by mouse info
     # Searching by litter__target_genotype allows us to include relevant
@@ -345,7 +345,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
             'description': 'Required properties',
         }),
         (None, {
-            'fields': ('notes', 'defunct',),
+            'fields': ('notes', 'defunct', 'transfer_JLG',),
             'description': 'Optional properties',
         }),        
         (None, {
