@@ -277,6 +277,9 @@ class Cage(models.Model):
     # track history with simple_history
     history = HistoricalRecords()
     
+    # whether to move to new building (temporary field)
+    transfer_JLG = models.NullBooleanField(default=None)
+    
     # Always order by name
     class Meta:
         ordering = ['name']
