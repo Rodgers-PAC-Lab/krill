@@ -73,26 +73,6 @@
     </table>
 {% endif %}
 
-{% if new_mating_cage_parents %}
-    A new mating cage will be created as follows: <br />
-    Father: {{ new_mating_cage_father.name }} <br />
-    Mother: {{ new_mating_cage_mother.name }} <br />
-
-    {% if new_mating_cage_father_present %} 
-        The father and mother will be moved to the new cage.
-    {% else %}
-        Only the mother will be moved to the new cage.
-    {% endif %}
-    <br />
-    
-    The date of mating will be {% new_mating_cage_dpm %}.</br>
-    
-    {% if new_mating_cage_srs %}
-        The following special requests will be moved: </br>
-    {% endif %}
-
-{% endif %}
-
 <form action="{{ wean_cage }}" method="post">
 	{% csrf_token %}
 	<input type="submit", value="Wean" />

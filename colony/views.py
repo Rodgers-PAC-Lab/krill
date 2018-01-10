@@ -865,11 +865,7 @@ def wean(request, cage_id):
             ## Redirect to a new mating cage form for the parents
             # Should redirect to a new mating cage form, or do that above
             # For now just redirect to the litter maintenance page
-            if form.cleaned_data['make_mating_cage']:
-                context = {'form': MatingCageForm(initial={'father': father, 'mother': mother})}
-                return render(request, 'make_mating_cage.html', context)            
-            else:
-                return HttpResponseRedirect('/colony/')
+            return HttpResponseRedirect('/colony/')
 
     return render(request, 'colony/wean.html', {
         'cage' : cage,
