@@ -267,6 +267,8 @@ class Cage(models.Model):
             (1, '1702'),
             (2, 'Behavior'),
             (3, '1736'),
+            (4, 'JLG-SC2'),
+            (5, 'JLG-L7'),
             ),
         default=0
         )
