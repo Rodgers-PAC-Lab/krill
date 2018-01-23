@@ -140,6 +140,8 @@ class CensusFilterForm(forms.Form):
             ('All', 'All'),
             (0, '1710'),
             (3, '1736'),
+            (4, 'JLG-SC2'),
+            (5, 'JLG-L7'),            
         ],
         required=False,
     )
