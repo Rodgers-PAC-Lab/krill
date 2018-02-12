@@ -167,9 +167,6 @@ See also:
                 {# cage notes: one td with rowspan 3 #}
                 {% if forloop.counter0 == 0 %}
                     <td style="width:150px;" rowspan="3">
-                        {% if cage.transfer_JLG %} JLG.
-                        {% elif cage.transfer_JLG != None %} HHSC.
-                        {% else %} UNK. {% endif %}                    
                         {{ cage.notes }}
                     </td>
                 {% elif forlooop.counter0 >= 3 %}
@@ -224,9 +221,6 @@ See also:
 
                     {# cage notes #}
                     <td style="width:150px;">
-                        {% if cage.transfer_JLG %} JLG.
-                        {% elif cage.transfer_JLG != None %} HHSC.
-                        {% else %} UNK. {% endif %}                    
                         {{ cage.notes }}
                     </td>
 
