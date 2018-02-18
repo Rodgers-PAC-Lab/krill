@@ -277,7 +277,7 @@ def census(request):
     # Default values for form parameters
     sort_by = request.GET.get('sort_by', 'cage number')
     include_by_user = request.GET.get('include_by_user', False)
-    location = request.GET.get('location', 0) # 1710
+    location = request.GET.get('location', 4) # SC2-011
     
     # Get proprietor name
     proprietor = None
@@ -321,7 +321,7 @@ def census(request):
             'sort_method': sort_by,
             'proprietor': proprietor,
             'include_by_user': include_by_user,
-            'location': 0, # 1710
+            'location': 4, # SC2-011
         }
         census_filter_form = CensusFilterForm(initial=initial)
 

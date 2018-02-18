@@ -271,11 +271,11 @@ class Cage(models.Model):
             (1, '1702'),
             (2, 'Behavior'),
             (3, '1736'),
-            (4, 'JLG-SC2'),
-            (5, 'JLG-L7'),
-            ),
-        default=0
-        )
+            (4, 'SC2-011'),
+            (5, 'L7-007'),
+            (6, 'SC2-056'),
+        ), default=4,
+    )
     
     # Needs to be made mandatory
     proprietor = models.ForeignKey('Person')
