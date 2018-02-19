@@ -32,16 +32,17 @@ def counts_by_person(request):
 
     pc_l = []
     for target_date in target_dates:
-        # Find the most recent historical cage record before target date, distinct
-        # by each cage
+        # Find the most recent historical cage record before target date, 
+        # distinct by each cage
         qs1 = colony.models.HistoricalCage.objects.filter(
             history_date__lte=target_date).order_by(
             'id', '-history_date').distinct('id')
 
         # Include only cages that were non-defunct and in 1710 at that time
+        # I think cages that contained no mice are also included here
         qs2 = colony.models.HistoricalCage.objects.filter(
             history_id__in=qs1.values_list('history_id', flat=True), 
-            defunct=False, location=0)
+            defunct=False, location__in=[0, 4])
 
         # Extract proprietor names
         proprietor_names = qs2.values_list('proprietor__name', flat=True)
@@ -452,10 +453,10 @@ def summary(request):
     current_table_data = [{ 
         'name': person.name, 
         'cages': cages.filter(
-            proprietor=person, defunct=False, location=0).exclude( 
+            proprietor=person, defunct=False, location__in=[0, 4]).exclude( 
             mouse__isnull=True).count(),
         'mice': mice.filter(cage__proprietor=person, 
-            cage__defunct=False).count(),
+            cage__defunct=False, cage__location__in=[0, 4]).count(),
     } for person in persons]
 
     current_totals = {
