@@ -23,13 +23,20 @@ import colony.models
 import pandas
 
 def counts_by_person(request):
-    # Define dates to test
+    # Define dates to test (for graphing)
     target_dates = pandas.date_range(
         datetime.date.today() - datetime.timedelta(weeks=20),
         datetime.date.today(), 
+        freq='D')[::-1]
+    
+    # Dates to test (tabular output)
+    tabular_target_dates = pandas.date_range(
+        datetime.date.today() - datetime.timedelta(weeks=20),
+        datetime.date.today(), 
         freq='W-WED')[::-1]
-    pandas.set_option('display.width', 160)
 
+
+    ## Iterate over target_dates
     pc_l = []
     for target_date in target_dates:
         # Find the most recent historical cage record before target date, 
@@ -63,8 +70,53 @@ def counts_by_person(request):
     # Add a total
     df.ix['total'] = df.sum(0)
 
+
+    ## Repeat everything above for tabular
+    tabular_pc_l = []
+    for target_date in tabular_target_dates:
+        # Find the most recent historical cage record before target date, 
+        # distinct by each cage
+        qs1 = colony.models.HistoricalCage.objects.filter(
+            history_date__lte=target_date).order_by(
+            'id', '-history_date').distinct('id')
+
+        # Include only cages that were non-defunct and in 1710 at that time
+        # I think cages that contained no mice are also included here
+        qs2 = colony.models.HistoricalCage.objects.filter(
+            history_id__in=qs1.values_list('history_id', flat=True), 
+            defunct=False, location__in=[0, 4])
+
+        # Extract proprietor names
+        proprietor_names = qs2.values_list('proprietor__name', flat=True)
+
+        # Count them
+        proprietor_counts = pandas.Series(list(proprietor_names)).value_counts()
+
+        # Store
+        tabular_pc_l.append(proprietor_counts)
+
+    # Concat
+    tabular_df = pandas.concat(tabular_pc_l, axis=1).fillna(0).astype(int)
+    tabular_df.columns = tabular_target_dates
+    
+    # Sort by usage
+    tabular_df = tabular_df.ix[tabular_df.sum(1).argsort()[::-1]]
+    
+    # Add a total
+    tabular_df.ix['total'] = tabular_df.sum(0)    
+    
+    
+    ## Format tabular text
+    # Concatenate every 6 days of tabular data
+    pandas.set_option('display.width', 160)
+    string_result = ''
+    for idx in range(0, len(tabular_target_dates), 6):
+        subdf = tabular_df.iloc[:, idx:idx+6]
+        string_result += str(subdf) + '\n\n'
+    
     # Format in pre tags
-    string_result = '<pre>' + str(df) + '</pre>'
+    string_result = '<pre>' + string_result + '</pre>'
+
 
     ## Plot
     # Extract only people with enough cages
@@ -94,6 +146,9 @@ def counts_by_person(request):
     
     # Legend
     ax.legend(['total'] + list(subdf.index), loc='center left', bbox_to_anchor=(1, 0.5))
+    
+    # Title
+    ax.set_title('cage counts in 1710 and SC2-011')
     #~ ax.set_xticklabels(ax.get_xticks(), rotation=90)
 
     # Print
