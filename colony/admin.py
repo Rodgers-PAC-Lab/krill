@@ -345,7 +345,7 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
             'description': 'Required properties',
         }),
         (None, {
-            'fields': ('notes', 'defunct',),
+            'fields': ('rack_spot', 'notes', 'defunct',),
             'description': 'Optional properties',
         }),        
         (None, {
