@@ -277,6 +277,9 @@ class Cage(models.Model):
         ), default=4,
     )
     
+    # Location on the rack
+    rack_spot = models.CharField(max_length=10, blank=True)
+    
     # Needs to be made mandatory
     proprietor = models.ForeignKey('Person')
     
