@@ -67,6 +67,8 @@ body
                     {# First line: cage name and proprietor #}
                         <a href={{ cage.change_link }}>
                         <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
+                        {{ cage.get_location_display }}
+                        {{ cage.rack_spot }}
                     <br>
                     {# Second line: litter info, if any #}
                     {% if cage.litter %} 
@@ -165,6 +167,8 @@ body
                     {# First line: cage name and proprietor #}
                         <a href={{ cage.change_link }}>
                         <b>{{ cage.name }}</b></a> [{{cage.proprietor }}]
+                        {{ cage.get_location_display }}
+                        {{ cage.rack_spot }}
                     <br>
                     {# Second line: litter info, if any #}
                     {% if cage.litter %} 
