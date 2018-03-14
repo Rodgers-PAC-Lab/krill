@@ -143,6 +143,7 @@ class CensusFilterForm(forms.Form):
             (4, 'SC2-011'),
             (5, 'L7-007'),
             (6, 'SC2-056'),            
+            (7, 'SC2-044'),
         ],
         required=False,
     )
