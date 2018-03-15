@@ -126,7 +126,7 @@ class CensusFilterForm(forms.Form):
     
     sort_method = forms.ChoiceField(
         label='Sort by',
-        choices=[(c, c) for c in ('cage number', 'genotype',)]
+        choices=[(c, c) for c in ('cage number', 'rack spot', 'genotype',)]
     )
 
     include_by_user = forms.BooleanField(

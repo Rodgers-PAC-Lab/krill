@@ -176,7 +176,7 @@ def counts_by_person(request):
 
 
 def census_by_cage_number(request, census_filter_form, proprietor, 
-    include_by_user, location='All'):
+    include_by_user, location='All', order_by='name'):
     """View for displaying by cage number
     
     Usually dispatched from census
@@ -209,7 +209,7 @@ def census_by_cage_number(request, census_filter_form, proprietor,
         qs = qs.filter(location=location)
     
     # Order by name
-    qs = qs.order_by('name')
+    qs = qs.order_by(order_by)
     
     # Now select related
     qs = qs.prefetch_related('mouse_set').\
@@ -383,13 +383,26 @@ def census(request):
 
     # Dispatch to appropriate view, with the form
     if sort_by == 'cage number':
+        # The normal view, ordered by name by default
         view = census_by_cage_number
+        kwargs = {}
+    elif sort_by == 'rack spot':
+        # The normal view, but a custom order_by
+        view = census_by_cage_number
+        kwargs = {'order_by': 'rack_spot'}
     elif sort_by == 'genotype':
+        # The genotype view
         view = census_by_genotype
+        kwargs = {}
+    else:
+        raise ValueError("unknown sort_by: %r" % sort_by)
+    
     return view(request, census_filter_form=census_filter_form,
         proprietor=proprietor, 
         include_by_user=include_by_user,
-        location=location)
+        location=location,
+        **kwargs
+    )
     
 
 def make_mating_cage(request):
