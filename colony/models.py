@@ -109,9 +109,9 @@ def get_user_name_from_person_name(person_name):
         return 'randy'
     elif person_name == 'Library':
         return 'library'
-    elif user_name == 'Sam':
+    elif person_name == 'Sam':
         return 'Sam'
-    elif user_name == 'Jung':
+    elif person_name == 'Jung':
         return 'jung'
     elif person_name == 'Lab Stock':
         return 'lab stock'        
