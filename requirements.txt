@@ -6,6 +6,6 @@ whitenoise==3.2
 django-simple-history
 django-autoslug
 git+git://github.com/cxrodgers/django-nested-inline.git
-django-axes
+django-axes==4.2.0
 pandas==0.19.1
 matplotlib==2.0.0
