@@ -1,11 +1,11 @@
 dj-database-url==0.4.1
-Django==1.11.12
-gunicorn==19.7.1
-psycopg2==2.7.4
+Django==1.9.8
+gunicorn==19.6.0
+psycopg2==2.6.2
 whitenoise==3.2
 django-simple-history
 django-autoslug
 git+git://github.com/cxrodgers/django-nested-inline.git
-django-axes==4.2.0
+django-axes
 pandas==0.19.1
 matplotlib==2.0.0

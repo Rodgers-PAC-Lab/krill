@@ -52,9 +52,7 @@ INSTALLED_APPS = [
     'axes',
 ]
 
-# CR: renamed MIDDLEWARE_CLASSES to MIDDLEWARE for new django version
-# https://stackoverflow.com/questions/40615000/custom-middleware-class-raises-error
-MIDDLEWARE = [
+MIDDLEWARE_CLASSES = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -180,17 +178,3 @@ LOGIN_URL = '/admin/login/'
 
 # Time after lockout before restoring
 AXES_COOLOFF_TIME = datetime.timedelta(minutes=10)
-
-
-# CR: axes doesn't support locmemcache (default)
-# https://github.com/jazzband/django-axes/blob/master/docs/configuration.rst
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    },
-    'axes_cache': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    }
-}
-AXES_CACHE = 'axes_cache'
-
