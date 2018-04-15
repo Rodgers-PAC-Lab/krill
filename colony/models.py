@@ -196,7 +196,18 @@ def get_tgeno():
 # Create your models here.
 
 class Person(models.Model):
+    """Model of a person (experimenter)
+    
+    This is distinct from the "user" defined by django auth.
+    
+    name : the person's name
+    active : boolean
+        Whether to display them as an option in menus
+    """
     name = models.CharField(max_length=15, unique=True)    
+    
+    # Whether to display them
+    active = models.BooleanField(default=True)
     
     # track history with simple_history
     history = HistoricalRecords()
