@@ -27,12 +27,14 @@ def counts_by_person(request):
     target_dates = pandas.date_range(
         datetime.date.today() - datetime.timedelta(weeks=20),
         datetime.date.today(), 
+        tz='America/New_York',
         freq='D')[::-1]
     
     # Dates to test (tabular output)
     tabular_target_dates = pandas.date_range(
         datetime.date.today() - datetime.timedelta(weeks=20),
         datetime.date.today(), 
+        tz='America/New_York',
         freq='W-WED')[::-1]
 
 
@@ -110,8 +112,8 @@ def counts_by_person(request):
     # Concatenate every 6 days of tabular data
     pandas.set_option('display.width', 160)
     string_result = ''
-    for idx in range(0, len(tabular_target_dates), 6):
-        subdf = tabular_df.iloc[:, idx:idx+6]
+    for idx in range(0, len(tabular_target_dates), 5):
+        subdf = tabular_df.iloc[:, idx:idx+5]
         string_result += str(subdf) + '\n\n'
     
     # Format in pre tags
