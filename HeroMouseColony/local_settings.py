@@ -45,7 +45,7 @@ def get_remote_name(branch_name):
         # eg, HEAD in detached head state
         # typically we want to do that kind of stuff in staging
         print "warning: cannot interpret git branch %s, assuming staging" % branch_name
-        remote_name = 'staging'
+        remote_name = 'heroku'
 
     return remote_name
 
