@@ -178,3 +178,17 @@ LOGIN_URL = '/admin/login/'
 
 # Time after lockout before restoring
 AXES_COOLOFF_TIME = datetime.timedelta(minutes=10)
+
+
+# CR: axes doesn't support locmemcache (default)
+# https://github.com/jazzband/django-axes/blob/master/docs/configuration.rst
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    'axes_cache': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+AXES_CACHE = 'axes_cache'
+
