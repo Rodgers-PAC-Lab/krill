@@ -52,7 +52,9 @@ INSTALLED_APPS = [
     'axes',
 ]
 
-MIDDLEWARE_CLASSES = [
+# CR: renamed MIDDLEWARE_CLASSES to MIDDLEWARE for new django version
+# https://stackoverflow.com/questions/40615000/custom-middleware-class-raises-error
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
