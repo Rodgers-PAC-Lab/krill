@@ -4,13 +4,20 @@ from .models import Mouse, Cage, Person, Gene, MouseGene
 
 from django.utils.safestring import mark_safe
 
-class HorizontalRadioRenderer(forms.RadioSelect.renderer):
-    """Arrange the radio select buttons for genotyping horizontally
+#~ class HorizontalRadioRenderer(forms.RadioSelect.renderer):
+    #~ """Arrange the radio select buttons for genotyping horizontally
     
-    http://stackoverflow.com/questions/5935546/align-radio-buttons-horizontally-in-django-forms
-    """
-    def render(self):
-        return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
+    #~ http://stackoverflow.com/questions/5935546/align-radio-buttons-horizontally-in-django-forms
+    #~ """
+    #~ def render(self):
+        #~ return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
+
+class HorizontalRadioSelect(forms.RadioSelect):
+    # https://stackoverflow.com/questions/5935546/align-radio-buttons-horizontally-in-django-forms
+    def __init__(self, *args, **kwargs):
+        super(HorizontalRadioSelect, self).__init__(*args, **kwargs)
+        css_style = 'style="display: inline-block; margin-right: 10px;"'
+        self.renderer.inner_html = '<li ' + css_style + '>{choice_value}{sub_widgets}</li>'
 
 class MatingCageForm(forms.Form):
     """Form for creating a new mating cage"""
@@ -86,7 +93,7 @@ class AddGenotypingInfoForm(forms.Form):
             self.fields['result_%s' % mouse.name] = forms.ChoiceField(
                 label="Result for mouse %s" % mouse.name,
                 choices=choices,
-                widget=forms.RadioSelect(renderer=HorizontalRadioRenderer)
+                widget=forms.RadioSelect(attrs={'class': 'inline'}),#HorizontalRadioSelect,#forms.RadioSelect(renderer=HorizontalRadioRenderer)
             )
 
 class SetMouseSexForm(forms.Form):
@@ -108,7 +115,7 @@ class SetMouseSexForm(forms.Form):
             self.fields['sex_%s' % mouse.name] = forms.ChoiceField(
                 label="Sex of mouse %s" % mouse.name,
                 choices=choices,
-                widget=forms.RadioSelect(renderer=HorizontalRadioRenderer)
+                widget=forms.RadioSelect(attrs={'class': 'inline'}),#HorizontalRadioSelect,#forms.RadioSelect(renderer=HorizontalRadioRenderer)
             )    
 
 class ChangeNumberOfPupsForm(forms.Form):
