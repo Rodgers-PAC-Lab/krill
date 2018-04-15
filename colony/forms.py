@@ -120,7 +120,7 @@ class CensusFilterForm(forms.Form):
     """Allows various sorting and filtering of the census"""
     proprietor = forms.ModelChoiceField(
         label='Cage proprietor',
-        queryset=Person.objects.all(),
+        queryset=Person.objects.filter(active=True).all(),
         required=False,
     )
     

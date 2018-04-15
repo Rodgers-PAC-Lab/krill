@@ -215,6 +215,10 @@ class Person(models.Model):
     def __str__(self):
         return self.name
 
+    # Always order by name
+    class Meta:
+        ordering = ['name']
+
 def slug_target_genotype(litter):
     """Function to generate a target genotype slug from a cage
     
