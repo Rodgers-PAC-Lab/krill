@@ -28,7 +28,7 @@ class MatingCageForm(forms.Form):
             ).all()
     )
     proprietor = forms.ModelChoiceField(label='proprietor',
-        queryset=Person.objects.all())
+        queryset=Person.objects.filter(active=True).all())
     cage_name = forms.CharField(label='cage', max_length=20, required=False,
         help_text=("If you leave this field blank, "
             "it will be auto-generated from the proprietor's name."))

@@ -305,7 +305,9 @@ class Cage(models.Model):
     rack_spot = models.CharField(max_length=10, blank=True)
     
     # Needs to be made mandatory
-    proprietor = models.ForeignKey('Person')
+    proprietor = models.ForeignKey('Person',
+        limit_choices_to={'active': True},
+    )
     
     # track history with simple_history
     history = HistoricalRecords()
@@ -710,7 +712,9 @@ class Mouse(models.Model):
     
     cage = models.ForeignKey(Cage, null=True, blank=True)
     sack_date = models.DateField('sac date', blank=True, null=True)
-    user = models.ForeignKey(Person, null=True, blank=True)    
+    user = models.ForeignKey(Person, null=True, blank=True,
+        limit_choices_to={'active': True},
+    )
     notes = models.CharField(max_length=100, null=True, blank=True)    
     
     # These fields are normally calculated from Litter but can be overridden
@@ -1296,8 +1300,10 @@ class SpecialRequest(models.Model):
     cage = models.ForeignKey(Cage)
     message = models.CharField(max_length=150)
     requester = models.ForeignKey(Person, null=True, blank=True,
+        limit_choices_to={'active': True},
         related_name='requests_from_me')
     requestee = models.ForeignKey(Person, null=True, blank=True,
+        limit_choices_to={'active': True},
         related_name='requests_for_me')
     date_requested = models.DateField('date requested', null=True, blank=True)
     date_completed = models.DateField('date completed', null=True, blank=True)
