@@ -1,6 +1,6 @@
 dj-database-url==0.4.1
-Django==1.9.8
-gunicorn==19.6.0
+Django==1.11.12
+gunicorn==19.7.1
 psycopg2==2.7.4
 whitenoise==3.2
 django-simple-history
