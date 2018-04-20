@@ -19,7 +19,7 @@ body
 }
 </style>
 
-<form method="post">
+<form method="post" novalidate="novalidate">
     {% csrf_token %}
     <h1>Managing litter {{litter.breeding_cage.name}}</h1>
     <table>
