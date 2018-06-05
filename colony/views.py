@@ -84,10 +84,11 @@ def counts_by_person(request):
             'id', '-history_date').distinct('id')
 
         # Include only cages that were non-defunct and in 1710 at that time
+        # And also exclude any deleted cages
         # I think cages that contained no mice are also included here
         qs2 = colony.models.HistoricalCage.objects.filter(
             history_id__in=qs1.values_list('history_id', flat=True), 
-            defunct=False, location__in=[0, 4])
+            defunct=False, location__in=[0, 4]).exclude(history_type='-')
 
         # Extract proprietor names
         proprietor_names = qs2.values_list('proprietor__name', flat=True)
