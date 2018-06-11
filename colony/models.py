@@ -298,6 +298,7 @@ class Cage(models.Model):
             (5, 'L7-057'),
             (6, 'SC2-056'),
             (7, 'SC2-044'),
+            (8, 'L5-036'),
         ), default=4,
     )
     
