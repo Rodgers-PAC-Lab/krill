@@ -285,12 +285,12 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
     selection, as opposed to individually going to each mouse page.
     """
     # Columns in the list page
-    list_display = ('name', 'proprietor', 'litter', 
+    list_display = ('name', 'rack_spot', 'proprietor', 
         'target_genotype', 'link_to_mice', 
         'auto_needs_message', 'notes',)
     
     # The ones that are editable
-    list_editable = ('notes', )
+    list_editable = ('notes', 'rack_spot',)
     
     # This allows filtering by proprietor name and defunctness
     # Also filter by genotype of contained mice
@@ -357,6 +357,20 @@ class CageAdmin(nested_inline.admin.NestedModelAdmin):
             'description': 'Litter husbandry information',
         }),
     )
+
+    
+    # Override the width of the charfield for rack_spot
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        if db_field.name == 'rack_spot':
+            kwargs['widget'] = forms.TextInput(attrs={'size': '8'})
+        return super(CageAdmin, self).formfield_for_dbfield(db_field, **kwargs)
+
+    # This affects all charfields
+    #~ formfield_overrides = {
+        #~ django.db.models.CharField: {
+            #~ 'widget': forms.TextInput(attrs={'size': '20'})}
+    #~ }
+
 
 class SackFilter(admin.SimpleListFilter):
     title = 'Sacked'
