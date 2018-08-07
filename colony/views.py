@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 import datetime
 
 from .models import (Mouse, Cage, Litter, generate_cage_name,
-    get_person_name_from_user_name, Person, get_user_name_from_person_name,
+    Person,
     have_same_single_gene,
     HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype)
 from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
@@ -339,20 +339,26 @@ def census(request):
     include_by_user = request.GET.get('include_by_user', False)
     location = request.GET.get('location', 4) # SC2-011
     
-    # Get proprietor name
-    proprietor = None
+    # Get proprietor to filter by
+    # This can be the 'proprietor' parameter, matching on proprietor.name
+    # or the 'person' parameter, matching on proprietor.login_name
     proprietor_name = request.GET.get('proprietor', None)
+    login_name = request.GET.get('person', None)
     
-    # Also allow the login name to be specified by the person parameter
-    if proprietor_name is None:
-        person_name = request.GET.get('person', None)
-        proprietor_name = get_person_name_from_user_name(person_name)
-    
-    # Convert to person object
+    # Filter first by proprietor name and secondly by login name
     if proprietor_name is not None:
         proprietor_qs = Person.objects.filter(name=proprietor_name)
-        if proprietor_qs.count() > 0:
-            proprietor = proprietor_qs.first()
+    elif login_name is not None:
+        proprietor_qs = Person.objects.filter(login_name=login_name)
+    else:
+        proprietor_qs = None
+    
+    # Resolve to a single person if possible
+    if proprietor_qs is not None and proprietor_qs.count() > 0:
+        proprietor = proprietor_qs.first()    
+    else:
+        proprietor = None
+    
 
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
@@ -436,8 +442,8 @@ def make_mating_cage(request):
             
             # Define the cage name
             if cage_name == '':
-                user_name = get_user_name_from_person_name(str(proprietor.name))
-                cage_name = generate_cage_name(user_name)
+                series_number = proprietor.series_number
+                cage_name = generate_cage_name(series_number)
             
             # Create the cage
             cage = Cage(
@@ -467,8 +473,13 @@ def make_mating_cage(request):
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        person_name = get_person_name_from_user_name(str(request.user))
-        person = Person.objects.filter(name=person_name).first()
+        # Find matching Person by login name
+        person_qs = Person.objects.filter(login_name=str(request.user))
+        if person_qs.count() > 0:
+            person = person_qs.first()
+        else:
+            person = None
+
         initial = {
             'proprietor': person,
         }

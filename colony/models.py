@@ -19,105 +19,6 @@ from django.utils.html import escape
 from django.contrib.auth.models import User
 from autoslug import AutoSlugField
 
-# Helper function to get a new cage nuber based on user
-def get_series_number_from_user_name(user_name):
-    """Returns the series number for this user.
-    
-    Their cages will be in the range 
-        1000*series_number:1000*(series_number+1)
-    
-    Here we use the login name, rather than the name on the Person class.
-    0 is returned if the user_name is not known.
-    """
-    if user_name == 'amanda':
-        series_number = 9
-    elif user_name == 'chris':
-        series_number = 3
-    elif user_name == 'Dan':
-        series_number = 5
-    elif user_name == 'georgia':
-        series_number = 8
-    elif user_name == 'kate':
-        series_number = 1
-    elif user_name == 'library':
-        series_number = 10
-    elif user_name == 'lab stock':
-        series_number = 10
-    elif user_name == 'Sam':
-        series_number = 6
-    elif user_name == 'jung':
-        series_number = 7
-    else:
-        series_number = 2
-    return series_number
-
-def get_person_name_from_user_name(user_name):
-    """Return the person corresponding to the logged-in user"""
-    if user_name == 'amanda':
-        return 'Amanda'
-    elif user_name == 'chris':
-        return 'Chris'
-    elif user_name == 'christina':
-        return 'Christina'        
-    elif user_name == 'Dan':
-        return 'Dan'
-    elif user_name == 'Drew':
-        return 'Drew'
-    elif user_name == 'georgia':
-        return 'Georgia'
-    elif user_name == 'jpatterson':
-        return 'Jason'
-    elif user_name == 'kate':
-        return 'Kate'
-    elif user_name == 'randy':
-        return 'Randy'
-    elif user_name == 'Sam':
-        return 'Sam'        
-    elif user_name == 'jung':
-        return 'Jung'
-    else:
-        return None
-
-def get_user_name_from_person_name(person_name):
-    """Return the user name corresponding to the person name
-    
-    This is used to determine the input to get_series_number_from_user_name
-    in the make_mating_cage form.
-    
-    person_name : Proprietor name
-    
-    Returns: user_name
-        Suitable for get_series_number_from_user_name
-    """
-    if person_name == 'Amanda':
-        return 'amanda'
-    elif person_name == 'Chris':
-        return 'chris'
-    elif person_name == 'Christina':
-        return 'christina'        
-    elif person_name == 'Dan':
-        return 'Dan'
-    elif person_name == 'Drew':
-        return 'Drew'
-    elif person_name == 'Georgia':
-        return 'georgia'
-    elif person_name == 'Jason':
-        return 'jpatterson'
-    elif person_name == 'Kate':
-        return 'kate'
-    elif person_name == 'Randy':
-        return 'randy'
-    elif person_name == 'Library':
-        return 'library'
-    elif person_name == 'Sam':
-        return 'Sam'
-    elif person_name == 'Jung':
-        return 'jung'
-    elif person_name == 'Lab Stock':
-        return 'lab stock'        
-    else:
-        return None
-
 def strip_alpha(cage_name):
     """Keep only digits from cage name
     
@@ -145,17 +46,14 @@ def strip_alpha(cage_name):
     else:
         return int(res)
 
-def generate_cage_name(user_name=None):
+def generate_cage_name(series_number):
     """Returns the next cage name for this user.
     
-    user_name : logged-in user's name
+    series_number : series number to generate the cage number
     
     Finds all existing cage names and chooses one number higher.
     Returns: the new cage name as a string
     """
-    # Determine what cage series it is
-    series_number = get_series_number_from_user_name(user_name)
-    
     # Find all cage numbers in this series
     all_cage_names = Cage.objects.all().values_list('name', flat=True)
     my_cage_numbers = []
@@ -204,10 +102,27 @@ class Person(models.Model):
     active : boolean
         Whether to display them as an option in menus
     """
-    name = models.CharField(max_length=15, unique=True)    
+    # The Person name (name displaying on cages, etc.)
+    name = models.CharField(max_length=15, unique=True,
+        help_text='the name to display on their cages and mice')    
+    
+    # The username (login name)
+    # This must manually be set and must match the User
+    login_name = models.CharField(max_length=15,
+        help_text='manually set this to their login name',
+        unique=True,
+    )
     
     # Whether to display them
-    active = models.BooleanField(default=True)
+    active = models.BooleanField(default=True,
+        help_text='whether to display as a possible option in menus')
+    
+    # Series number of their cages
+    series_number = models.IntegerField(
+        default=9,
+        help_text='cage series number',
+        null=False, blank=False,
+    )
     
     # track history with simple_history
     history = HistoricalRecords()
