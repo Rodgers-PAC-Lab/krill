@@ -109,7 +109,10 @@ class Person(models.Model):
     # The username (login name)
     # This must manually be set and must match the User
     login_name = models.CharField(max_length=15,
-        help_text='manually set this to their login name',
+        help_text=(
+            'this must be manually set to be the same as their '
+            'login name in order to make their personalized census view work'
+        ),
         unique=True,
     )
     
