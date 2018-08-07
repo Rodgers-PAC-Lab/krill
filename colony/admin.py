@@ -3,7 +3,6 @@ from .models import (Mouse, Genotype, Litter,
     Cage, Person, SpecialRequest, HistoricalMouse, Gene, MouseGene)
 # Register your models here.
 from django.db.models import Count
-import nested_inline.admin
 from django.core import urlresolvers
 from simple_history.admin import SimpleHistoryAdmin
 from django.contrib.admin.views.main import ChangeList
@@ -54,36 +53,26 @@ class GenotypedFilter(admin.SimpleListFilter):
 class GeneAdmin(admin.ModelAdmin):
     list_display = ('name', 'gene_type',)
 
-class MouseGeneInline(nested_inline.admin.NestedTabularInline):
-    """Nested within Litter, for adding genotyping information"""
+class MouseGeneInline(admin.TabularInline):
+    """Displayed within Mouse, for adding genotyping information"""
     model = MouseGene
     extra = 0
 
-class MouseInline(nested_inline.admin.NestedTabularInline):
-    """Inline of pups within litter
-    
-    This is used for setting the sex, cage, and name of the pups.
-    Genotyping and adding pups should be done from litter management.
-    """
-    model = Mouse
-    extra = 0
-    
-    # Disallow adding mice from the Litter admin
-    # This is because we want to add mice using the genotyping form instead
-    max_num = 0
-    
-    # Exclude the stuff that isn't normally specified when adding pups
-    exclude = ('manual_dob', 'manual_mother', 'manual_father', 
-        'sack_date', 'user', 'breeder', 'genotype', 'pure_breeder', 'wild_type')
-    show_change_link = True    
-
-class LitterInline(nested_inline.admin.NestedStackedInline):
+class LitterInline(admin.StackedInline):
     """For adding a Litter to a Cage"""
     model = Litter
     extra = 0
     show_change_link = True
-    inlines = [MouseInline]#, MouseGeneInline,]
+    
+    # These nested inlines are no longer used
+    #~ inlines = [MouseInline]#, MouseGeneInline,]
     readonly_fields = ('link_to_management_page',)
+
+    # Disable the ability to delete from the Cage page, because this
+    # is an easy mistake to make (and won't even go to delete confirmation
+    # page)
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     # We need access to obj.management_link, so have to put it in this
     # function
@@ -112,18 +101,9 @@ class LitterInline(nested_inline.admin.NestedStackedInline):
         (None, {
             'fields': ('link_to_management_page',),
             'description': (
-                '<font size="3">To add pups or provide genotyping ' + 
-                'information, go to the litter management page</font>'),
+                '<font size="3">To add pups, provide sex or genotyping ' + 
+                'information, or wean, go to the litter management page</font>'),
         }),
-        (None, {
-            'fields': (),
-            'description': (
-                'Use the lines below to change pup names, sex, or ' + 
-                'cage (i.e., weaning). ' +
-                'In the future this will all be done on the ' + 
-                'litter management page.'
-                )
-        }),        
     )
     
 class SpecialRequestInline(admin.TabularInline):
@@ -143,7 +123,7 @@ class LitterAdmin(admin.ModelAdmin):
     """View for identifying litters that need to be genotyped"""
     list_display = ('name', 'dob', 'date_toeclipped', 'cross', 'info',
         'get_special_request_message', 'cage_notes', 'notes', 'date_genotyped',)
-    inlines = [MouseInline] 
+    #~ inlines = [MouseInline] 
     list_editable = ('notes', 'date_genotyped', 'date_toeclipped',)
     list_filter = ('breeding_cage__proprietor', GenotypedFilter)
     readonly_fields = ('target_genotype', 'info', 'cross', 'age', 
@@ -278,7 +258,7 @@ class AddMiceToCageForm(forms.ModelForm):
         
         return instance        
 
-class CageAdmin(nested_inline.admin.NestedModelAdmin):
+class CageAdmin(admin.ModelAdmin):
     """Admin page for the Cage object.
 
     A custom form is used to allow adding mice using multiple

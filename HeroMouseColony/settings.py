@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    'nested_inline',
     'simple_history',
     'axes',
 ]
@@ -141,14 +140,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, 'static'),
 ]
-
-# Workaround for a bug where nested_inline looks for static files
-# in a place where they no longer are for django 1.9
-import shutil
-srcf = os.path.join(STATIC_ROOT, 'admin/js/vendor/jquery/jquery.min.js')
-dstf = os.path.join(STATIC_ROOT, 'admin/js/jquery.min.js')
-if os.path.exists(srcf) and not os.path.exists(dstf):
-    shutil.copyfile(srcf, dstf)
 
 
 # Simplified static file serving.
