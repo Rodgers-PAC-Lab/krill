@@ -616,7 +616,8 @@ class Mouse(models.Model):
     # possible.
     pure_breeder = models.BooleanField(default=False,
         help_text=(
-            'Check this box if this mouse was acquired as a pure breeder. ' +
+            'Check this box if this mouse was acquired as a pure breeder ' + 
+            'or wild type (e.g., anything from JAX). ' +
             'Its progeny with a wild type will automatically inherit ' +
             'this status.'))
     
@@ -626,7 +627,8 @@ class Mouse(models.Model):
     # implies "pure_breeder" even if "pure_breeder" is not set.
     wild_type = models.BooleanField(default=False,
         help_text=(
-            'Check this box if this mouse was acquired as a pure wild type.'))
+            'Check this box if this mouse was acquired as a pure wild type ' +
+            '(e.g., from JAX). If it is a wild type, it is also a pure breeder.'))
     
     
     cage = models.ForeignKey(Cage, null=True, blank=True)

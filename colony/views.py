@@ -772,6 +772,15 @@ def add_genotyping_information(request, litter_id):
                         litter.mother.pure_breeder and
                         have_same_single_gene(litter.mother, litter.father))
                     )
+                    
+                    # wild_type if both parents are wild_type
+                    pup_is_wild_type = (
+                        litter.mother.wild_type and litter.father.wild_type
+                    )
+                    
+                    # wild_type implies pure_breeder
+                    if pup_is_wild_type:
+                        pup_is_pure = True
 
                     for pupnum in range(litter.mouse_set.count(), new_number_of_pups):
                         # Create a new mouse
@@ -782,6 +791,7 @@ def add_genotyping_information(request, litter_id):
                             litter=litter,
                             cage=litter.breeding_cage,
                             pure_breeder=pup_is_pure,
+                            wild_type=pup_is_wild_type,
                         )
                         try:
                             mouse.save()
