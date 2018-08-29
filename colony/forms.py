@@ -61,18 +61,31 @@ class AddGenotypingInfoForm(forms.Form):
         litter = kwargs.pop('litter')
         super(AddGenotypingInfoForm, self).__init__(*args, **kwargs)
 
-        # Identify relevant genes for this litter
-        relevant_genes = litter.breeding_cage.relevant_genesets
-        try:
-            relevant_genes = relevant_genes[0]
-        except IndexError:
-            # This shouldn't happen
-            pass
+
+        ## Identify the relevant genes to include on the drop-down
+        # This code is copy-pasted from the relevant_genesets property
+        # on Cage. There is a weird edge case where, if the mother only
+        # was moved out of the cage, it will no longer show up as a 
+        # breeding cage and relevant_genesets will be incorrect. Instead,
+        # directly grab the relevant genes here.
+        gene_name_res = []
+        gene_type_res = []
+        for parent in [litter.father, litter.mother]:
+            for mg in parent.mousegene_set.all():
+                if mg.gene_name.name not in gene_name_res:
+                    gene_name_res.append(mg.gene_name.name)
+                    gene_type_res.append(mg.gene_name.gene_type)
         
+        # Sort the gene names by the gene types
+        sorted_gene_names = [gene_name for gene_type, gene_name in 
+            sorted(zip(gene_type_res, gene_name_res))]
+        
+        
+        ## Now create the form fields
         # Select from the relevant genes
         self.fields['gene_name'] = forms.ModelChoiceField(
             label="Choose the gene that was tested",
-            queryset=Gene.objects.filter(name__in=relevant_genes).all(),
+            queryset=Gene.objects.filter(name__in=sorted_gene_names).all(),
         )
         
         # Reorder the choices in order more likely to be clicked
