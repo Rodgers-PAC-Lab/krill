@@ -478,7 +478,7 @@ class MouseAdmin(admin.ModelAdmin):
             'description': 'Historical cage records',
         }),                
         (None, {
-            'fields': ('age', 'manual_father', 'manual_mother', 'manual_dob',),
+            'fields': ('dob', 'age', 'manual_father', 'manual_mother', 'manual_dob',),
             'description': (
                 'These properties are normally derived from the litter. '
                 'Override mother, father, and DOB here if necessary.'),
