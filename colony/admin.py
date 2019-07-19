@@ -7,6 +7,7 @@ from django.core import urlresolvers
 from simple_history.admin import SimpleHistoryAdmin
 from django.contrib.admin.views.main import ChangeList
 from django import forms
+from dal import autocomplete
 
 class GenotypedFilter(admin.SimpleListFilter):
     """Filter by whether the genotype date is null or not
@@ -227,8 +228,15 @@ class AddMiceToCageForm(forms.ModelForm):
         fields = '__all__'
     
     # Custom form field for selecting multiple mice
-    add_mouse_to_cage = forms.ModelChoiceField(required=False,
-        queryset=Mouse.objects.filter(sack_date__isnull=True).all())
+    #~ add_mouse_to_cage = forms.ModelChoiceField(required=False,
+        #~ queryset=Mouse.objects.filter(sack_date__isnull=True).all())
+
+    # New version using autocomplete
+    add_mouse_to_cage = forms.ModelChoiceField(
+        required=False,
+        queryset=Mouse.objects.filter(sack_date__isnull=True).all(),
+        widget=autocomplete.ModelSelect2(url='colony:mouse-autocomplete'),
+    )
     
     # Override __init__ if you want to specify initial
     

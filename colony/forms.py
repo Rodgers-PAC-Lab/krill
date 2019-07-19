@@ -4,6 +4,8 @@ from .models import Mouse, Cage, Person, Gene, MouseGene
 
 from django.utils.safestring import mark_safe
 
+from dal import autocomplete
+
 class HorizontalRadioRenderer(forms.RadioSelect.renderer):
     """Arrange the radio select buttons for genotyping horizontally
     
@@ -23,7 +25,7 @@ class MatingCageForm(forms.Form):
         queryset=Mouse.objects.filter(
             sack_date__isnull=True,
             sex=1,
-            ).all()
+            ).all(),
     )
     father = forms.ModelChoiceField(label='father',
         queryset=Mouse.objects.filter(
@@ -42,6 +44,16 @@ class MatingCageForm(forms.Form):
         if Cage.objects.filter(name=data).count() > 0:
             raise forms.ValidationError("A cage with this name already exists!")
         return data
+
+#~ # Example of how to use autocomplete
+#~ class MouseForm(forms.ModelForm):
+    #~ class Meta:
+        #~ model = Mouse
+        #~ fields = ('__all__')
+        #~ widgets = {
+            #~ 'manual_father': autocomplete.ModelSelect2(url='colony:mouse-autocomplete'),
+            #~ 'manual_mother': autocomplete.ModelSelect2(url='colony:mouse-autocomplete'),
+        #~ }
 
 class SackForm(forms.Form):
    "Form for making cage defunct and sacking its mice" 

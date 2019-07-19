@@ -15,4 +15,7 @@ urlpatterns = [
     url(r'^counts_by_person$', login_required(views.counts_by_person), name='counts_by_person'),
     url(r'^sack/([0-9]+)/$', login_required(views.sack), name='sack'),
     url(r'^wean/([0-9]+)/$', login_required(views.wean), name='wean'),
+    url(r'^mouse-autocomplete/$', 
+        login_required(views.MouseAutocomplete.as_view()), 
+        name='mouse-autocomplete',),
 ]
