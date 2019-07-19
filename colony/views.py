@@ -25,8 +25,13 @@ import pandas
 from dal import autocomplete
 from colony.models import Mouse
 
+
+## Autocomplete views
 # https://django-autocomplete-light.readthedocs.io/en/master/tutorial.html
+# I can't figure how to use forward filtering in this version of dal
+# so separate ones for each
 class MouseAutocomplete(autocomplete.Select2QuerySetView):
+    """Autocomplete for all mice"""
     def get_queryset(self):
         if not self.request.user.is_authenticated():
             return Mouse.objects.none()
@@ -38,8 +43,22 @@ class MouseAutocomplete(autocomplete.Select2QuerySetView):
 
         return qs        
 
+class UnsackedMouseAutocomplete(autocomplete.Select2QuerySetView):
+    """Autocomplete for unsacked mice"""
+    def get_queryset(self):
+        if not self.request.user.is_authenticated():
+            return Mouse.objects.none()
+
+        qs = Mouse.objects.filter(sack_date__isnull=True).all()
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+
+        return qs      
+
 # These two are for mating cage
 class FemaleMouseAutocomplete(autocomplete.Select2QuerySetView):
+    """Autocomplete for unsacked female mice"""
     def get_queryset(self):
         if not self.request.user.is_authenticated():
             return Mouse.objects.none()
@@ -56,6 +75,7 @@ class FemaleMouseAutocomplete(autocomplete.Select2QuerySetView):
         return qs       
 
 class MaleMouseAutocomplete(autocomplete.Select2QuerySetView):
+    """Autocomplete for unsacked male mice"""
     def get_queryset(self):
         if not self.request.user.is_authenticated():
             return Mouse.objects.none()

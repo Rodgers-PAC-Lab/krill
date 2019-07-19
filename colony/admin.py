@@ -235,7 +235,8 @@ class AddMiceToCageForm(forms.ModelForm):
     add_mouse_to_cage = forms.ModelChoiceField(
         required=False,
         queryset=Mouse.objects.filter(sack_date__isnull=True).all(),
-        widget=autocomplete.ModelSelect2(url='colony:mouse-autocomplete'),
+        widget=autocomplete.ModelSelect2(
+            url='colony:unsacked-mouse-autocomplete'),
     )
     
     # Override __init__ if you want to specify initial
