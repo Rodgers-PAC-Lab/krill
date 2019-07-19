@@ -32,7 +32,7 @@ class MatingCageForm(forms.Form):
         queryset=Mouse.objects.filter(
             sack_date__isnull=True,
             sex=0,
-            ).all()
+            ).all(),
         widget=autocomplete.ModelSelect2(url='colony:mouse-autocomplete'),
     )
     proprietor = forms.ModelChoiceField(label='proprietor',
