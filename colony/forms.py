@@ -26,12 +26,14 @@ class MatingCageForm(forms.Form):
             sack_date__isnull=True,
             sex=1,
             ).all(),
+        widget=autocomplete.ModelSelect2(url='colony:mouse-autocomplete'),
     )
     father = forms.ModelChoiceField(label='father',
         queryset=Mouse.objects.filter(
             sack_date__isnull=True,
             sex=0,
             ).all()
+        widget=autocomplete.ModelSelect2(url='colony:mouse-autocomplete'),
     )
     proprietor = forms.ModelChoiceField(label='proprietor',
         queryset=Person.objects.filter(active=True).all())

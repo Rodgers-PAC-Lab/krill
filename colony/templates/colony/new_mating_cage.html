@@ -1,6 +1,18 @@
-<form method="post">
-    {% csrf_token %}
-    <p>Choose the mother and father. They will be moved into a new cage with a new litter and marked as the mother and father as of today.</p>
-    {{ form.as_p }}
-    <input type="submit" value="Submit" />
-</form>
+{% load static %}
+
+{% block content %}
+<div>
+    <form method="post">
+        {% csrf_token %}
+        <p>Choose the mother and father. They will be moved into a new cage with a new litter and marked as the mother and father as of today.</p>
+        {{ form.as_p }}
+        <input type="submit" value="Submit" />
+    </form>
+</div>
+{% endblock %}
+
+{% block footer %}
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+
+{{ form.media }}
+{% endblock %}
