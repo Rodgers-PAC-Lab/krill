@@ -502,6 +502,17 @@ class MouseAdmin(admin.ModelAdmin):
     
     # Inlines for adding mouse genes
     inlines = [MouseGeneInline,]
+
+    # Override the mouse chooser widget
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        if db_field.name == 'manual_father':
+            kwargs['widget'] = autocomplete.ModelSelect2(
+                url='colony:mouse-autocomplete')
+        elif db_field.name == 'manual_mother':
+            kwargs['widget'] = autocomplete.ModelSelect2(
+                url='colony:mouse-autocomplete')
+        return super(MouseAdmin, self).formfield_for_dbfield(db_field, **kwargs)
+
     
 class MouseGeneAdmin(admin.ModelAdmin):
     list_display = ('mouse_name', 'gene_name', 'zygosity',)
