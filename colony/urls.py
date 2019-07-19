@@ -18,4 +18,10 @@ urlpatterns = [
     url(r'^mouse-autocomplete/$', 
         login_required(views.MouseAutocomplete.as_view()), 
         name='mouse-autocomplete',),
+    url(r'^female-mouse-autocomplete/$', 
+        login_required(views.FemaleMouseAutocomplete.as_view()), 
+        name='female-mouse-autocomplete',),
+    url(r'^male-mouse-autocomplete/$', 
+        login_required(views.MaleMouseAutocomplete.as_view()), 
+        name='male-mouse-autocomplete',),        
 ]

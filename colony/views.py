@@ -28,7 +28,6 @@ from colony.models import Mouse
 # https://django-autocomplete-light.readthedocs.io/en/master/tutorial.html
 class MouseAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        # Don't forget to filter out results depending on the visitor !
         if not self.request.user.is_authenticated():
             return Mouse.objects.none()
 
@@ -38,6 +37,36 @@ class MouseAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(name__istartswith=self.q)
 
         return qs        
+
+# These two are for mating cage
+class FemaleMouseAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        if not self.request.user.is_authenticated():
+            return Mouse.objects.none()
+
+        qs = Mouse.objects.filter(sex=1, sack_date__isnull=True).all()
+
+        sex = self.forwarded.get('sex', None)
+        if sex:
+            qs = qs.filter(sex=sex)
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+
+        return qs       
+
+class MaleMouseAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        if not self.request.user.is_authenticated():
+            return Mouse.objects.none()
+
+        qs = Mouse.objects.filter(sex=0, sack_date__isnull=True).all()
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+
+        return qs       
+
 
 def counts_by_person(request):
     # Define dates to test (for graphing)
