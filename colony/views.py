@@ -35,7 +35,7 @@ from colony.models import Mouse
 class MouseAutocomplete(autocomplete.Select2QuerySetView):
     """Autocomplete for all mice"""
     def get_queryset(self):
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return Mouse.objects.none()
 
         qs = Mouse.objects.all()
@@ -48,7 +48,7 @@ class MouseAutocomplete(autocomplete.Select2QuerySetView):
 class UnsackedMouseAutocomplete(autocomplete.Select2QuerySetView):
     """Autocomplete for unsacked mice"""
     def get_queryset(self):
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return Mouse.objects.none()
 
         qs = Mouse.objects.filter(sack_date__isnull=True).all()
@@ -62,7 +62,7 @@ class UnsackedMouseAutocomplete(autocomplete.Select2QuerySetView):
 class FemaleMouseAutocomplete(autocomplete.Select2QuerySetView):
     """Autocomplete for unsacked female mice"""
     def get_queryset(self):
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return Mouse.objects.none()
 
         qs = Mouse.objects.filter(sex=1, sack_date__isnull=True).all()
@@ -79,7 +79,7 @@ class FemaleMouseAutocomplete(autocomplete.Select2QuerySetView):
 class MaleMouseAutocomplete(autocomplete.Select2QuerySetView):
     """Autocomplete for unsacked male mice"""
     def get_queryset(self):
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return Mouse.objects.none()
 
         qs = Mouse.objects.filter(sex=0, sack_date__isnull=True).all()
