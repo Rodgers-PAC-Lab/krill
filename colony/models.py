@@ -17,7 +17,7 @@ from past.utils import old_div
 from builtins import object
 from django.db import models
 import datetime
-from django.core import urlresolvers
+from django.urls import reverse
 from simple_history.models import HistoricalRecords
 from django.utils import timezone
 from django.utils.html import escape
@@ -523,7 +523,7 @@ class Cage(models.Model):
         
         Probably doesn't belong in models.py
         """
-        return urlresolvers.reverse("admin:colony_cage_change", args=[self.id])        
+        return reverse("admin:colony_cage_change", args=[self.id])        
     
     @property
     def contains_mother_of_this_litter(self):
@@ -1073,7 +1073,7 @@ class Litter(models.Model):
     @property
     def management_link(self):
         """Get a link to the litter management page"""
-        return urlresolvers.reverse("colony:add_genotyping_info", 
+        return reverse("colony:add_genotyping_info", 
             args=[self.pk])   
     
     @property

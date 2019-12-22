@@ -5,7 +5,7 @@ from .models import (Mouse, Genotype, Litter,
     Cage, Person, SpecialRequest, HistoricalMouse, Gene, MouseGene)
 # Register your models here.
 from django.db.models import Count
-from django.core import urlresolvers
+from django.urls import reverse
 from simple_history.admin import SimpleHistoryAdmin
 from django.contrib.admin.views.main import ChangeList
 from django import forms
@@ -318,7 +318,7 @@ class CageAdmin(admin.ModelAdmin):
         """Generate HTML links for every mouse in the cage"""
         link_html_code = ''
         for child in obj.mouse_set.order_by('name').all():
-            child_link = urlresolvers.reverse("admin:colony_mouse_change", 
+            child_link = reverse("admin:colony_mouse_change", 
                 args=[child.id])
             child_info = child.info()
             if child_info is None or child_info == '':
@@ -417,19 +417,19 @@ class MouseAdmin(admin.ModelAdmin):
     ## Create fields that are HTML links to other mice
     # http://stackoverflow.com/questions/28832897/link-in-django-admin-to-foreign-key-object
     def link_to_mother(self, obj):
-        link = urlresolvers.reverse("admin:colony_mouse_change", 
+        link = reverse("admin:colony_mouse_change", 
             args=[obj.mother.id])
         return u'<a href="%s">%s</a>' % (link, obj.mother.name)
     link_to_mother.allow_tags=True    
     
     def link_to_father(self, obj):
-        link = urlresolvers.reverse("admin:colony_mouse_change", 
+        link = reverse("admin:colony_mouse_change", 
             args=[obj.father.id])
         return u'<a href="%s">%s</a>' % (link, obj.father.name)
     link_to_father.allow_tags=True    
 
     def link_to_cage(self, obj):
-        link = urlresolvers.reverse("admin:colony_cage_change", 
+        link = reverse("admin:colony_cage_change", 
             args=[obj.cage.id])
         return u'<a href="%s">%s</a>' % (link, obj.cage.name)
     link_to_cage.allow_tags=True    
@@ -438,7 +438,7 @@ class MouseAdmin(admin.ModelAdmin):
         """Generate HTML links for every child"""
         link_html_code = ''
         for child in obj.progeny:
-            child_link = urlresolvers.reverse("admin:colony_mouse_change", 
+            child_link = reverse("admin:colony_mouse_change", 
                 args=[child.id])
             child_info = child.info()
             if child_info is None or child_info == '':
