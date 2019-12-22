@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import object
 from django.contrib import admin
 from .models import (Mouse, Genotype, Litter, 
     Cage, Person, SpecialRequest, HistoricalMouse, Gene, MouseGene)
@@ -221,7 +223,7 @@ class AddMiceToCageForm(forms.ModelForm):
     The trick of adding fields = '__all__' comes from the second link
     """
     # http://stackoverflow.com/questions/6034047/one-to-many-inline-select-with-django-admin
-    class Meta:
+    class Meta(object):
         model = Cage
         
         # Without this, complains that fields or exclude needs to be set

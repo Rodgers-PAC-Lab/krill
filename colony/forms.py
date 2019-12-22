@@ -1,3 +1,4 @@
+from builtins import zip
 from django import forms
 
 from .models import Mouse, Cage, Person, Gene, MouseGene
