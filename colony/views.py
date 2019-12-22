@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import range
 from django.shortcuts import render
 from django.views import generic
 from django.db.models import FieldDoesNotExist

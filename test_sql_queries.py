@@ -13,6 +13,7 @@ only for the exact filter. But it can put it in an attr (impure_mice).
 """
 from __future__ import print_function
 
+from builtins import zip
 from django.test.client import RequestFactory
 from django.conf import settings
 settings.DEBUG = True

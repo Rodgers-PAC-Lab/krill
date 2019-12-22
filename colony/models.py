@@ -9,7 +9,12 @@ Slug the mouse name from the litter name and toe num?
 
 
 from __future__ import unicode_literals
+from __future__ import division
 
+from builtins import str
+from builtins import zip
+from past.utils import old_div
+from builtins import object
 from django.db import models
 import datetime
 from django.core import urlresolvers
@@ -134,7 +139,7 @@ class Person(models.Model):
         return self.name
 
     # Always order by name
-    class Meta:
+    class Meta(object):
         ordering = ['name']
 
 def slug_target_genotype(litter):
@@ -235,7 +240,7 @@ class Cage(models.Model):
     transfer_JLG = models.NullBooleanField(default=None)
     
     # Always order by name
-    class Meta:
+    class Meta(object):
         ordering = ['name']
     
     @property
@@ -419,7 +424,7 @@ class Cage(models.Model):
         
         # Find all spaces
         spi = [i for i, letter in enumerate(s) if letter == ' ']
-        dist_from_center = [abs(spii - len(s) / 2) for spii in spi]
+        dist_from_center = [abs(spii - old_div(len(s), 2)) for spii in spi]
 
         # Find the space closest to the middle of the string
         best_space_idx, min_dist_from_center = min(enumerate(
@@ -435,7 +440,7 @@ class Cage(models.Model):
         
         # Find all spaces
         spi = [i for i, letter in enumerate(s) if letter == ' ']
-        dist_from_center = [abs(spii - len(s) / 2) for spii in spi]
+        dist_from_center = [abs(spii - old_div(len(s), 2)) for spii in spi]
 
         # Find the space closest to the middle of the string
         best_space_idx, min_dist_from_center = min(enumerate(
@@ -656,7 +661,7 @@ class Mouse(models.Model):
     history = HistoricalRecords()
     
     # To always sort mice within a cage by name, eg in census view
-    class Meta:
+    class Meta(object):
         ordering = ['name']
     
     @property
@@ -932,7 +937,7 @@ class Gene(models.Model):
     def __str__(self):
         return self.name
     
-    class Meta:
+    class Meta(object):
         ordering = ['gene_type', 'name',]
 
 class MouseGene(models.Model):
@@ -961,7 +966,7 @@ class MouseGene(models.Model):
     zygosity_choices_dbl = tuple([(c, c) for c in zygosity_choices])
     zygosity = models.CharField(max_length=10, choices=zygosity_choices_dbl)
     
-    class Meta:
+    class Meta(object):
         ordering = ('gene_name__gene_type', 'gene_name__name',)
 
 class Litter(models.Model):
