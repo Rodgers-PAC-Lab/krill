@@ -11,6 +11,7 @@ only for the exact filter. But it can put it in an attr (impure_mice).
             queryset=colony.models.Mouse.objects.filter(pure_breeder=False), 
             to_attr='impure_mice'))
 """
+from __future__ import print_function
 
 from django.test.client import RequestFactory
 from django.conf import settings
@@ -159,6 +160,6 @@ cq0 = len(connection.queries)
 test2()
 
 cq1 = len(connection.queries)
-print cq1 - cq0
+print(cq1 - cq0)
 
 
