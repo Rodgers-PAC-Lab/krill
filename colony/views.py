@@ -132,14 +132,14 @@ def counts_by_person(request):
         pc_l.append(proprietor_counts)
 
     # Concat
-    df = pandas.concat(pc_l, axis=1).fillna(0).astype(int)
+    df = pandas.concat(pc_l, axis=1, sort=True).fillna(0).astype(int)
     df.columns = target_dates
     
     # Sort by usage
-    df = df.ix[df.sum(1).argsort()[::-1]]
+    df = df.loc[df.sum(1).sort_values().index[::-1]]
     
     # Add a total
-    df.ix['total'] = df.sum(0)
+    df.loc['total'] = df.sum(0)
 
 
     ## Repeat everything above for tabular
@@ -168,14 +168,14 @@ def counts_by_person(request):
         tabular_pc_l.append(proprietor_counts)
 
     # Concat
-    tabular_df = pandas.concat(tabular_pc_l, axis=1).fillna(0).astype(int)
+    tabular_df = pandas.concat(tabular_pc_l, axis=1, sort=True).fillna(0).astype(int)
     tabular_df.columns = tabular_target_dates
     
     # Sort by usage
-    tabular_df = tabular_df.ix[tabular_df.sum(1).argsort()[::-1]]
+    tabular_df = tabular_df.loc[tabular_df.sum(1).sort_values().index[::-1]]
     
     # Add a total
-    tabular_df.ix['total'] = tabular_df.sum(0)    
+    tabular_df.loc['total'] = tabular_df.sum(0)    
     
     
     ## Format tabular text
@@ -192,7 +192,7 @@ def counts_by_person(request):
 
     ## Plot
     # Extract only people with enough cages
-    subdf = df.ix[
+    subdf = df.loc[
         (df.mean(1) > 5) |
         (df.iloc[:, 0] > 5)
     ]
@@ -206,7 +206,7 @@ def counts_by_person(request):
     # Always plot total first
     if 'total' in subdf.index:
         subdf = subdf.drop('total')
-    ax.plot(df.ix['total'], color='k', label='total')
+    ax.plot(df.loc['total'], color='k', label='total')
     
     # Now plot the rest
     ax.plot(subdf.T)
@@ -237,7 +237,7 @@ def counts_by_person(request):
     canvas = FigureCanvas(f)
     canvas.print_png(figfile)
     figfile.seek(0)
-    figdata_png = base64.b64encode(figfile.getvalue())
+    figdata_png = base64.b64encode(figfile.getvalue()).decode('utf-8')
     img_result = '<img src="data:image/png;base64,%s"\\>' % figdata_png
     
     
