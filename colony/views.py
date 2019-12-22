@@ -962,7 +962,9 @@ def add_genotyping_information(request, litter_id):
         {   'form': form, 
             'change_number_of_pups_form': change_number_of_pups_form,
             'set_sex_form': set_sex_form,
-            'litter': litter})
+            'litter': litter,
+            'page_title': 'Litter {} Management'.format(litter.name),
+        })
 
 
 def wean(request, cage_id):
