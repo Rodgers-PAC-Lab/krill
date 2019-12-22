@@ -231,6 +231,7 @@ class Cage(models.Model):
     # Needs to be made mandatory
     proprietor = models.ForeignKey('Person',
         limit_choices_to={'active': True},
+        on_delete=models.PROTECT,
     )
     
     # track history with simple_history
@@ -636,26 +637,40 @@ class Mouse(models.Model):
             '(e.g., from JAX). If it is a wild type, it is also a pure breeder.'))
     
     
-    cage = models.ForeignKey(Cage, null=True, blank=True)
+    cage = models.ForeignKey(
+        Cage, null=True, blank=True,
+        on_delete=models.PROTECT,
+        )
     sack_date = models.DateField('sac date', blank=True, null=True)
     user = models.ForeignKey(Person, null=True, blank=True,
         limit_choices_to={'active': True},
-    )
+        on_delete=models.PROTECT,
+        )
     notes = models.CharField(max_length=100, null=True, blank=True)    
     
     # These fields are normally calculated from Litter but can be overridden
     manual_dob = models.DateField('DOB override', blank=True, null=True)
     manual_father = models.ForeignKey('Mouse', 
-        null=True, blank=True, related_name='mmf')
+        null=True, blank=True, related_name='mmf',
+        on_delete=models.PROTECT,
+        )
     manual_mother = models.ForeignKey('Mouse', 
-        null=True, blank=True, related_name='mmm')
+        null=True, blank=True, related_name='mmm',
+        on_delete=models.PROTECT,
+        )
 
     # This field is almost always set at the time of creation of a new Litter
-    litter = models.ForeignKey('Litter', null=True, blank=True)
+    litter = models.ForeignKey(
+        'Litter', null=True, blank=True,
+        on_delete=models.PROTECT,
+        )
 
     ## Deprecated fields
     breeder = models.BooleanField(default=False)
-    genotype = models.ForeignKey(Genotype, null=True, blank=True)
+    genotype = models.ForeignKey(
+        Genotype, null=True, blank=True,
+        on_delete=models.PROTECT,
+        )
     
     # track history with simple_history
     history = HistoricalRecords()
@@ -951,8 +966,10 @@ class MouseGene(models.Model):
     
     TODO: Many2Many key from MouseGene to GenotypingSession.
     """
-    gene_name = models.ForeignKey(Gene)
-    mouse_name = models.ForeignKey(Mouse)
+    gene_name = models.ForeignKey(Gene,
+        on_delete=models.PROTECT)
+    mouse_name = models.ForeignKey(Mouse,
+        on_delete=models.PROTECT)
     
     # Zygosity
     zygosity_yy = '+/+'
@@ -1001,15 +1018,19 @@ class Litter(models.Model):
         primary_key=True)    
     
     # Required field
-    proprietor = models.ForeignKey(Person, null=True, blank=True)
+    proprietor = models.ForeignKey(
+        Person, null=True, blank=True,
+        on_delete=models.PROTECT)
 
     # ForeignKey to father and mother of Litter
     father = models.ForeignKey('Mouse',
         related_name='bc_father',
-        limit_choices_to={'sex': 0})
+        limit_choices_to={'sex': 0},
+        on_delete=models.PROTECT)
     mother = models.ForeignKey('Mouse',
         related_name='bc_mother',
-        limit_choices_to={'sex': 1})
+        limit_choices_to={'sex': 1},
+        on_delete=models.PROTECT)
 
     # The target genotype is slugged from the genotype of the mother
     # and father
@@ -1223,14 +1244,17 @@ class Litter(models.Model):
     auto_needs_message.allow_tags = True
 
 class SpecialRequest(models.Model):
-    cage = models.ForeignKey(Cage)
+    cage = models.ForeignKey(Cage,
+        on_delete=models.PROTECT)
     message = models.CharField(max_length=150)
     requester = models.ForeignKey(Person, null=True, blank=True,
         limit_choices_to={'active': True},
-        related_name='requests_from_me')
+        related_name='requests_from_me',
+        on_delete=models.PROTECT)
     requestee = models.ForeignKey(Person, null=True, blank=True,
         limit_choices_to={'active': True},
-        related_name='requests_for_me')
+        related_name='requests_for_me',
+        on_delete=models.PROTECT)
     date_requested = models.DateField('date requested', null=True, blank=True)
     date_completed = models.DateField('date completed', null=True, blank=True)
     
