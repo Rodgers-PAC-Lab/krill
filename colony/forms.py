@@ -19,14 +19,14 @@ from dal import autocomplete
     #~ def render(self):
         #~ return mark_safe(u'\n'.join([u'%s\n' % w for w in self]))
 
-class HorizontalRadioSelect(forms.RadioSelect):
-    # https://stackoverflow.com/questions/5935546/align-radio-buttons-horizontally-in-django-forms
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+#~ class HorizontalRadioSelect(forms.RadioSelect):
+    #~ # https://stackoverflow.com/questions/5935546/align-radio-buttons-horizontally-in-django-forms
+    #~ def __init__(self, *args, **kwargs):
+        #~ super().__init__(*args, **kwargs)
 
-        css_style = 'style="display: inline-block; margin-right: 10px;"'
+        #~ css_style = 'style="display: inline-block; margin-right: 10px;"'
 
-        self.renderer.inner_html = '<li ' + css_style + '>{choice_value}{sub_widgets}</li>'
+        #~ self.renderer.inner_html = '<li ' + css_style + '>{choice_value}{sub_widgets}</li>'
         
         
 class MatingCageForm(forms.Form):
@@ -131,7 +131,7 @@ class AddGenotypingInfoForm(forms.Form):
             self.fields['result_%s' % mouse.name] = forms.ChoiceField(
                 label="Result for mouse %s" % mouse.name,
                 choices=choices,
-                widget=HorizontalRadioSelect,
+                #~ widget=HorizontalRadioSelect,
             )
 
 class SetMouseSexForm(forms.Form):
@@ -153,7 +153,7 @@ class SetMouseSexForm(forms.Form):
             self.fields['sex_%s' % mouse.name] = forms.ChoiceField(
                 label="Sex of mouse %s" % mouse.name,
                 choices=choices,
-                widget=forms.RadioSelect(renderer=HorizontalRadioRenderer),
+                #~ widget=HorizontalRadioSelect,
             )    
 
 class ChangeNumberOfPupsForm(forms.Form):
