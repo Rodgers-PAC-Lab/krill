@@ -1205,6 +1205,7 @@ class Litter(models.Model):
         return {'message': 'wean',
             'trigger': trigger, 'target': target, 'warn': warn}
 
+    @mark_safe
     def auto_needs_message(self):
         """Generates an HTML string with all of the litter auto-needs.
         
