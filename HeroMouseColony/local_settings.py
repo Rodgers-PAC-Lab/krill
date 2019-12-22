@@ -26,6 +26,7 @@ because no environment variables (e.g., ON_HEROKU) are set in that case.
 To generate the cache using config:get, call:
     local_settings.generate_local_cache()
 """
+from __future__ import print_function
 import os
 import subprocess
 import json
@@ -46,7 +47,7 @@ def get_remote_name(branch_name):
         # typically we want to do that kind of stuff in staging
         # now that we're never using staging anymore, always assume master,
         # could be a feature branch
-        print "warning: cannot interpret git branch %s, assuming heroku" % branch_name
+        print("warning: cannot interpret git branch %s, assuming heroku" % branch_name)
         remote_name = 'heroku'
 
     return remote_name
@@ -69,7 +70,7 @@ def set_environment_variables(verbose=False):
     current_sk = os.environ.get('DJANGO_SECRET_KEY')
     if current_du is not None and current_sk is not None:
         if verbose:
-            print "[local_settings] environment variables already set, returning"
+            print("[local_settings] environment variables already set, returning")
         return
     
     # Always run this in the directory of this file, rather than
@@ -80,8 +81,8 @@ def set_environment_variables(verbose=False):
     branch_name = get_branch_name()
     remote_name = get_remote_name(branch_name)
     if verbose:
-        print "[local_settings] we are in branch %s and remote %s" % (
-            branch_name, remote_name)
+        print("[local_settings] we are in branch %s and remote %s" % (
+            branch_name, remote_name))
     
     ## Load from local cache if it exists, or otherwise use config:get
     local_cache_name = os.path.join(cwd, 'local_cache')
@@ -94,7 +95,7 @@ def set_environment_variables(verbose=False):
         data = data[remote_name]
 
         if verbose:
-            print "[local_settings] got information from cache"
+            print("[local_settings] got information from cache")
 
     else:
         data = {
@@ -105,18 +106,18 @@ def set_environment_variables(verbose=False):
         }
 
         if verbose:
-            print "[local_settings] got information from config:get"
+            print("[local_settings] got information from config:get")
 
     ## Set the environment variables accordingly
     if os.environ.get('DATABASE_URL') is None:
         if verbose:
-            print "[local_settings] set DATABASE_URL to %s..." % (
-                data['database_url'][:18])
+            print("[local_settings] set DATABASE_URL to %s..." % (
+                data['database_url'][:18]))
         os.environ.setdefault('DATABASE_URL', data['database_url'])
     if os.environ.get('DJANGO_SECRET_KEY') is None:
         if verbose:
-            print "[local_settings] set DJANGO_SECRET_KEY to %s ..." % (
-                data['secret_key'][:5])
+            print("[local_settings] set DJANGO_SECRET_KEY to %s ..." % (
+                data['secret_key'][:5]))
         os.environ.setdefault('DJANGO_SECRET_KEY', data['secret_key'])
 
 def generate_local_cache(force=False):
@@ -138,7 +139,7 @@ def generate_local_cache(force=False):
             secret_key = run_cmd(
                 'heroku config:get DJANGO_SECRET_KEY --remote %s' % remote_name)
         except subprocess.CalledProcessError:
-            print "could not run config:get on remote %s, excluding from cache" % remote_name
+            print("could not run config:get on remote %s, excluding from cache" % remote_name)
             continue
         
         data[remote_name] = {
