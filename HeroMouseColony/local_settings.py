@@ -34,7 +34,7 @@ import json
 def run_cmd(cmd):
     """Runs a space separated command and returns the stripped output"""
     cwd = os.path.dirname(os.path.realpath(__file__))
-    return subprocess.check_output(cmd.split(), cwd=cwd).strip()
+    return subprocess.check_output(cmd.split(), cwd=cwd).decode('utf-8').strip()
 
 def get_remote_name(branch_name):
     """Use the branch name to identify the corresponding remote name"""
