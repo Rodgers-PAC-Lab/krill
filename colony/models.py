@@ -22,6 +22,7 @@ from simple_history.models import HistoricalRecords
 from django.utils import timezone
 from django.utils.html import escape
 from django.contrib.auth.models import User
+from django.utils.safestring import mark_safe
 from autoslug import AutoSlugField
 
 def strip_alpha(cage_name):
@@ -499,6 +500,7 @@ class Cage(models.Model):
     def __str__(self):
         return self.name
     
+    @mark_safe
     def auto_needs_message(self):
         srm = self.get_special_request_message()
         try:

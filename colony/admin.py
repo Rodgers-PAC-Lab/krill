@@ -8,6 +8,7 @@ from django.db.models import Count
 from django.urls import reverse
 from simple_history.admin import SimpleHistoryAdmin
 from django.contrib.admin.views.main import ChangeList
+from django.utils.safestring import mark_safe
 from django import forms
 from dal import autocomplete
 
@@ -314,6 +315,7 @@ class CageAdmin(admin.ModelAdmin):
 
     ## Define what shows up on the individual cage admin page
     # Clickable links to every mouse in the cage
+    @mark_safe
     def link_to_mice(self, obj):
         """Generate HTML links for every mouse in the cage"""
         link_html_code = ''
