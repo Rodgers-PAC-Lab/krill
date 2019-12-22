@@ -301,7 +301,7 @@ class CageAdmin(admin.ModelAdmin):
     
     # The readonly fields
     readonly_fields = ('infos', 'target_genotype', 
-        'link_to_mice', 'auto_needs_message', 'litter__target_genotype',
+        'link_to_mice', 'auto_needs_message', #'litter__target_genotype',
         'target_genotype')
     
     # Litter is an inline
