@@ -152,6 +152,7 @@ class LitterAdmin(admin.ModelAdmin):
     def name(self, obj):
         return str(obj)
 
+    @mark_safe
     def get_special_request_message(self, obj):
         return obj.breeding_cage.get_special_request_message()
     get_special_request_message.allow_tags = True
