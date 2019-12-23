@@ -78,19 +78,17 @@ class LitterInline(admin.StackedInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    #~ # We need access to obj.management_link, so have to put it in this
-    #~ # function
-    #~ @mark_safe
-    #~ def link_to_management_page(self, obj):
-        #~ """Generate link to litter management page"""
-        #~ link_html_code = u'<a href="%s">%s</a><br />' % (
-            #~ obj.management_link, 'Litter management page')
-        #~ return link_html_code
-    #~ link_to_management_page.allow_tags = True        
-    #~ link_to_management_page.short_description = 'Litter management page'
-
+    # We need access to obj.management_link, so have to put it in this
+    # function
+    @mark_safe
     def link_to_management_page(self, obj):
-        return ''
+        """Generate link to litter management page"""
+        link_html_code = u'<a href="%s">%s</a><br />' % (
+            obj.management_link, 'Litter management page')
+        return link_html_code
+    link_to_management_page.allow_tags = True        
+    link_to_management_page.short_description = 'Litter management page'
+
     
     # The purpose of this fieldset is simply to display help text above
     # the Mouse Pup inline, but then we have to explicitly declare all

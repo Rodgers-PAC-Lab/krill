@@ -18,6 +18,7 @@ from builtins import object
 from django.db import models
 import datetime
 from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
 from simple_history.models import HistoricalRecords
 from django.utils import timezone
 from django.utils.html import escape
@@ -1096,8 +1097,13 @@ class Litter(models.Model):
     @property
     def management_link(self):
         """Get a link to the litter management page"""
-        return reverse("colony:add_genotyping_info", 
-            args=[self.pk])   
+        try:
+            return reverse("colony:add_genotyping_info", 
+                args=[self.pk])   
+        except NoReverseMatch:
+            # After an update, this function is sometimes called with
+            # None as self.pk, not sure why, so catch it here
+            return None
     
     @property
     def info(self):
