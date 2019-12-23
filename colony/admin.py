@@ -78,16 +78,19 @@ class LitterInline(admin.StackedInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    # We need access to obj.management_link, so have to put it in this
-    # function
-    def link_to_management_page(self, obj):
-        """Generate link to litter management page"""
-        link_html_code = u'<a href="%s">%s</a><br />' % (
-            obj.management_link, 'Litter management page')
-        return link_html_code
-    link_to_management_page.allow_tags = True        
-    link_to_management_page.short_description = 'Litter management page'
+    #~ # We need access to obj.management_link, so have to put it in this
+    #~ # function
+    #~ @mark_safe
+    #~ def link_to_management_page(self, obj):
+        #~ """Generate link to litter management page"""
+        #~ link_html_code = u'<a href="%s">%s</a><br />' % (
+            #~ obj.management_link, 'Litter management page')
+        #~ return link_html_code
+    #~ link_to_management_page.allow_tags = True        
+    #~ link_to_management_page.short_description = 'Litter management page'
 
+    def link_to_management_page(self, obj):
+        return ''
     
     # The purpose of this fieldset is simply to display help text above
     # the Mouse Pup inline, but then we have to explicitly declare all
@@ -419,24 +422,28 @@ class MouseAdmin(admin.ModelAdmin):
 
     ## Create fields that are HTML links to other mice
     # http://stackoverflow.com/questions/28832897/link-in-django-admin-to-foreign-key-object
+    @mark_safe
     def link_to_mother(self, obj):
         link = reverse("admin:colony_mouse_change", 
             args=[obj.mother.id])
         return u'<a href="%s">%s</a>' % (link, obj.mother.name)
     link_to_mother.allow_tags=True    
     
+    @mark_safe
     def link_to_father(self, obj):
         link = reverse("admin:colony_mouse_change", 
             args=[obj.father.id])
         return u'<a href="%s">%s</a>' % (link, obj.father.name)
     link_to_father.allow_tags=True    
 
+    @mark_safe
     def link_to_cage(self, obj):
         link = reverse("admin:colony_cage_change", 
             args=[obj.cage.id])
         return u'<a href="%s">%s</a>' % (link, obj.cage.name)
     link_to_cage.allow_tags=True    
 
+    @mark_safe
     def link_to_progeny(self, obj):
         """Generate HTML links for every child"""
         link_html_code = ''
@@ -451,6 +458,7 @@ class MouseAdmin(admin.ModelAdmin):
         return link_html_code
     link_to_progeny.allow_tags=True    
 
+    @mark_safe
     def litter_management(self, obj):
         """Generate link to litter management page"""
         link_html_code = u'<a href="%s">%s</a><br />' % (
