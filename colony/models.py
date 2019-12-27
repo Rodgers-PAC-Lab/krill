@@ -971,8 +971,9 @@ class MouseGene(models.Model):
     """
     gene_name = models.ForeignKey(Gene,
         on_delete=models.PROTECT)
+    # When the mouse is deleted, delete the associated mouse gene
     mouse_name = models.ForeignKey(Mouse,
-        on_delete=models.PROTECT)
+        on_delete=models.CASCADE) 
     
     # Zygosity
     zygosity_yy = '+/+'
