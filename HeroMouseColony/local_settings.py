@@ -88,7 +88,7 @@ def set_environment_variables(verbose=False):
     local_cache_name = os.path.join(cwd, 'local_cache')
     if os.path.exists(local_cache_name):
         # Load the local cache
-        with file(local_cache_name) as fi:
+        with open(local_cache_name) as fi:
             data = json.load(fi)
         
         # Extract data just for this branch
@@ -155,7 +155,7 @@ def generate_local_cache(force=False):
             "local cache already exists, delete %s" % local_cache_name)
     
     # Store
-    with file(local_cache_name, 'w') as fi:
+    with open(local_cache_name, 'w') as fi:
         json.dump(data, fi, indent=4)
 
 def set_environment_variables_if_not_on_heroku():
