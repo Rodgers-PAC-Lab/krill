@@ -1,13 +1,7 @@
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
-from django.contrib import admin
 
 from . import views
-
-# Try this to disable sidebar
-# https://stackoverflow.com/questions/63286591/django-3-1-admin-page-appearance-issue
-admin.autodiscover()
-admin.site.enable_nav_sidebar = False
 
 app_name = 'colony'
 urlpatterns = [
