@@ -2,7 +2,7 @@ from builtins import str
 from builtins import range
 from django.shortcuts import render
 from django.views import generic
-from django.db.models import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect, HttpResponse
 import datetime
