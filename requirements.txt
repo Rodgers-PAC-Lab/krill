@@ -5,7 +5,7 @@ psycopg2-binary==2.8.4
 whitenoise==5.0.1
 django-simple-history==2.8.0
 django-autoslug==1.9.8
-django-axes==5.0.20
+django-axes==5.13.1
 pandas==0.25.3
 matplotlib==3.1.2
 django-autocomplete-light==3.5.0
