@@ -240,7 +240,7 @@ class Cage(models.Model):
     history = HistoricalRecords()
     
     # whether to move to new building (temporary field)
-    transfer_JLG = models.NullBooleanField(default=None)
+    transfer_JLG = models.BooleanField(null=True, default=None)
     
     # Always order by name
     class Meta(object):
