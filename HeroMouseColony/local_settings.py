@@ -40,7 +40,7 @@ def get_remote_name(branch_name):
     """Use the branch name to identify the corresponding remote name"""
     if branch_name == 'staging':
         remote_name = 'staging'
-    elif branch_name == 'master':
+    elif branch_name in ['master', 'main']:
         remote_name = 'heroku'
     else:
         # eg, HEAD in detached head state
