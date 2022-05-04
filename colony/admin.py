@@ -2,7 +2,8 @@ from builtins import str
 from builtins import object
 from django.contrib import admin
 from .models import (Mouse, Genotype, Litter, 
-    Cage, Person, SpecialRequest, HistoricalMouse, Gene, MouseGene)
+    Cage, Person, SpecialRequest, HistoricalMouse, Gene, MouseGene,
+    Strain, MouseStrain)
 # Register your models here.
 from django.db.models import Count
 from django.urls import reverse
@@ -61,6 +62,14 @@ class MouseGeneInline(admin.TabularInline):
     """Displayed within Mouse, for adding genotyping information"""
     model = MouseGene
     extra = 0
+
+class StrainAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+
+class MouseStrainInline(admin.TabularInline):
+    """Displayed within Mouse, for adding strain information"""
+    model = MouseStrain
+    extra = 0    
 
 class LitterInline(admin.StackedInline):
     """For adding a Litter to a Cage"""
@@ -396,7 +405,7 @@ class MouseAdmin(admin.ModelAdmin):
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
         'link_to_mother', 'link_to_father', 'link_to_progeny',
         'link_to_cage', 'cage_history_string', 'litter_management',
-        'old_genotype', 'genotype',)
+        'genotype',)
 
     # How to filter and search
     list_filter = ['cage__proprietor', 'user', 'pure_breeder', SackFilter, 
@@ -467,55 +476,53 @@ class MouseAdmin(admin.ModelAdmin):
     litter_management.allow_tags = True        
 
     # Shortcuts to display read-only genotype
-    def old_genotype(self, obj):
-        return obj.genotype
-    old_genotype.short_description = 'Old genotype (historical mice only)'
-    
     def genotype(self, obj):
         return obj.genotype
     genotype.short_description = 'Genotype'
+
 
     ## Individual Mouse admin page
     fieldsets = (
         (None, {
             'fields': ('name', 'sex',),
             'description': 'Required properties',
-        }),
+            }),
         (None, {
             'fields': ('cage', 'link_to_cage', 'sack_date', 
                 'user', 'notes',),
             'description': 'Optional properties',
-        }),        
+            }),        
         (None, {
             'fields': ('genotype', 'pure_breeder', 'pure_wild_type', 
-                'litter_management', 'old_genotype',),
+                'litter_management',),
             'description': 'Genotyping',
-        }),             
+            }),             
         (None, {
             'fields': ('link_to_mother', 'link_to_father', 'link_to_progeny',),
             'description': 'Genealogy',
-        }),     
+            }),     
         (None, {
             'fields': ('cage_history_string', ),
             'description': 'Historical cage records',
-        }),                
+            }),                
         (None, {
-            'fields': ('dob', 'age', 'manual_father', 'manual_mother', 'manual_dob',),
+            'fields': 
+                ('dob', 'age', 'manual_father', 'manual_mother', 'manual_dob',),
             'description': (
                 'These properties are normally derived from the litter. '
                 'Override mother, father, and DOB here if necessary.'),
-        }),        
-            (None, {
-            'fields': (),
-            'description': (
-                'Add a gene for a newly acquired pure breeder here. ' +
-                'For progeny mice, genotyping info should instead be added ' + 
-                'using the "litter management page" linked above.')
-        }),    
+            }),        
+        (None, {
+        'fields': (),
+        'description': (
+            'Add a gene for a newly acquired pure breeder here. ' +
+            'For progeny mice, genotyping info should instead be added ' + 
+            'using the "litter management page" linked above.')
+            }),    
     )
     
     # Inlines for adding mouse genes
-    inlines = [MouseGeneInline,]
+    inlines = [MouseGeneInline, MouseStrainInline]
 
     # Override the mouse chooser widget
     def formfield_for_dbfield(self, db_field, **kwargs):
@@ -530,6 +537,9 @@ class MouseAdmin(admin.ModelAdmin):
     
 class MouseGeneAdmin(admin.ModelAdmin):
     list_display = ('mouse_name', 'gene_name', 'zygosity',)
+
+class MouseStrainAdmin(admin.ModelAdmin):
+    list_display = ('mouse_key', 'strain_key', 'weight',)
 
 class GenotypeAdmin(admin.ModelAdmin):
     ordering = ('name',)
@@ -567,7 +577,9 @@ class HistoricalMouseAdmin(admin.ModelAdmin):
 admin.site.register(HistoricalMouse, HistoricalMouseAdmin)
 admin.site.register(Mouse, MouseAdmin)
 admin.site.register(Gene, GeneAdmin)
+admin.site.register(Strain, StrainAdmin)
 admin.site.register(MouseGene, MouseGeneAdmin)
+admin.site.register(MouseStrain, MouseStrainAdmin)
 admin.site.register(Genotype, GenotypeAdmin)
 admin.site.register(Litter, LitterAdmin)
 admin.site.register(Cage, CageAdmin)

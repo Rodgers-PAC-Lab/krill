@@ -445,11 +445,11 @@ class Cage(models.Model):
             father = self.litter.father
             
             # wild_type implies pure_breeder
-            mother_pure = mother.wild_type or mother.pure_breeder
-            father_pure = father.wild_type or father.pure_breeder
+            mother_pure = mother.pure_wild_type or mother.pure_breeder
+            father_pure = father.pure_wild_type or father.pure_breeder
             
             # determine the type of cross
-            if mother.wild_type or father.wild_type:
+            if mother.pure_wild_type or father.pure_wild_type:
                 if mother_pure and father_pure:
                     res = 'outcross'
                 else:
@@ -609,10 +609,14 @@ class Mouse(models.Model):
     Required fields
         name: unique. Should almost always be LITTERNUM-TOENUM
         sex: M, F, or ?
+        pure_breeder
+        pure_wild_type
     
     Optional fields that are often set
         cage: cage object in which this mouse is physically located
         sack_date: date of death
+        user
+        notes
 
     When mice are born and added to the tabular inline for the breeding
     cage, a Litter object is created and set to be the "litter" attribute
@@ -625,17 +629,18 @@ class Mouse(models.Model):
         manual_father
         manual_mother
     """
-    # Required fields
-    name = models.CharField(max_length=15, unique=True)
+    ## Required fields
+    name = models.CharField(max_length=25, unique=True, 
+        help_text='a unique name for this mouse')
     sex = models.IntegerField(
         choices=(
             (0, 'M'),
             (1, 'F'),
             (2, '?'),
-            )
+            ),
+        help_text='sex of the mouse, if known',
         )
     
-    ## Optional fields that can be set by the user
     # Whether this mouse is a pure breeder
     # This means that any offspring it has with WT mice will also be
     # pure breeders. We will mainly use this to identify maintenance
@@ -644,10 +649,9 @@ class Mouse(models.Model):
     # possible.
     pure_breeder = models.BooleanField(default=False,
         help_text=(
-            'Check this box if this mouse was acquired as a pure breeder ' + 
-            'or wild type (e.g., anything from JAX). ' +
-            'Its progeny with a wild type will automatically inherit ' +
-            'this status.'))
+            'set True if purchased from JAX etc, rather than made by crossing'
+            )
+        )
     
     # Whether this mouse is a wild type. It should not have any MouseGene
     # in this case. May need to have another field for "strain".
@@ -655,26 +659,34 @@ class Mouse(models.Model):
     # implies "pure_breeder" even if "pure_breeder" is not set.
     pure_wild_type = models.BooleanField(default=False,
         help_text=(
-            'Check this box if this mouse was acquired as a pure wild type ' +
-            '(e.g., from JAX). If it is a wild type, it is also a pure breeder.'))
-    
+            'set True if this is a pure wild type, '
+            'as opposed to a transgenic of some kind'
+            )
+        )
+
+
+    ## Optional fields that can be set by the user
     # ForeignKey to the cage this mouse is in
     cage = models.ForeignKey(
         Cage, null=True, blank=True,
         on_delete=models.PROTECT,
+        help_text='the cage this mouse lives in',
         )
     
     # Date it was sacked
-    sack_date = models.DateField('sac date', blank=True, null=True)
+    sack_date = models.DateField('sac date', blank=True, null=True,
+        help_text='(if applicable) the date this mouse was sacked')
     
     # User of the mouse
     user = models.ForeignKey(Person, null=True, blank=True,
         limit_choices_to={'active': True},
         on_delete=models.PROTECT,
+        help_text='(optional) the person who uses or has claimed this mouse',
         )
     
     # Notes field
-    notes = models.CharField(max_length=200, blank=True)    
+    notes = models.CharField(max_length=200, blank=True,
+        help_text='(optional) custom notes about this mouse')    
     
     # These fields are normally calculated from Litter but can be overridden
     manual_dob = models.DateField('DOB override', blank=True, null=True)
@@ -714,7 +726,7 @@ class Mouse(models.Model):
             Genes with zygosity -/- are not included in this string.
         """
         # If it's wild type, it shouldn't have any genes
-        if not self.mousegene_set.exists() and self.wild_type:
+        if not self.mousegene_set.exists() and self.pure_wild_type:
             return 'pure WT'
         
         # Get all MouseGenes other than -/-
@@ -960,7 +972,17 @@ class Strain(models.Model):
     this a class is so that people can create new Strain from the admin
     interface, instead of changing the model code.
     """
-    name = models.CharField(max_length=50, unique=True)
+    # Name of the strain, e.g. CBA
+    name = models.CharField(max_length=50, unique=True, 
+        help_text='name of the strain (example: CBA/J)')
+    
+    # Stock number
+    jax_stock_number = models.CharField(max_length=25, blank=True,
+        help_text='(if applicable) stock number at JAX')
+
+    # This makes the name appear properly in the admin StrainInline
+    def __str__(self):
+        return self.name
 
 class MouseStrain(models.Model):
     """A particular mouse and a particular strain.
