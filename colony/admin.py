@@ -389,15 +389,15 @@ class MouseAdmin(admin.ModelAdmin):
     ## List view for mice
     # The columns that show up
     list_display = ('name', 'user', 'dob', 'age', 'sacked', 'sex', 'cage', 
-        'new_genotype', 'notes',)
+        'genotype', 'notes',)
     list_editable = ('notes',)
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
         'link_to_mother', 'link_to_father', 'link_to_progeny',
         'link_to_cage', 'cage_history_string', 'litter_management',
-        'old_genotype', 'new_genotype',)
+        'old_genotype', 'genotype',)
 
     # How to filter and search
-    list_filter = ['cage__proprietor', 'user', 'breeder', SackFilter, 
+    list_filter = ['cage__proprietor', 'user', 'pure_breeder', SackFilter, 
         'mousegene__gene_name',
     ]
     search_fields = ('name', 'mousegene__gene_name__name')
@@ -469,9 +469,9 @@ class MouseAdmin(admin.ModelAdmin):
         return obj.genotype
     old_genotype.short_description = 'Old genotype (historical mice only)'
     
-    def new_genotype(self, obj):
-        return obj.new_genotype
-    new_genotype.short_description = 'Genotype'
+    def genotype(self, obj):
+        return obj.genotype
+    genotype.short_description = 'Genotype'
 
     ## Individual Mouse admin page
     fieldsets = (
@@ -485,7 +485,7 @@ class MouseAdmin(admin.ModelAdmin):
             'description': 'Optional properties',
         }),        
         (None, {
-            'fields': ('new_genotype', 'pure_breeder', 'wild_type', 
+            'fields': ('genotype', 'pure_breeder', 'wild_type', 
                 'litter_management', 'old_genotype',),
             'description': 'Genotyping',
         }),             
@@ -557,7 +557,8 @@ class HistoricalMouseAdmin(admin.ModelAdmin):
     list_filter = ('cage__name', 'name',)
     search_fields = ('name', 'cage__name')
     list_display = ('history_date', 'history_user', 'name', 'cage', 'notes',
-        'genotype',)
+        #'genotype',
+        )
     change_list_template = 'admin/colony/historicalmouse/change_list.html'
 
 

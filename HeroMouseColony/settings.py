@@ -168,3 +168,6 @@ LOGIN_URL = '/admin/login/'
 
 # Time after lockout before restoring
 AXES_COOLOFF_TIME = datetime.timedelta(minutes=10)
+
+# IntegerField is sufficient for all models in this project
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

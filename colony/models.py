@@ -1,4 +1,5 @@
-"""
+"""This defines the models for each object in the colony, such as Cage.
+
 TODO
 Validation scripts that check that the genotype of each mouse meshes with
 the parents
@@ -94,12 +95,6 @@ def generate_cage_name(series_number):
     
     return target_cage_name
 
-# This needs to be here for a weird migration
-def get_tgeno():
-    pass
-
-# Create your models here.
-
 class Person(models.Model):
     """Model of a person (experimenter)
     
@@ -162,8 +157,8 @@ def slug_target_genotype(litter):
     if litter.breeding_cage.defunct:
         return 'NA'
     
-    g1 = str(litter.father.new_genotype)
-    g2 = str(litter.mother.new_genotype)
+    g1 = str(litter.father.genotype)
+    g2 = str(litter.mother.genotype)
     drivers = ['cre']
     reporters = ['flex', 'halo', 'tdtomato', 'mcherry']
     for driver in drivers:
@@ -205,43 +200,87 @@ def have_same_single_gene(mouse1, mouse2):
     else:
         return False
 
-
 class Cage(models.Model):
-    """Model for a cage.
-
+    """Model for a Cage.
+    
+    Each Mouse can have a ForeignKey to the Cage in which it lives.
+    
+    Required fields:
+        name
+        defunct
+        location
+        proprietor
+    
+    Optional (blankable) fields:
+        notes
+        rack_spot
+        dar_id
+        dar_type
+    
+    Provides methods:
+        relevant_genesets
+        printable_relevant_genesets
+        type_of_cage
+        get_special_request_message
+        n_mice
+        names
+        infos
+        age
+        auto_needs_message
+        target_genotype
+        change_link
+        contains_mother_of_this_litter
     """
-    name = models.CharField(max_length=10, unique=True)    
-    notes = models.CharField(max_length=100, blank=True, null=True)
+    ## Required fields
+    # Name of the cage
+    name = models.CharField(max_length=20, unique=True)    
+    
+    # Whether it is "defunct", meaning no longer physically present
     defunct = models.BooleanField(default=False)
+    
+    # Where the cage physically exists
     location = models.IntegerField(
         choices = (
-            (0, '1710'),
-            (1, '1702'),
-            (2, 'Behavior'),
-            (3, '1736'),
-            (4, 'SC2-011'),
-            (5, 'L7-057'),
-            (6, 'SC2-056'),
-            (7, 'SC2-044'),
-            (8, 'L5-036'),
-        ), default=4,
+            (0, 'L44'),
+        ), default=0,
     )
     
-    # Location on the rack
-    rack_spot = models.CharField(max_length=10, blank=True)
-    
-    # Needs to be made mandatory
+    # Who is responsible for the cage
     proprietor = models.ForeignKey('Person',
         limit_choices_to={'active': True},
         on_delete=models.PROTECT,
     )
     
-    # track history with simple_history
+    
+    ## Optional fields
+    # Location on the rack
+    rack_spot = models.CharField(max_length=10, blank=True)
+    
+    # Custom notes
+    notes = models.CharField(max_length=100, blank=True)
+
+    # DAR number
+    dar_id = models.CharField(max_length=100, blank=True)
+    
+    # DAR cage type
+    dar_type = models.IntegerField(
+        choices = (
+            (0, 'other'),
+            (1, 'separation'),
+            (2, 'weaning'),
+            ),
+        default=0,
+        )
+    
+    # Cage color
+    color = models.CharField(max_length=20, blank=True)
+    
+    
+    ## Track history with simple_history
     history = HistoricalRecords()
     
-    # whether to move to new building (temporary field)
-    transfer_JLG = models.BooleanField(null=True, default=None)
     
+    ## Below are methods
     # Always order by name
     class Meta(object):
         ordering = ['name']
@@ -415,42 +454,6 @@ class Cage(models.Model):
                 res = 'progeny'
         
         return res
-    
-    def notes_first_half(self, okay_line_length=25):
-        """Return the first half of the notes. For CensusView display
-        
-        Deprecated since we started specifying CensusView column widths.
-        """
-        s = str(self.notes)
-        if len(s) < okay_line_length or ' ' not in s:
-            return s
-        
-        # Find all spaces
-        spi = [i for i, letter in enumerate(s) if letter == ' ']
-        dist_from_center = [abs(spii - old_div(len(s), 2)) for spii in spi]
-
-        # Find the space closest to the middle of the string
-        best_space_idx, min_dist_from_center = min(enumerate(
-            dist_from_center), key=lambda x:x[1])
-        split_idx = spi[best_space_idx]
-        
-        return s[:split_idx]
-    
-    def notes_second_half(self, okay_line_length=25):
-        s = str(self.notes)
-        if len(s) < okay_line_length or ' ' not in s:
-            return ''
-        
-        # Find all spaces
-        spi = [i for i, letter in enumerate(s) if letter == ' ']
-        dist_from_center = [abs(spii - old_div(len(s), 2)) for spii in spi]
-
-        # Find the space closest to the middle of the string
-        best_space_idx, min_dist_from_center = min(enumerate(
-            dist_from_center), key=lambda x:x[1])
-        split_idx = spi[best_space_idx]
-        
-        return s[split_idx:]
 
     def get_special_request_message(self):
         res_l = []
@@ -590,11 +593,6 @@ class Mouse(models.Model):
         cage: cage object in which this mouse is physically located
         sack_date: date of death
 
-    Deprecated:
-        genotype: foreign key to genotype
-        breeder: boolean, used mainly for filtering in MouseList to see
-            whether we have enough breeders
-
     When mice are born and added to the tabular inline for the breeding
     cage, a Litter object is created and set to be the "litter" attribute
     on this mouse.
@@ -634,22 +632,28 @@ class Mouse(models.Model):
     # in this case. May need to have another field for "strain".
     # This should be renamed "pure_wild_type" to clarify that it
     # implies "pure_breeder" even if "pure_breeder" is not set.
-    wild_type = models.BooleanField(default=False,
+    pure_wild_type = models.BooleanField(default=False,
         help_text=(
             'Check this box if this mouse was acquired as a pure wild type ' +
             '(e.g., from JAX). If it is a wild type, it is also a pure breeder.'))
     
-    
+    # ForeignKey to the cage this mouse is in
     cage = models.ForeignKey(
         Cage, null=True, blank=True,
         on_delete=models.PROTECT,
         )
+    
+    # Date it was sacked
     sack_date = models.DateField('sac date', blank=True, null=True)
+    
+    # User of the mouse
     user = models.ForeignKey(Person, null=True, blank=True,
         limit_choices_to={'active': True},
         on_delete=models.PROTECT,
         )
-    notes = models.CharField(max_length=100, null=True, blank=True)    
+    
+    # Notes field
+    notes = models.CharField(max_length=200, blank=True)    
     
     # These fields are normally calculated from Litter but can be overridden
     manual_dob = models.DateField('DOB override', blank=True, null=True)
@@ -668,13 +672,6 @@ class Mouse(models.Model):
         on_delete=models.PROTECT,
         )
 
-    ## Deprecated fields
-    breeder = models.BooleanField(default=False)
-    genotype = models.ForeignKey(
-        Genotype, null=True, blank=True,
-        on_delete=models.PROTECT,
-        )
-    
     # track history with simple_history
     history = HistoricalRecords()
     
@@ -683,7 +680,7 @@ class Mouse(models.Model):
         ordering = ['name']
     
     @property
-    def new_genotype(self):
+    def genotype(self):
         """Return a genotype string by concatenating linked MouseGene objects
         
         If wild_type:
@@ -844,7 +841,7 @@ class Mouse(models.Model):
             res += 'P%d ' % age
         
         # Always add genotype
-        res += str(self.new_genotype)
+        res += str(self.genotype)
         
         # Add user if we know it
         if self.user:
@@ -935,6 +932,41 @@ class Mouse(models.Model):
     def __str__(self):
         return str(self.name)
 
+class Strain(models.Model):
+    """A particular strain, such as CBA.
+    
+    There is just one instance of this per strain. The purpose of making
+    this a class is so that people can create new Strain from the admin
+    interface, instead of changing the model code.
+    """
+    name = models.CharField(max_length=50, unique=True)
+
+class MouseStrain(models.Model):
+    """A particular mouse and a particular strain.
+    
+    Each mouse may have multiple MouseStrain. The "weight" determines
+    how strong that strain is. For instance, if Mouse 1 has MouseStrain
+    "CBA" with weight 1, and Mouse 2 has MouseStrain "C57" with weight 1,
+    their progeny will have both strains with weight 0.5. If that mouse
+    is bred to a pure C57, the progeny will have weights 0.75 C57
+    and 0.25 CBA.
+    
+    The sum of the weights for any mouse should be 1.0.
+    """
+    # The strain
+    strain_key = models.ForeignKey(Strain, on_delete=models.PROTECT)
+    
+    # The mouse
+    # When the Mouse is deleted, delete the associated MouseStrain
+    mouse_key = models.ForeignKey(Mouse, on_delete=models.CASCADE)
+    
+    # The weight
+    weight = models.FloatField(
+        default=1.0,
+        help_text='the relative weight of this strain in this mouse',
+        null=False, blank=False,
+        )
+    
 class Gene(models.Model):
     """A particular gene, such as Emx-Cre.
     
@@ -1014,7 +1046,7 @@ class Litter(models.Model):
     # A one-to-one key to Cage, because each Cage can have no more than
     # one litter
     # Not sure whether to set primary_key=True here
-    # If we set it true, it implie null=False and unique=True
+    # If we set it true, it implies null=False and unique=True
     # Probably this is good because it will auto-create a Litter for every
     # new Cage, which may save a manual step?
     breeding_cage = models.OneToOneField(Cage,
@@ -1052,8 +1084,8 @@ class Litter(models.Model):
     date_genotyped = models.DateField('genotyped', null=True, blank=True)
     
     # Other optional fields
-    notes = models.CharField(max_length=100, null=True, blank=True)
-    pcr_info = models.CharField(max_length=50, null=True, blank=True)
+    notes = models.CharField(max_length=100, blank=True)
+    pcr_info = models.CharField(max_length=50, blank=True)
 
     # track history with simple_history
     history = HistoricalRecords()
@@ -1224,7 +1256,6 @@ class Litter(models.Model):
             self.needs_date_mated,
             self.needs_pup_check,
             self.needs_toe_clip,
-            #~ self.needs_genotype,
             self.needs_wean,
         ]
         today = datetime.date.today()
@@ -1254,6 +1285,7 @@ class Litter(models.Model):
     auto_needs_message.allow_tags = True
 
 class SpecialRequest(models.Model):
+    """A request made by someone to someone about a certain cage."""
     cage = models.ForeignKey(Cage,
         on_delete=models.PROTECT)
     message = models.CharField(max_length=150)
