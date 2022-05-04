@@ -210,12 +210,12 @@ class Cage(models.Model):
         defunct
         location
         proprietor
+        dar_type
     
     Optional (blankable) fields:
         notes
         rack_spot
         dar_id
-        dar_type
     
     Provides methods:
         relevant_genesets
@@ -254,26 +254,37 @@ class Cage(models.Model):
     
     ## Optional fields
     # Location on the rack
-    rack_spot = models.CharField(max_length=10, blank=True)
+    rack_spot = models.CharField(max_length=10, blank=True,
+        help_text='location within the rack')
     
     # Custom notes
     notes = models.CharField(max_length=100, blank=True)
 
     # DAR number
-    dar_id = models.CharField(max_length=100, blank=True)
+    dar_id = models.CharField(
+        max_length=100, blank=True,
+        help_text='the long number under the barcode')
+    
+    # DAR requisition number
+    dar_req_num = models.CharField(
+        max_length=100, blank=True, 
+        help_text='(for purchased only) the DAR requisition number')
     
     # DAR cage type
     dar_type = models.IntegerField(
         choices = (
-            (0, 'other'),
+            (0, 'unknown (must specify)'),
             (1, 'separation'),
             (2, 'weaning'),
+            (3, 'ordered/imported'),
             ),
         default=0,
         )
     
     # Cage color
-    color = models.CharField(max_length=20, blank=True)
+    color = models.CharField(
+        max_length=20, blank=True,
+        help_text='color of the cage card')
     
     
     ## Track history with simple_history

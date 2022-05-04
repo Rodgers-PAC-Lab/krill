@@ -336,11 +336,11 @@ class CageAdmin(admin.ModelAdmin):
     # Arrangement of fields on individual cage admin page
     fieldsets = (
         (None, {
-            'fields': ('name', 'location', 'proprietor',),
+            'fields': ('name', 'defunct', 'location', 'proprietor', 'dar_type',),
             'description': 'Required properties',
         }),
         (None, {
-            'fields': ('rack_spot', 'notes', 'defunct',),
+            'fields': ('rack_spot', 'notes', 'dar_id', 'color'),
             'description': 'Optional properties',
         }),        
         (None, {
