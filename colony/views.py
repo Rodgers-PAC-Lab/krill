@@ -284,13 +284,14 @@ def census_by_cage_number(request, census_filter_form, proprietor,
     qs = qs.order_by(order_by)
     
     # Now select related
+    # I used to also prefetch_related on mouse_set__genotype but this
+    # stopped working
     qs = qs.prefetch_related('mouse_set').\
         prefetch_related('specialrequest_set').\
         prefetch_related('specialrequest_set__requester').\
         prefetch_related('specialrequest_set__requestee').\
         prefetch_related('mouse_set__litter').\
         prefetch_related('mouse_set__user').\
-        prefetch_related('mouse_set__genotype').\
         prefetch_related('litter__mouse_set').\
         prefetch_related('litter__father__mousegene_set').\
         prefetch_related('litter__mother__mousegene_set').\
@@ -834,8 +835,8 @@ def add_genotyping_information(request, litter_id):
                     # pure_breeder if one parent is pure and other is wild
                     # or if both are pure breeders of the same gene
                     pup_is_pure = (
-                        (litter.mother.pure_breeder and litter.father.wild_type) or
-                        (litter.father.pure_breeder and litter.mother.wild_type) or
+                        (litter.mother.pure_breeder and litter.father.pure_wild_type) or
+                        (litter.father.pure_breeder and litter.mother.pure_wild_type) or
                         (litter.father.pure_breeder and 
                         litter.mother.pure_breeder and
                         have_same_single_gene(litter.mother, litter.father))
@@ -843,7 +844,7 @@ def add_genotyping_information(request, litter_id):
                     
                     # wild_type if both parents are wild_type
                     pup_is_wild_type = (
-                        litter.mother.wild_type and litter.father.wild_type
+                        litter.mother.pure_wild_type and litter.father.pure_wild_type
                     )
                     
                     # wild_type implies pure_breeder
@@ -855,11 +856,10 @@ def add_genotyping_information(request, litter_id):
                         mouse = Mouse(
                             name='%s-%d' % (litter.breeding_cage.name, pupnum + 1),
                             sex=2,
-                            genotype=Genotype.objects.filter(name='TBD').first(),
                             litter=litter,
                             cage=litter.breeding_cage,
                             pure_breeder=pup_is_pure,
-                            wild_type=pup_is_wild_type,
+                            pure_wild_type=pup_is_wild_type,
                         )
                         try:
                             mouse.save()
