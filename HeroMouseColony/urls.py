@@ -22,4 +22,4 @@ urlpatterns = [
 ]
 
 # http://stackoverflow.com/questions/4938491/django-admin-change-header-django-administration-text
-admin.site.site_header = 'Bruno Lab Mouse Colony'
+admin.site.site_header = 'PAC Lab Mouse Colony'
