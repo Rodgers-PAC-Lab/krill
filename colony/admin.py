@@ -336,11 +336,13 @@ class CageAdmin(admin.ModelAdmin):
     # Arrangement of fields on individual cage admin page
     fieldsets = (
         (None, {
-            'fields': ('name', 'defunct', 'location', 'proprietor', 'dar_type',),
+            'fields': (
+                'name', 'defunct', 'location', 'proprietor', 'dar_type',),
             'description': 'Required properties',
         }),
         (None, {
-            'fields': ('rack_spot', 'notes', 'dar_id', 'color'),
+            'fields': (
+                'rack_spot', 'notes', 'dar_id', 'color', 'dar_req_num',),
             'description': 'Optional properties',
         }),        
         (None, {
@@ -485,7 +487,7 @@ class MouseAdmin(admin.ModelAdmin):
             'description': 'Optional properties',
         }),        
         (None, {
-            'fields': ('genotype', 'pure_breeder', 'wild_type', 
+            'fields': ('genotype', 'pure_breeder', 'pure_wild_type', 
                 'litter_management', 'old_genotype',),
             'description': 'Genotyping',
         }),             

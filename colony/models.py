@@ -233,22 +233,27 @@ class Cage(models.Model):
     """
     ## Required fields
     # Name of the cage
-    name = models.CharField(max_length=20, unique=True)    
+    name = models.CharField(
+        max_length=50, unique=True, help_text='a unique name for this cage')    
     
     # Whether it is "defunct", meaning no longer physically present
-    defunct = models.BooleanField(default=False)
+    defunct = models.BooleanField(
+        default=False, 
+        help_text='set True when the cage no longer physically exists')
     
     # Where the cage physically exists
     location = models.IntegerField(
         choices = (
             (0, 'L44'),
         ), default=0,
+        help_text='where the cage is physically located',
     )
     
     # Who is responsible for the cage
     proprietor = models.ForeignKey('Person',
         limit_choices_to={'active': True},
         on_delete=models.PROTECT,
+        help_text='the person responsible for the cage',
     )
     
     
@@ -258,16 +263,19 @@ class Cage(models.Model):
         help_text='location within the rack')
     
     # Custom notes
-    notes = models.CharField(max_length=100, blank=True)
+    notes = models.CharField(max_length=100, blank=True, 
+        help_text='any custom notes about this cage')
 
     # DAR number
     dar_id = models.CharField(
         max_length=100, blank=True,
+        verbose_name='DAR ID number',
         help_text='the long number under the barcode')
     
     # DAR requisition number
     dar_req_num = models.CharField(
         max_length=100, blank=True, 
+        verbose_name='DAR requisition number',
         help_text='(for purchased only) the DAR requisition number')
     
     # DAR cage type
@@ -279,6 +287,8 @@ class Cage(models.Model):
             (3, 'ordered/imported'),
             ),
         default=0,
+        verbose_name='DAR type',
+        help_text='where the cage came from, and what kind of card it has',
         )
     
     # Cage color
