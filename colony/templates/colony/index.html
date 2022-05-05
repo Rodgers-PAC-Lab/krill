@@ -45,6 +45,7 @@ body
         <th>cage</th>
         <th>mouse</th>
         <th>sex</th>
+        <th>strain</th>
         <th>genotype</th>
         <th>pure</th>
         <th>birthdate</th>
@@ -108,8 +109,11 @@ body
                 {% if mouse.user %}[{{ mouse.user }}]{% endif %}
             </td>
             
-            {# print sex, genotype, pure, dob, notes #}
+            {# print sex, strain, genotype, pure, dob, notes #}
             <td>{{ mouse.get_sex_display }}</td>
+            <td>
+                {{ mouse.strain_description }}
+            </td>            
             <td>
                 {% if mouse.litter %}
                     {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 

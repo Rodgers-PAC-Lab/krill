@@ -12,6 +12,8 @@ Slug the mouse name from the litter name and toe num?
 from __future__ import unicode_literals
 from __future__ import division
 
+import numpy as np
+
 from builtins import str
 from builtins import zip
 from past.utils import old_div
@@ -713,6 +715,39 @@ class Mouse(models.Model):
         ordering = ['name']
     
     @property
+    def strain_description(self):
+        """Return a string describing the strain from linked MouseStrain
+        
+        
+        """
+        # Get all MouseStrain
+        mouse_strain_set = self.mousestrain_set.all()
+        
+        # If none, then return strain unknown
+        if len(mouse_strain_set) == 0:
+            return 'unknown_strain'
+        
+        elif len(mouse_strain_set) == 1:
+            # Consists of only one strain
+            only_mouse_strain = mouse_strain_set.first()
+            
+            # The weight should be nearly 1
+            if not np.isclose(only_mouse_strain.weight, 1):
+                weight_is_wrong = True
+            else:
+                weight_is_wrong = False
+            
+            # Return the name of the only strain
+            if weight_is_wrong:
+                return '{} (bad weight)'.format(only_mouse_strain.strain_key.name)
+            else:
+                return only_mouse_strain.strain_key.name
+        
+        else:
+            # Multiple strains
+            1/0
+    
+    @property
     def genotype(self):
         """Return a genotype string by concatenating linked MouseGene objects
         
@@ -864,7 +899,7 @@ class Mouse(models.Model):
     def info(self):
         """Returns a verbose set of information about the mouse.
         
-        %NAME% (%SEX% %AGE% %GENOTYPE% %USER%)
+        %NAME% (%SEX% %AGE% %STRAIN% %GENOTYPE% %USER%)
         """
         res = "%s (%s " % (self.name, self.get_sex_display())
 
@@ -872,6 +907,9 @@ class Mouse(models.Model):
         age = self.age()
         if age is not None:
             res += 'P%d ' % age
+        
+        # Always add straing
+        res += str(self.strain_description) + ' '
         
         # Always add genotype
         res += str(self.genotype)
