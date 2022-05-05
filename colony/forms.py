@@ -182,14 +182,8 @@ class CensusFilterForm(forms.Form):
     location = forms.ChoiceField(
         label='Location',
         choices=[
+            (0, 'L44'),
             ('All', 'All'),
-            (0, '1710'),
-            (3, '1736'),
-            (4, 'SC2-011'),
-            (5, 'L7-057'),
-            (6, 'SC2-056'),            
-            (7, 'SC2-044'),
-            (8, 'L5-036'),
         ],
         required=False,
     )
