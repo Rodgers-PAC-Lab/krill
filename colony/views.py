@@ -834,6 +834,7 @@ def add_genotyping_information(request, litter_id):
                     
                     # pure_breeder if one parent is pure and other is wild
                     # or if both are pure breeders of the same gene
+                    # TODO: also only if they are of the same strain
                     pup_is_pure = (
                         (litter.mother.pure_breeder and litter.father.pure_wild_type) or
                         (litter.father.pure_breeder and litter.mother.pure_wild_type) or
@@ -846,6 +847,29 @@ def add_genotyping_information(request, litter_id):
                     pup_is_wild_type = (
                         litter.mother.pure_wild_type and litter.father.pure_wild_type
                     )
+                    
+                    # construct the new strain set
+                    mother_strain = list(
+                        litter.mother.mousestrain_set.values_list('strain_key__id', 'weight'))
+                    father_strain = list(
+                        litter.father.mousestrain_set.values_list('strain_key__id', 'weight'))
+                    
+                    # Depends how many strains there are
+                    if len(mother_strain) == 0 or len(father_strain) == 0:
+                        # If either has the strain unspecified, no way to know
+                        strain_set = []
+                    elif len(mother_strain) == 1 and len(father_strain) == 1:
+                        # The parents are single strain, not hybrids
+                        mother_strain_id, mother_strain_weight = mother_strain[0]
+                        father_strain_id, father_strain_weight = father_strain[0]
+                        
+                        # If they are the same strain, then that's it
+                        1/0
+                        # If they are different strain, then it's 1:1
+                        1/0
+                    else:
+                        # unsupported
+                        raise ValueError("cannot deal with breeding hybrids")
                     
                     # wild_type implies pure_breeder
                     if pup_is_wild_type:
