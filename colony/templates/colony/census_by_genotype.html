@@ -146,10 +146,10 @@ See also:
                     {% if mouse.litter %}
                         {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
                         <a href="{{ add_genotyping_url }}"> 
-                            {{ mouse.new_genotype }} 
+                            {{ mouse.genotype }} 
                         </a>
                     {% else %}
-                        {{ mouse.new_genotype }}
+                        {{ mouse.genotype }}
                     {% endif %}
                 </td>
                 <td>{% if mouse.pure_breeder %}y{%endif%}</td>
