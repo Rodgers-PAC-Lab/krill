@@ -63,7 +63,7 @@ body
         </thead>
 
         <tbody>
-        {% for mouse in litter.mouse_set.all %}
+        {% for mouse in litter.mouse_set.all|dictsort:"pk" %}
             <tr>
                 <td>{{ mouse.name }}</td>
                 <td>{{ mouse.cage }}</td>

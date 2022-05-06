@@ -59,7 +59,7 @@ body
     {# iterate over every cage #}
     {% for cage in object_list %}
         {# loop over mice in the cage, with a border above the first one #}
-        {% for mouse in cage.mouse_set.all %}
+        {% for mouse in cage.mouse_set.all|dictsort:"pk" %}
         <tr {% if forloop.counter0 == 0%} style="border-top: thin solid" {% endif %}>
             {# The first column is Cage Detail, and it has a certain #}
             {# number of lines of info regardless of the number of mice #}
