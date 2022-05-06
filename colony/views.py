@@ -1037,6 +1037,7 @@ def wean(request, cage_id):
                     location=cage.location,
                     proprietor=cage.proprietor,
                     notes='',
+                    dar_type=2, # weaning type
                 )
                 male_cage.save()
                 for mouse in male_pups.all():
@@ -1051,6 +1052,7 @@ def wean(request, cage_id):
                     location=cage.location,
                     proprietor=cage.proprietor,
                     notes='',
+                    dar_type=2, # weaning type
                 )
                 female_cage.save()
                 for mouse in female_pups.all():
@@ -1065,6 +1067,7 @@ def wean(request, cage_id):
                     location=cage.location,
                     proprietor=cage.proprietor,
                     notes='',
+                    dar_type=2, # weaning type
                 )
                 unk_cage.save()
                 for mouse in unk_pups.all():
@@ -1073,6 +1076,7 @@ def wean(request, cage_id):
             
             cage.litter.date_weaned = datetime.date.today()
             cage.litter.save()
+
 
             ## Redirect to a new mating cage form for the parents
             # Should redirect to a new mating cage form, or do that above
