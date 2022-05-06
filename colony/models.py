@@ -1028,11 +1028,10 @@ class MouseStrain(models.Model):
     Each mouse may have multiple MouseStrain. The "weight" determines
     how strong that strain is. For instance, if Mouse 1 has MouseStrain
     "CBA" with weight 1, and Mouse 2 has MouseStrain "C57" with weight 1,
-    their progeny will have both strains with weight 0.5. If that mouse
-    is bred to a pure C57, the progeny will have weights 0.75 C57
-    and 0.25 CBA.
+    their progeny will have both strains with weight 1. 
     
-    The sum of the weights for any mouse should be 1.0.
+    More complicated breeding schemes are not yet supported, but could
+    be calculated using the GCD and LCM of the weights.
     """
     # The strain
     strain_key = models.ForeignKey(Strain, on_delete=models.PROTECT)
@@ -1042,8 +1041,8 @@ class MouseStrain(models.Model):
     mouse_key = models.ForeignKey(Mouse, on_delete=models.CASCADE)
     
     # The weight
-    weight = models.FloatField(
-        default=1.0,
+    weight = models.IntegerField(
+        default=1,
         help_text='the relative weight of this strain in this mouse',
         null=False, blank=False,
         )

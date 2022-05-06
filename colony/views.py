@@ -857,16 +857,28 @@ def add_genotyping_information(request, litter_id):
                     # Depends how many strains there are
                     if len(mother_strain) == 0 or len(father_strain) == 0:
                         # If either has the strain unspecified, no way to know
-                        strain_set = []
+                        strains = []
+                        strains_weight = []
                     elif len(mother_strain) == 1 and len(father_strain) == 1:
                         # The parents are single strain, not hybrids
                         mother_strain_id, mother_strain_weight = mother_strain[0]
                         father_strain_id, father_strain_weight = father_strain[0]
                         
-                        # If they are the same strain, then that's it
-                        1/0
-                        # If they are different strain, then it's 1:1
-                        1/0
+                        # Depends if they are the same strain
+                        if mother_strain_id == father_strain_id:
+                            # Mother and father are same strain, so so is
+                            # the progeny
+                            strains = [Strain.objects.filter(id=mother_strain_id).first()]
+                            strains_weight = [1]
+                        
+                        else:
+                            # Mother and father are different strain, so 
+                            # progeny will be 1:1
+                            strains = [
+                                Strain.objects.filter(id=mother_strain_id).first(),
+                                Strain.objects.filter(id=father_strain_id).first(),
+                                ]
+                            strains_weight = [1, 1]
                     else:
                         # unsupported
                         raise ValueError("cannot deal with breeding hybrids")
@@ -896,6 +908,14 @@ def add_genotyping_information(request, litter_id):
                             mg = MouseGene(mouse_name=mouse, gene_name=gene,
                                 zygosity='?/?')
                             mg.save()
+                        
+                        # Add its strains
+                        for strain, weight in zip(strains, strains_weight):
+                            ms = MouseStrain(
+                                mouse_key=mouse, strain_key=strain, 
+                                weight=weight)
+                            ms.save()
+                
                 elif new_number_of_pups < litter.mouse_set.count():
                     # Delete unneeded pups
                     # Assume the pup numbering is correct, so if we want
