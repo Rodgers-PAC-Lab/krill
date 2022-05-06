@@ -127,7 +127,8 @@ class AddGenotypingInfoForm(forms.Form):
         )]
         
         # Add a field for each mouse
-        for mouse in litter.mouse_set.all():
+        # Ordering by pk makes this work for litters bigger than 10
+        for mouse in litter.mouse_set.order_by('pk').all():
             self.fields['result_%s' % mouse.name] = forms.ChoiceField(
                 label="Result for mouse %s" % mouse.name,
                 choices=choices,
@@ -149,7 +150,8 @@ class SetMouseSexForm(forms.Form):
         ]
         
         # Add a field for each mouse
-        for mouse in litter.mouse_set.all():
+        # Ordering by pk makes this work for litters bigger than 10
+        for mouse in litter.mouse_set.order_by('pk').all():
             self.fields['sex_%s' % mouse.name] = forms.ChoiceField(
                 label="Sex of mouse %s" % mouse.name,
                 choices=choices,
