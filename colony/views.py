@@ -10,7 +10,8 @@ import datetime
 from .models import (Mouse, Cage, Litter, generate_cage_name,
     Person,
     have_same_single_gene,
-    HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype)
+    HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype,
+    Strain, MouseStrain)
 from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
     ChangeNumberOfPupsForm, CensusFilterForm, WeanForm, SetMouseSexForm)
 from simple_history.models import HistoricalRecords
@@ -824,30 +825,6 @@ def add_genotyping_information(request, litter_id):
                     'number_of_pups']
                 
                 if new_number_of_pups > litter.mouse_set.count():
-                    # Determine the MouseGenes to add
-                    mother_genes = list(litter.mother.mousegene_set.values_list(
-                        'gene_name__id', flat=True))
-                    father_genes = list(litter.father.mousegene_set.values_list(
-                        'gene_name__id', flat=True))
-                    gene_set = Gene.objects.filter(id__in=(
-                        mother_genes + father_genes)).distinct()
-                    
-                    # pure_breeder if one parent is pure and other is wild
-                    # or if both are pure breeders of the same gene
-                    # TODO: also only if they are of the same strain
-                    pup_is_pure = (
-                        (litter.mother.pure_breeder and litter.father.pure_wild_type) or
-                        (litter.father.pure_breeder and litter.mother.pure_wild_type) or
-                        (litter.father.pure_breeder and 
-                        litter.mother.pure_breeder and
-                        have_same_single_gene(litter.mother, litter.father))
-                    )
-                    
-                    # wild_type if both parents are wild_type
-                    pup_is_wild_type = (
-                        litter.mother.pure_wild_type and litter.father.pure_wild_type
-                    )
-                    
                     # construct the new strain set
                     mother_strain = list(
                         litter.mother.mousestrain_set.values_list('strain_key__id', 'weight'))
@@ -855,6 +832,7 @@ def add_genotyping_information(request, litter_id):
                         litter.father.mousestrain_set.values_list('strain_key__id', 'weight'))
                     
                     # Depends how many strains there are
+                    mother_and_father_same_single_strain = False
                     if len(mother_strain) == 0 or len(father_strain) == 0:
                         # If either has the strain unspecified, no way to know
                         strains = []
@@ -870,6 +848,7 @@ def add_genotyping_information(request, litter_id):
                             # the progeny
                             strains = [Strain.objects.filter(id=mother_strain_id).first()]
                             strains_weight = [1]
+                            mother_and_father_same_single_strain = True
                         
                         else:
                             # Mother and father are different strain, so 
@@ -883,8 +862,35 @@ def add_genotyping_information(request, litter_id):
                         # unsupported
                         raise ValueError("cannot deal with breeding hybrids")
                     
-                    # wild_type implies pure_breeder
-                    if pup_is_wild_type:
+                    # Determine the MouseGenes to add
+                    mother_genes = list(litter.mother.mousegene_set.values_list(
+                        'gene_name__id', flat=True))
+                    father_genes = list(litter.father.mousegene_set.values_list(
+                        'gene_name__id', flat=True))
+                    gene_set = Gene.objects.filter(id__in=(
+                        mother_genes + father_genes)).distinct()
+                    
+                    # pure_breeder if one parent is pure and other is wild
+                    # or if both are pure breeders of the same gene
+                    # But always only if they are the same strain
+                    pup_is_pure = ((
+                        (litter.mother.pure_breeder and litter.father.pure_wild_type) or
+                        (litter.father.pure_breeder and litter.mother.pure_wild_type) or
+                        (litter.father.pure_breeder and 
+                        litter.mother.pure_breeder and
+                        have_same_single_gene(litter.mother, litter.father))) and
+                        mother_and_father_same_single_strain
+                    )
+                    
+                    # pure_wild_type if both parents are wild_type
+                    # and both parents are same strain
+                    pup_is_pure_wild_type = (
+                        litter.mother.pure_wild_type and litter.father.pure_wild_type and
+                        mother_and_father_same_single_strain
+                    )
+                    
+                    # pure_wild_type implies pure_breeder
+                    if pup_is_pure_wild_type:
                         pup_is_pure = True
 
                     for pupnum in range(litter.mouse_set.count(), new_number_of_pups):
@@ -895,7 +901,7 @@ def add_genotyping_information(request, litter_id):
                             litter=litter,
                             cage=litter.breeding_cage,
                             pure_breeder=pup_is_pure,
-                            pure_wild_type=pup_is_wild_type,
+                            pure_wild_type=pup_is_pure_wild_type,
                         )
                         try:
                             mouse.save()

@@ -723,6 +723,9 @@ class Mouse(models.Model):
         # Get all MouseStrain
         mouse_strain_set = self.mousestrain_set.all()
         
+        # This flag is set for weight problems
+        weight_is_wrong = False
+        
         # If none, then return strain unknown
         if len(mouse_strain_set) == 0:
             return 'unknown_strain'
@@ -731,11 +734,9 @@ class Mouse(models.Model):
             # Consists of only one strain
             only_mouse_strain = mouse_strain_set.first()
             
-            # The weight should be nearly 1
-            if not np.isclose(only_mouse_strain.weight, 1):
+            # The weight should be exactly 1
+            if only_mouse_strain.weight != 1:
                 weight_is_wrong = True
-            else:
-                weight_is_wrong = False
             
             # Return the name of the only strain
             if weight_is_wrong:
@@ -745,7 +746,23 @@ class Mouse(models.Model):
         
         else:
             # Multiple strains
-            1/0
+            strain_names = []
+            
+            # Iterate over strains, in alphabetical order
+            for mouse_strain in mouse_strain_set.order_by('strain_key__name').all():
+                # Save name
+                strain_names.append(mouse_strain.strain_key.name)
+                
+                # Check weight is 1
+                if mouse_strain.weight != 1:
+                    weight_is_wrong = True
+            
+            # Form the string
+            strain_string = ':'.join(strain_names)
+            if weight_is_wrong:
+                strain_string += ' (bad weight)'
+            
+            return strain_string
     
     @property
     def genotype(self):
