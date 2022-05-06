@@ -44,6 +44,7 @@ body
     <tr>
         <th>cage</th>
         <th>mouse</th>
+        <th>id</th>
         <th>sex</th>
         <th>strain</th>
         <th>genotype</th>
@@ -110,6 +111,7 @@ body
             </td>
             
             {# print sex, strain, genotype, pure, dob, notes #}
+            <td>{{ mouse.identify_by }}</td>
             <td>{{ mouse.get_sex_display }}</td>
             <td>
                 {{ mouse.strain_description }}
@@ -161,7 +163,7 @@ body
         {# If there are fewer mice in the cage than there are lines #}
         {# of cage detail in the first column, then add empty rows here #}
         {# because the mouse_set iteration will have finished too soon. #}
-        {# Then we always have 3 rows of 12 columns #}
+        {# Then we always have 3 rows of 13 columns #}
         {% if cage.n_mice == 0 %}
             {# Special case of an empty cage #}
             {# We always want to display the name, needs, notes, and sack link #}
@@ -187,8 +189,8 @@ body
                     {{ cage.printable_relevant_genesets }}
                 </td>                
                 
-                {# eight empty spots #}
-                <td /><td /><td /><td /><td /><td /><td /><td />
+                {# nine empty spots #}
+                <td /><td /><td /><td /><td /><td /><td /><td /><td />
 
                 {# auto needs and special requests #}
                 <td style="width:150px;">

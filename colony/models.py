@@ -619,6 +619,8 @@ class Mouse(models.Model):
         sack_date: date of death
         user
         notes
+        tail_tattoo
+        tail_sharpie
 
     When mice are born and added to the tabular inline for the breeding
     cage, a Litter object is created and set to be the "litter" attribute
@@ -684,6 +686,16 @@ class Mouse(models.Model):
         limit_choices_to={'active': True},
         on_delete=models.PROTECT,
         help_text='(optional) the person who uses or has claimed this mouse',
+        )
+    
+    # Tail tattoo marking
+    tail_tattoo = models.CharField(max_length=10, blank=True,
+        help_text='(optional) 3-character tail tattoo',
+        )
+    
+    # Tail sharpie marks
+    tail_sharpie = models.CharField(max_length=20, blank=True,
+        help_text='(optional) sharpie markings on tail',
         )
     
     # Notes field
@@ -937,6 +949,17 @@ class Mouse(models.Model):
         
         # Finish
         res += ')'
+        return res
+    
+    def identify_by(self):
+        """Return information about tattoo or tail markings, if any"""
+        res = ''
+        if len(self.tail_tattoo) > 0:
+            res += 'tat_{}'.format(self.tail_tattoo)
+        
+        if len(self.tail_sharpie) > 0:
+            res += 'mark_{}'.format(self.tail_sharpie)
+        
         return res
 
     @property
@@ -1334,9 +1357,9 @@ class Litter(models.Model):
             return None
         
         reference_date = self.dob
-        trigger = reference_date + datetime.timedelta(days=17)
-        target = reference_date + datetime.timedelta(days=20)
-        warn = reference_date + datetime.timedelta(days=20)
+        trigger = reference_date + datetime.timedelta(days=19)
+        target = reference_date + datetime.timedelta(days=21)
+        warn = reference_date + datetime.timedelta(days=22)
         
         return {'message': 'wean',
             'trigger': trigger, 'target': target, 'warn': warn}
@@ -1352,7 +1375,6 @@ class Litter(models.Model):
         meth_l = [
             self.needs_date_mated,
             self.needs_pup_check,
-            self.needs_toe_clip,
             self.needs_wean,
         ]
         today = datetime.date.today()

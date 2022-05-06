@@ -489,7 +489,7 @@ class MouseAdmin(admin.ModelAdmin):
             }),
         (None, {
             'fields': ('cage', 'link_to_cage', 'sack_date', 
-                'user', 'notes',),
+                'user', 'tail_tattoo', 'tail_sharpie', 'notes',),
             'description': 'Optional properties',
             }),        
         (None, {
