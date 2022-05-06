@@ -48,7 +48,7 @@ body
         <th>strain</th>
         <th>genotype</th>
         <th>pure</th>
-        <th>birthdate</th>
+        <th>dob</th>
         <th>age</th>
         <th>mouse notes</th>
         <th>auto needs</th>
@@ -161,7 +161,7 @@ body
         {# If there are fewer mice in the cage than there are lines #}
         {# of cage detail in the first column, then add empty rows here #}
         {# because the mouse_set iteration will have finished too soon. #}
-        {# Then we always have 3 rows of 8 columns #}
+        {# Then we always have 3 rows of 12 columns #}
         {% if cage.n_mice == 0 %}
             {# Special case of an empty cage #}
             {# We always want to display the name, needs, notes, and sack link #}
@@ -187,8 +187,8 @@ body
                     {{ cage.printable_relevant_genesets }}
                 </td>                
                 
-                {# six empty spots #}
-                <td /><td /><td /><td /><td /><td />
+                {# eight empty spots #}
+                <td /><td /><td /><td /><td /><td /><td /><td />
 
                 {# auto needs and special requests #}
                 <td style="width:150px;">
