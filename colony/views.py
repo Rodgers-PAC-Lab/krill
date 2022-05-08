@@ -405,9 +405,10 @@ def census(request):
     This also handles all getting of GET parameters
     """
     # Default values for form parameters
+    # I think this location actualy determine the initial queryset
     sort_by = request.GET.get('sort_by', 'cage number')
     include_by_user = request.GET.get('include_by_user', False)
-    location = request.GET.get('location', 4) # SC2-011
+    location = request.GET.get('location', 'All')
     
     # Get proprietor to filter by
     # This can be the 'proprietor' parameter, matching on proprietor.name
@@ -428,13 +429,11 @@ def census(request):
         proprietor = proprietor_qs.first()    
     else:
         proprietor = None
-    
 
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # Make the form with the POST info
         census_filter_form = CensusFilterForm(request.POST)
-        
         
         if census_filter_form.is_valid():
             # Set the new sort method if it was chosen
@@ -453,11 +452,13 @@ def census(request):
     else:
         ## GET, so create a blank form
         # Set up the initial values
+        # I think this only determines what goes in the form widgets,
+        # not the actual sorting
         initial = {
             'sort_method': sort_by,
             'proprietor': proprietor,
             'include_by_user': include_by_user,
-            'location': 4, # SC2-011
+            'location': location,
         }
         census_filter_form = CensusFilterForm(initial=initial)
 
@@ -483,7 +484,6 @@ def census(request):
         location=location,
         **kwargs
     )
-    
 
 def make_mating_cage(request):
     """View for making a new mating cage.
