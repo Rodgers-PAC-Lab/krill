@@ -1031,7 +1031,7 @@ def wean(request, cage_id):
         if form.is_valid():
             # Create the cages and move the mice
             if male_pups.count() > 0:
-                cage_name = cage.name + 'M'
+                cage_name = cage.name + '-M'
                 male_cage = colony.models.Cage(
                     name=cage_name,
                     location=cage.location,
@@ -1046,7 +1046,7 @@ def wean(request, cage_id):
             
             # same with females
             if female_pups.count() > 0:
-                cage_name = cage.name + 'F'
+                cage_name = cage.name + '-F'
                 female_cage = colony.models.Cage(
                     name=cage_name,
                     location=cage.location,
@@ -1061,7 +1061,7 @@ def wean(request, cage_id):
 
             # same with unknown gender
             if unk_pups.count() > 0:
-                cage_name = cage.name + 'PUP'
+                cage_name = cage.name + '-PUP'
                 unk_cage = colony.models.Cage(
                     name=cage_name,
                     location=cage.location,
