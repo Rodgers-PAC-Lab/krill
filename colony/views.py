@@ -815,188 +815,13 @@ def add_genotyping_information(request, litter_id):
     if request.method == 'POST':
         ## A POST, so determine which button was pressed
         if 'change_number_of_pups' in request.POST:
-            # Make the form with the POST info
-            change_number_of_pups_form = ChangeNumberOfPupsForm(
-                request.POST, prefix='change_pup')
-            
-            if change_number_of_pups_form.is_valid():
-                # change number of pups
-                new_number_of_pups = change_number_of_pups_form.cleaned_data[
-                    'number_of_pups']
-                
-                if new_number_of_pups > litter.mouse_set.count():
-                    # construct the new strain set
-                    mother_strain = list(
-                        litter.mother.mousestrain_set.values_list('strain_key__id', 'weight'))
-                    father_strain = list(
-                        litter.father.mousestrain_set.values_list('strain_key__id', 'weight'))
-                    
-                    # Depends how many strains there are
-                    mother_and_father_same_single_strain = False
-                    if len(mother_strain) == 0 or len(father_strain) == 0:
-                        # If either has the strain unspecified, no way to know
-                        strains = []
-                        strains_weight = []
-                    elif len(mother_strain) == 1 and len(father_strain) == 1:
-                        # The parents are single strain, not hybrids
-                        mother_strain_id, mother_strain_weight = mother_strain[0]
-                        father_strain_id, father_strain_weight = father_strain[0]
-                        
-                        # Depends if they are the same strain
-                        if mother_strain_id == father_strain_id:
-                            # Mother and father are same strain, so so is
-                            # the progeny
-                            strains = [Strain.objects.filter(id=mother_strain_id).first()]
-                            strains_weight = [1]
-                            mother_and_father_same_single_strain = True
-                        
-                        else:
-                            # Mother and father are different strain, so 
-                            # progeny will be 1:1
-                            strains = [
-                                Strain.objects.filter(id=mother_strain_id).first(),
-                                Strain.objects.filter(id=father_strain_id).first(),
-                                ]
-                            strains_weight = [1, 1]
-                    else:
-                        # unsupported
-                        raise ValueError("cannot deal with breeding hybrids")
-                    
-                    # Determine the MouseGenes to add
-                    mother_genes = list(litter.mother.mousegene_set.values_list(
-                        'gene_name__id', flat=True))
-                    father_genes = list(litter.father.mousegene_set.values_list(
-                        'gene_name__id', flat=True))
-                    gene_set = Gene.objects.filter(id__in=(
-                        mother_genes + father_genes)).distinct()
-                    
-                    # pure_breeder if one parent is pure and other is wild
-                    # or if both are pure breeders of the same gene
-                    # But always only if they are the same strain
-                    pup_is_pure = ((
-                        (litter.mother.pure_breeder and litter.father.pure_wild_type) or
-                        (litter.father.pure_breeder and litter.mother.pure_wild_type) or
-                        (litter.father.pure_breeder and 
-                        litter.mother.pure_breeder and
-                        have_same_single_gene(litter.mother, litter.father))) and
-                        mother_and_father_same_single_strain
-                    )
-                    
-                    # pure_wild_type if both parents are wild_type
-                    # and both parents are same strain
-                    pup_is_pure_wild_type = (
-                        litter.mother.pure_wild_type and litter.father.pure_wild_type and
-                        mother_and_father_same_single_strain
-                    )
-                    
-                    # pure_wild_type implies pure_breeder
-                    if pup_is_pure_wild_type:
-                        pup_is_pure = True
-
-                    for pupnum in range(litter.mouse_set.count(), new_number_of_pups):
-                        # Create a new mouse
-                        mouse = Mouse(
-                            name='%s-%d' % (litter.breeding_cage.name, pupnum + 1),
-                            sex=2,
-                            litter=litter,
-                            cage=litter.breeding_cage,
-                            pure_breeder=pup_is_pure,
-                            pure_wild_type=pup_is_pure_wild_type,
-                        )
-                        try:
-                            mouse.save()
-                        except IntegrityError:
-                            # Mouse already exists due to naming the pups weirdly
-                            continue
-                        
-                        # Add its genes
-                        for gene in gene_set:
-                            mg = MouseGene(mouse_name=mouse, gene_name=gene,
-                                zygosity='?/?')
-                            mg.save()
-                        
-                        # Add its strains
-                        for strain, weight in zip(strains, strains_weight):
-                            ms = MouseStrain(
-                                mouse_key=mouse, strain_key=strain, 
-                                weight=weight)
-                            ms.save()
-                
-                elif new_number_of_pups < litter.mouse_set.count():
-                    # Delete unneeded pups
-                    # Assume the pup numbering is correct, so if we want
-                    # to go from 6 to 4, delete 5 and 6
-                    for pupnum in range(new_number_of_pups, litter.mouse_set.count()):
-                        # Find the matching pup
-                        mouse_name = '%s-%d' % (
-                            litter.breeding_cage.name, pupnum + 1)
-                        mouse = Mouse.objects.filter(name=mouse_name)
-                        
-                        # Delete, but do nothing if we didn't find any pups
-                        if mouse.count() == 1:
-                            mouse.delete()
-            
-                # Remake the forms that depend on litter with the POST data
-                form = AddGenotypingInfoForm(
-                    litter=litter, prefix='add_genotyping_info') 
-                set_sex_form = SetMouseSexForm(
-                    initial={}, litter=litter, prefix='set_sex',
-                )
+            form = post_change_number_of_pups(request, litter)
         
         elif 'set_genotyping_info' in request.POST:
-            # create a form instance and populate it with data from the request:
-            form = AddGenotypingInfoForm(request.POST, 
-                initial={}, litter=litter, prefix='add_genotyping_info')
-            
-            # check whether it's valid:
-            if form.is_valid():
-                # process the data in form.cleaned_data as required
-                gene_name = form.cleaned_data['gene_name']
-                for mouse in litter.mouse_set.all():
-                    result = form.cleaned_data['result_%s' % mouse.name]
-                    
-                    # If the mouse gene already exists, change it
-                    mgqs = MouseGene.objects.filter(
-                        mouse_name=mouse, gene_name=gene_name)
-                    
-                    if mgqs.count() == 0:
-                        # Create it
-                        mg = MouseGene(
-                            gene_name=gene_name,
-                            mouse_name=mouse,
-                            zygosity=result,
-                        )
-                        mg.save()
-                    else:
-                        # Edit it
-                        mg = mgqs.first()
-                        mg.zygosity = result
-                        mg.save()
-                
-                # Create a new, blank form (so the fields default to blank
-                # rather than to the values we just entered)
-                form = AddGenotypingInfoForm(litter=litter, 
-                    prefix='add_genotyping_info')
+            form = post_set_genotyping_info(request, litter)
         
         elif 'set_sex' in request.POST:
-            ## We are setting the sex of the mice
-            # Make the other forms, that we're not processing here
-            change_number_of_pups_form = ChangeNumberOfPupsForm(
-                prefix='change_pup')   
-            form = AddGenotypingInfoForm(
-                litter=litter, prefix='add_genotyping_info')   
-
-            # create a form instance and populate it with data from the request:
-            set_sex_form = SetMouseSexForm(request.POST, 
-                initial={}, litter=litter, prefix='set_sex')            
-            
-            # Process if valid
-            if set_sex_form.is_valid():
-                # Set the sex of each submitted mouse
-                for mouse in litter.mouse_set.all():
-                    sex = set_sex_form.cleaned_data['sex_%s' % mouse.name]
-                    mouse.sex = sex
-                    mouse.save()
+            form = post_set_sex(request, litter)
 
         else:
             # A POST without clicking any submit button
@@ -1009,13 +834,219 @@ def add_genotyping_information(request, litter_id):
         # blank forms already created above
         pass
 
+    # Render and return
+    render_kwargs = {   
+        'form': form, 
+        'change_number_of_pups_form': change_number_of_pups_form,
+        'set_sex_form': set_sex_form,
+        'litter': litter}
 
-    return render(request, 'colony/add_genotyping_info.html', 
-        {   'form': form, 
-            'change_number_of_pups_form': change_number_of_pups_form,
-            'set_sex_form': set_sex_form,
-            'litter': litter})
+    return render(request, 'colony/add_genotyping_info.html', render_kwargs)
 
+def post_change_number_of_pups(request, litter):
+    # Make the form with the POST info
+    change_number_of_pups_form = ChangeNumberOfPupsForm(
+        request.POST, prefix='change_pup')
+
+    if change_number_of_pups_form.is_valid():
+        # change number of pups
+        new_number_of_pups = change_number_of_pups_form.cleaned_data[
+            'number_of_pups']
+        
+        if new_number_of_pups > litter.mouse_set.count():
+            add_pups_to_litter(litter, new_number_of_pups)
+        
+        elif new_number_of_pups < litter.mouse_set.count():
+            # Delete unneeded pups
+            # Assume the pup numbering is correct, so if we want
+            # to go from 6 to 4, delete 5 and 6
+            for pupnum in range(new_number_of_pups, litter.mouse_set.count()):
+                # Find the matching pup
+                mouse_name = '%s-%d' % (
+                    litter.breeding_cage.name, pupnum + 1)
+                mouse = Mouse.objects.filter(name=mouse_name)
+                
+                # Delete, but do nothing if we didn't find any pups
+                if mouse.count() == 1:
+                    mouse.delete()
+
+        # Remake the forms that depend on litter with the POST data
+        form = AddGenotypingInfoForm(
+            litter=litter, prefix='add_genotyping_info') 
+        set_sex_form = SetMouseSexForm(
+            initial={}, litter=litter, prefix='set_sex',
+        )    
+    
+    return form
+
+def post_set_genotyping_info(request, litter):
+    # create a form instance and populate it with data from the request:
+    form = AddGenotypingInfoForm(request.POST, 
+        initial={}, litter=litter, prefix='add_genotyping_info')
+    
+    # check whether it's valid:
+    if form.is_valid():
+        # process the data in form.cleaned_data as required
+        gene_name = form.cleaned_data['gene_name']
+        for mouse in litter.mouse_set.all():
+            result = form.cleaned_data['result_%s' % mouse.name]
+            
+            # If the mouse gene already exists, change it
+            mgqs = MouseGene.objects.filter(
+                mouse_name=mouse, gene_name=gene_name)
+            
+            if mgqs.count() == 0:
+                # Create it
+                mg = MouseGene(
+                    gene_name=gene_name,
+                    mouse_name=mouse,
+                    zygosity=result,
+                )
+                mg.save()
+            else:
+                # Edit it
+                mg = mgqs.first()
+                mg.zygosity = result
+                mg.save()
+        
+        # Create a new, blank form (so the fields default to blank
+        # rather than to the values we just entered)
+        form = AddGenotypingInfoForm(litter=litter, 
+            prefix='add_genotyping_info')
+    
+    return form
+
+def post_set_sex(request, litter):
+    ## We are setting the sex of the mice
+    # Make the other forms, that we're not processing here
+    change_number_of_pups_form = ChangeNumberOfPupsForm(
+        prefix='change_pup')   
+    form = AddGenotypingInfoForm(
+        litter=litter, prefix='add_genotyping_info')   
+
+    # create a form instance and populate it with data from the request:
+    set_sex_form = SetMouseSexForm(request.POST, 
+        initial={}, litter=litter, prefix='set_sex')            
+    
+    # Process if valid
+    if set_sex_form.is_valid():
+        # Set the sex of each submitted mouse
+        for mouse in litter.mouse_set.all():
+            sex = set_sex_form.cleaned_data['sex_%s' % mouse.name]
+            mouse.sex = sex
+            mouse.save()
+    
+    return form
+
+def add_pups_to_litter(litter, new_number_of_pups):
+    """Calculates strains and genotypes, and adds pups to litter"""
+    # Get strains of progeny
+    strains, strains_weight = get_strain_of_progeny(litter)
+    if len(strains) == 1:
+        mother_and_father_same_single_strain = True
+    else:
+        mother_and_father_same_single_strain = False
+    
+    # Determine the MouseGenes to add
+    mother_genes = list(litter.mother.mousegene_set.values_list(
+        'gene_name__id', flat=True))
+    father_genes = list(litter.father.mousegene_set.values_list(
+        'gene_name__id', flat=True))
+    gene_set = Gene.objects.filter(id__in=(
+        mother_genes + father_genes)).distinct()
+    
+    # pure_breeder if one parent is pure and other is wild
+    # or if both are pure breeders of the same gene
+    # But always only if they are the same strain
+    pup_is_pure = ((
+        (litter.mother.pure_breeder and litter.father.pure_wild_type) or
+        (litter.father.pure_breeder and litter.mother.pure_wild_type) or
+        (litter.father.pure_breeder and 
+        litter.mother.pure_breeder and
+        have_same_single_gene(litter.mother, litter.father))) and
+        mother_and_father_same_single_strain
+    )
+    
+    # pure_wild_type if both parents are wild_type
+    # and both parents are same strain
+    pup_is_pure_wild_type = (
+        litter.mother.pure_wild_type and litter.father.pure_wild_type and
+        mother_and_father_same_single_strain
+    )
+    
+    # pure_wild_type implies pure_breeder
+    if pup_is_pure_wild_type:
+        pup_is_pure = True
+
+    # Add each pup in turn
+    for pupnum in range(litter.mouse_set.count(), new_number_of_pups):
+        # Create a new mouse
+        mouse = Mouse(
+            name='%s-%d' % (litter.breeding_cage.name, pupnum + 1),
+            sex=2,
+            litter=litter,
+            cage=litter.breeding_cage,
+            pure_breeder=pup_is_pure,
+            pure_wild_type=pup_is_pure_wild_type,
+        )
+        
+        # Try to save
+        try:
+            mouse.save()
+        except IntegrityError:
+            # Mouse already exists due to naming the pups weirdly
+            continue
+        
+        # Add its genes
+        for gene in gene_set:
+            mg = MouseGene(mouse_name=mouse, gene_name=gene,
+                zygosity='?/?')
+            mg.save()
+        
+        # Add its strains
+        for strain, weight in zip(strains, strains_weight):
+            ms = MouseStrain(
+                mouse_key=mouse, strain_key=strain, 
+                weight=weight)
+            ms.save()    
+
+def get_strain_of_progeny(litter):
+    """Calculate the strain of the progeny of a litter"""
+    # construct the new strain set
+    mother_strain = list(
+        litter.mother.mousestrain_set.values_list('strain_key__id', 'weight'))
+    father_strain = list(
+        litter.father.mousestrain_set.values_list('strain_key__id', 'weight'))
+    
+    # Depends how many strains there are
+    if len(mother_strain) == 0 or len(father_strain) == 0:
+        # If either has the strain unspecified, no way to know
+        strains = []
+        strains_weight = []
+    elif len(mother_strain) == 1 and len(father_strain) == 1:
+        # The parents are single strain, not hybrids
+        mother_strain_id, mother_strain_weight = mother_strain[0]
+        father_strain_id, father_strain_weight = father_strain[0]
+        
+        # Depends if they are the same strain
+        if mother_strain_id == father_strain_id:
+            # Mother and father are same strain, so so is the progeny
+            strains = [Strain.objects.filter(id=mother_strain_id).first()]
+            strains_weight = [1]
+        
+        else:
+            # Mother and father are different strain, so 
+            # progeny will be 1:1
+            strains = [
+                Strain.objects.filter(id=mother_strain_id).first(),
+                Strain.objects.filter(id=father_strain_id).first(),
+                ]
+            strains_weight = [1, 1]
+    else:
+        # unsupported
+        raise ValueError("cannot deal with breeding hybrids")
+    
+    return strains, strains_weight
 
 def wean(request, cage_id):
     """Wean pups in the cage's litter into new cages"""
