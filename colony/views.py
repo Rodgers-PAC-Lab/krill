@@ -808,20 +808,26 @@ def add_genotyping_information(request, litter_id):
     set_sex_form = SetMouseSexForm(
         initial={}, litter=litter, prefix='set_sex',
     )
-    form = AddGenotypingInfoForm(initial={}, litter=litter,
+    genotyping_form = AddGenotypingInfoForm(initial={}, litter=litter,
         prefix='add_genotyping_info')    
     
+    
+    ## Depends on the request method
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         ## A POST, so determine which button was pressed
         if 'change_number_of_pups' in request.POST:
-            form = post_change_number_of_pups(request, litter)
+            # Need to redo all forms in order to change number of pups
+            genotyping_form, change_number_of_pups_form, set_sex_form = (
+                post_change_number_of_pups(request, litter))
         
         elif 'set_genotyping_info' in request.POST:
-            form = post_set_genotyping_info(request, litter)
+            # For this we only need to redo the set_genotyping form
+            genotyping_form = post_set_genotyping_info(request, litter)
         
         elif 'set_sex' in request.POST:
-            form = post_set_sex(request, litter)
+            # For this we only need to redo the set sex form
+            set_sex_form = post_set_sex(request, litter)
 
         else:
             # A POST without clicking any submit button
@@ -834,9 +840,10 @@ def add_genotyping_information(request, litter_id):
         # blank forms already created above
         pass
 
-    # Render and return
+    
+    ## Render and return
     render_kwargs = {   
-        'form': form, 
+        'form': genotyping_form, 
         'change_number_of_pups_form': change_number_of_pups_form,
         'set_sex_form': set_sex_form,
         'litter': litter}
@@ -844,6 +851,11 @@ def add_genotyping_information(request, litter_id):
     return render(request, 'colony/add_genotyping_info.html', render_kwargs)
 
 def post_change_number_of_pups(request, litter):
+    """Called when POST with change_number_of_pups.
+    
+    Creates pups based on parents' strain and genotype.
+    Regenerates forms and returns.
+    """
     # Make the form with the POST info
     change_number_of_pups_form = ChangeNumberOfPupsForm(
         request.POST, prefix='change_pup')
@@ -871,25 +883,29 @@ def post_change_number_of_pups(request, litter):
                     mouse.delete()
 
         # Remake the forms that depend on litter with the POST data
-        form = AddGenotypingInfoForm(
+        genotyping_form = AddGenotypingInfoForm(
             litter=litter, prefix='add_genotyping_info') 
         set_sex_form = SetMouseSexForm(
             initial={}, litter=litter, prefix='set_sex',
         )    
     
-    return form
+    return genotyping_form, change_number_of_pups_form, set_sex_form
 
 def post_set_genotyping_info(request, litter):
+    """Called when POST with set_genotyping_info.
+    
+    Sets genotypes and generates the form.
+    """    
     # create a form instance and populate it with data from the request:
-    form = AddGenotypingInfoForm(request.POST, 
+    genotyping_form = AddGenotypingInfoForm(request.POST, 
         initial={}, litter=litter, prefix='add_genotyping_info')
     
     # check whether it's valid:
-    if form.is_valid():
+    if genotyping_form.is_valid():
         # process the data in form.cleaned_data as required
         gene_name = form.cleaned_data['gene_name']
         for mouse in litter.mouse_set.all():
-            result = form.cleaned_data['result_%s' % mouse.name]
+            result = genotyping_form.cleaned_data['result_%s' % mouse.name]
             
             # If the mouse gene already exists, change it
             mgqs = MouseGene.objects.filter(
@@ -911,19 +927,17 @@ def post_set_genotyping_info(request, litter):
         
         # Create a new, blank form (so the fields default to blank
         # rather than to the values we just entered)
-        form = AddGenotypingInfoForm(litter=litter, 
+        genotyping_form = AddGenotypingInfoForm(litter=litter, 
             prefix='add_genotyping_info')
     
-    return form
+    return genotyping_form
 
 def post_set_sex(request, litter):
+    """Called when POST with set sex.
+    
+    Sets the sex and generates the form.
+    """
     ## We are setting the sex of the mice
-    # Make the other forms, that we're not processing here
-    change_number_of_pups_form = ChangeNumberOfPupsForm(
-        prefix='change_pup')   
-    form = AddGenotypingInfoForm(
-        litter=litter, prefix='add_genotyping_info')   
-
     # create a form instance and populate it with data from the request:
     set_sex_form = SetMouseSexForm(request.POST, 
         initial={}, litter=litter, prefix='set_sex')            
@@ -936,7 +950,7 @@ def post_set_sex(request, litter):
             mouse.sex = sex
             mouse.save()
     
-    return form
+    return set_sex_form
 
 def add_pups_to_litter(litter, new_number_of_pups):
     """Calculates strains and genotypes, and adds pups to litter"""
