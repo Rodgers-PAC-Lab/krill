@@ -353,7 +353,7 @@ class CageAdmin(admin.ModelAdmin):
         }),
         (None, {
             'fields': (
-                'rack_spot', 'notes', 'dar_id', 'color', 'dar_req_num',),
+                'rack_spot', 'notes', 'dar_id', 'color', 'sticker', 'dar_req_num',),
             'description': 'Optional properties',
         }),        
         (None, {
