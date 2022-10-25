@@ -218,6 +218,7 @@ class Cage(models.Model):
         notes
         rack_spot
         dar_id
+        sticker
     
     Provides methods:
         relevant_genesets

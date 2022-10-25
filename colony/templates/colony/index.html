@@ -115,17 +115,6 @@ body
             <td>
                 {{ mouse.strain_description }}
             </td>            
-            <td>
-                {% if mouse.litter %}
-                    {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
-                    <a href="{{ add_genotyping_url }}"> 
-                        {{ mouse.genotype }} 
-                    </a>
-                {% else %}
-                    {{ mouse.genotype }}
-                {% endif %}
-            </td>
-            <td>{% if mouse.pure_breeder %}y{%endif%}</td>
             <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>
             <td>{% if mouse.age %} {{ mouse.age }} {% endif %}</td>
             <td style="width:200px;">{% if mouse.notes %} {{ mouse.notes }} {% endif %}</td>
@@ -138,7 +127,14 @@ body
             {% elif forlooop.counter0 >= 3 %}
                 <td />
             {% endif %}
-            
+            {# sticker: one td with rowspan 3 #}
+            {% if forloop.counter0 == 0 %}
+                <td style="width:150px;" rowspan="3">
+                    {{ cage.sticker }}
+                </td>
+            {% elif forlooop.counter0 >= 3 %}
+                <td />
+            {% endif %}
             {# cage notes: one td with rowspan 3 #}
             {% if forloop.counter0 == 0 %}
                 <td style="width:150px;" rowspan="3">
