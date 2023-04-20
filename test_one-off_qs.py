@@ -30,6 +30,8 @@
 
 
 import colony.models
+import datetime
+
 
 cage_list = ['1034-F','1035-F','1040-F','1041-F','1042-F','1044-F','1044-M',
              '1045-M','1046-F', '1046-M', '1047-F', '1047-M', '1048-F',
@@ -64,3 +66,24 @@ sack_cagedata = []
 for x in cages_toSack:
     results=mice_in_cage(x)
     sack_cagedata.append(results)
+
+
+# Adding a query for finding breeder cages and the age of litters andor pups
+
+
+
+# Finds active breeding cages
+breeding = colony.models.Litter.objects.filter(
+    date_weaned=None, breeding_cage__defunct=False)
+born = breeding.exclude(dob = None)
+litter_dates = breeding.values("breeding_cage__name","date_mated","dob")
+def get_weaning_dates():
+    weaning_data = []
+    for x in born:
+        earliest_wean = x.dob + datetime.timedelta(days=19)
+        latest_wean = x.dob + datetime.timedelta(days=24)
+        results = x.breeding_cage,x.dob,earliest_wean,latest_wean
+        print(results)
+        weaning_data.append(results)
+
+
