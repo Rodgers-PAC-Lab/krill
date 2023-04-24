@@ -31,6 +31,7 @@
 
 import colony.models
 import datetime
+import pandas
 
 
 cage_list = ['1034-F','1035-F','1040-F','1041-F','1042-F','1044-F','1044-M',
@@ -82,8 +83,13 @@ def get_weaning_dates():
     for x in born:
         earliest_wean = x.dob + datetime.timedelta(days=19)
         latest_wean = x.dob + datetime.timedelta(days=24)
-        results = x.breeding_cage,x.dob,earliest_wean,latest_wean
-        print(results)
+        maturity = x.dob + datetime.timedelta(days=7*5)
+        results = x.breeding_cage,x.dob,earliest_wean,latest_wean,maturity
         weaning_data.append(results)
+    return weaning_data
+weaning_data = get_weaning_dates()
+wean_tbl = pandas.DataFrame(weaning_data,
+    columns=['Cage','DoBirth','Early wean', 'Late wean','Sexual maturity'])
+wean_tbl = wean_tbl.set_index('Cage')
 
 
