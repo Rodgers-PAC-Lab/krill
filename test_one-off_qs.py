@@ -81,15 +81,18 @@ litter_dates = breeding.values("breeding_cage__name","date_mated","dob")
 def get_weaning_dates():
     weaning_data = []
     for x in born:
+        sticker = colony.models.Cage.objects.filter(name = x)[0].sticker
+        # print(x, "    ", cage)
+        # sticker = cage[0].sticker
         earliest_wean = x.dob + datetime.timedelta(days=19)
         latest_wean = x.dob + datetime.timedelta(days=24)
         maturity = x.dob + datetime.timedelta(days=7*5)
-        results = x.breeding_cage,x.dob,earliest_wean,latest_wean,maturity
+        results = x.breeding_cage, sticker, x.dob,earliest_wean,latest_wean,maturity
         weaning_data.append(results)
     return weaning_data
 weaning_data = get_weaning_dates()
 wean_tbl = pandas.DataFrame(weaning_data,
-    columns=['Cage','DoBirth','Early wean', 'Late wean','Sexual maturity'])
+    columns=['Cage', 'Sticker','DoBirth','Early wean', 'Late wean','Sexual maturity'])
 wean_tbl = wean_tbl.set_index('Cage')
 
 
