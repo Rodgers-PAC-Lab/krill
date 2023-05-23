@@ -1158,4 +1158,7 @@ def current_litters(request):
         columns=['Cage', 'Sticker','DoBirth','Early wean', 'Late wean','Sexual maturity'])
     wean_tbl = wean_tbl.set_index('Cage')
     wean_test = wean_tbl.to_html()
-    return HttpResponse(wean_test)
+    response = HttpResponse('<h2>Litters born, waiting to wean</h2>')
+    response.write(wean_test)
+    response.write('<p>To do: add a table for weaned litters needing a sex check</p><p>Add a table for breeding pairs waiting on litters and dates to start checking for pups</p>')
+    return response
