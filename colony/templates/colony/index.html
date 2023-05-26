@@ -47,6 +47,7 @@ body
         <th>id</th>
         <th>sex</th>
         <th>strain</th>
+        <th>genotype</th>
         <th>dob</th>
         <th>age</th>
         <th>mouse notes</th>
@@ -114,6 +115,9 @@ body
             <td>{{ mouse.get_sex_display }}</td>
             <td>
                 {{ mouse.strain_description }}
+            </td>            
+            <td>
+                {{ mouse.genotype }}
             </td>            
             <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>
             <td>{% if mouse.age %} {{ mouse.age }} {% endif %}</td>
