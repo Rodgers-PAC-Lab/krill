@@ -19,6 +19,7 @@
   <div style="margin-bottom:15px"><a href="{% url 'colony:new_mating_cage' %}" >Create a new mating cage</a></div>
   <div style="margin-bottom:15px"><a href="{% url 'colony:summary' %}" >Cage counts</a></div>
   <div style="margin-bottom:15px"><a href="{% url 'colony:counts_by_person' %}" >Cage counts by person over time</a></div>
+  <div style="margin-bottom:15px"><a href="{% url 'colony:current_litters' %}" >Current litters</a></div>
   
 {% if app_list %}
     {% for app in app_list %}
