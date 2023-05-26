@@ -1136,29 +1136,90 @@ def wean(request, cage_id):
     })
 
 def current_litters(request):
-    # Finds active breeding cages
+    """View for cages that need to be weaned
+    
+    This view returns an HttpResponse containing metadata about all litters
+    that have been born but not weaned, and are not from a defunct
+    breeding cage. This metadata is displayed in a table with the following 
+    headings:
+        'Cage', 'Sticker', 'DoBirth', 'Early wean', 'Late wean', 
+        'Sexual maturity'
+
+    Arguments:
+        request : not used
+    
+    Returns: HttpResponse
+        This response contains the table described above.
+    """
+    # Find all Litter objects that are not weaned and are not from
+    # defunct cages
     breeding = colony.models.Litter.objects.filter(
         date_weaned=None, breeding_cage__defunct=False)
-    born = breeding.exclude(dob = None)
-    litter_dates = breeding.values("breeding_cage__name","date_mated","dob")
+    
+    # This queryset includes only those Litter that have been born
+    born = breeding.exclude(dob=None)
+    
+    
+    # Helper function
     def get_weaning_dates():
+        """Return data about each litter in `born`.
+        
+        Returns : list, of the same length as `born`
+            Each entry is a tuple containing data about that litter
+                breeding_cage
+                sticker
+                DOB
+                earliest wean date
+                latest wean date
+                maturity date
+        """
+        # Keep track of weaning data here
         weaning_data = []
+        
+        # Iterate over all litters that have been born but not weaned
         for x in born:
-            sticker = colony.models.Cage.objects.filter(name = x)[0].sticker
-            # print(x, "    ", cage)
-            # sticker = cage[0].sticker
+            # Get the sticker for the cage of the same name
+            sticker = colony.models.Cage.objects.filter(name=x)[0].sticker
+            
+            # Identify the earliest and latest possible wean dates
             earliest_wean = x.dob + datetime.timedelta(days=19)
             latest_wean = x.dob + datetime.timedelta(days=24)
+            
+            # Identify the time of maturity for this cage
             maturity = x.dob + datetime.timedelta(days=7*5)
-            results = x.breeding_cage, sticker, x.dob,earliest_wean,latest_wean,maturity
+            
+            # Store breeding_cage, sticker name, DOB, and the three dates above
+            results = (
+                x.breeding_cage, sticker, x.dob, 
+                earliest_wean, latest_wean, maturity,
+                )
             weaning_data.append(results)
+        
         return weaning_data
+    
+    # Get the data about each litter in `born`
     weaning_data = get_weaning_dates()
+    
+    # Convert this data to a DataFrame
     wean_tbl = pandas.DataFrame(weaning_data,
-        columns=['Cage', 'Sticker','DoBirth','Early wean', 'Late wean','Sexual maturity'])
+        columns=[
+            'Cage', 'Sticker', 'DoBirth', 
+            'Early wean', 'Late wean', 'Sexual maturity',
+            ]
+        )
     wean_tbl = wean_tbl.set_index('Cage')
+    
+    # Convert the table to HTML
     wean_test = wean_tbl.to_html()
+    
+    # Write the table into an HttpResponse
     response = HttpResponse('<h2>Litters born, waiting to wean</h2>')
     response.write(wean_test)
-    response.write('<p>To do: add a table for weaned litters needing a sex check</p><p>Add a table for breeding pairs waiting on litters and dates to start checking for pups</p>')
+    
+    # Add a TODO note at the end
+    response.write(
+        '<p>To do: add a table for weaned litters needing a sex check</p>'
+        '<p>Add a table for breeding pairs waiting on litters and dates to '
+        'start checking for pups</p>')
+    
     return response
