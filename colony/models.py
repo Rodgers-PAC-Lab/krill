@@ -218,6 +218,7 @@ class Cage(models.Model):
         notes
         rack_spot
         dar_id
+        sticker
     
     Provides methods:
         relevant_genesets
@@ -298,6 +299,11 @@ class Cage(models.Model):
         max_length=20, blank=True,
         help_text='color of the cage card')
     
+    # Cage sticker
+    sticker = models.CharField(
+        max_length=100, blank=True,
+        help_text='sticker that is on the cage card',
+        )
     
     ## Track history with simple_history
     history = HistoricalRecords()

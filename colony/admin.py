@@ -305,7 +305,9 @@ class CageAdmin(admin.ModelAdmin):
     # breeding cages even if the father is out of the picture.
     search_fields = ('name', 
         'mouse__name', 'litter__target_genotype', 
-        'mouse__mousegene__gene_name__name')
+        'mouse__mousegene__gene_name__name',
+        'dar_id',
+        )
     
     # Sorting in the list page
     ordering = ('defunct', 'name',)
@@ -351,7 +353,7 @@ class CageAdmin(admin.ModelAdmin):
         }),
         (None, {
             'fields': (
-                'rack_spot', 'notes', 'dar_id', 'color', 'dar_req_num',),
+                'rack_spot', 'notes', 'dar_id', 'color', 'sticker', 'dar_req_num',),
             'description': 'Optional properties',
         }),        
         (None, {
