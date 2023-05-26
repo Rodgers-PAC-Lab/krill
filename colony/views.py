@@ -1159,9 +1159,6 @@ def current_litters(request):
     # This queryset includes only those Litter that have been born
     born = breeding.exclude(dob=None)
     
-    # Extract cage name, mating date, and DOB for all Litter in `breeding`
-    # This is never actually used and should be deleted
-    litter_dates = breeding.values("breeding_cage__name", "date_mated", "dob")
     
     # Helper function
     def get_weaning_dates():
@@ -1179,7 +1176,7 @@ def current_litters(request):
         # Keep track of weaning data here
         weaning_data = []
         
-        # Iterate over all litters that have been born
+        # Iterate over all litters that have been born but not weaned
         for x in born:
             # Get the sticker for the cage of the same name
             sticker = colony.models.Cage.objects.filter(name=x)[0].sticker
