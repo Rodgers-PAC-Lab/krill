@@ -62,7 +62,7 @@ See also:
     <div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
       <div class="changelist-form-container">
         <div>
-        You can search by cage name, mouse name, or genotype. Ex: "nr5a"
+        You can search by cage name, mouse name, sticker, strain, dar_id, or genotype. Ex: "5xfad"
         </div>
         {% block search %}{% search_form cl %}{% endblock %}
         {% block date_hierarchy %}{% if cl.date_hierarchy %}{% date_hierarchy cl %}{% endif %}{% endblock %}

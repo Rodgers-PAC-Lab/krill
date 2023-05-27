@@ -426,8 +426,19 @@ class MouseAdmin(admin.ModelAdmin):
     """Mouse administration: list view and individual admin page"""
     ## List view for mice
     # The columns that show up
-    list_display = ('name', 'user', 'dob', 'age', 'sacked', 'sex', 'cage', 
-        'genotype', 'notes',)
+    list_display = (
+        'name', 
+        'cage', 
+        'user', 
+        'pure_breeder', 
+        'sacked', 
+        'strain_description',
+        'genotype', 
+        'sex', 
+        'dob', 
+        'age', 
+        'notes',
+        )
     list_editable = ('notes',)
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
         'link_to_mother', 'link_to_father', 'link_to_progeny',
@@ -435,10 +446,22 @@ class MouseAdmin(admin.ModelAdmin):
         'genotype',)
 
     # How to filter and search
-    list_filter = ['cage__proprietor', 'user', 'pure_breeder', SackFilter, 
-        'mousegene__gene_name',
+    list_filter = [
+        'cage__proprietor', 
+        'user', 
+        'pure_breeder', 
+        SackFilter, 
+        'mousestrain__strain_key__name',
+        'mousegene__gene_name__name',
+        'sex',
     ]
-    search_fields = ('name', 'mousegene__gene_name__name')
+    search_fields = (
+        'name',
+        'cage__name',
+        #'cage__sticker', # this doesn't work and I don't know why
+        'mousestrain__strain_key__name',
+        'mousegene__gene_name__name',
+        )
     
     # How it is sorted by default
     ordering = ('name',)
