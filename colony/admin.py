@@ -300,7 +300,10 @@ class CageAdmin(admin.ModelAdmin):
         )
     
     # The ones that are editable
-    list_editable = ('notes', 'rack_spot',)
+    list_editable = (
+        'notes', 
+        # 'rack_spot',
+        )
     
     # This allows filtering by proprietor name and defunctness
     # Also filter by genotype of contained mice
