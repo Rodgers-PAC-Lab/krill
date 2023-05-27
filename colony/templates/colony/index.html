@@ -48,6 +48,7 @@ body
         <th>sex</th>
         <th>strain</th>
         <th>genotype</th>
+        <th>pure</th>
         <th>dob</th>
         <th>age</th>
         <th>mouse notes</th>
@@ -119,6 +120,7 @@ body
             <td>
                 {{ mouse.genotype }}
             </td>            
+            <td>{% if mouse.pure_breeder %}y{%endif%}</td>            
             <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>
             <td>{% if mouse.age %} {{ mouse.age }} {% endif %}</td>
             <td style="width:200px;">{% if mouse.notes %} {{ mouse.notes }} {% endif %}</td>
