@@ -67,6 +67,9 @@ sack_cagedata = []
 for x in cages_toSack:
     results=mice_in_cage(x)
     sack_cagedata.append(results)
+sack_df = pandas.DataFrame(sack_cagedata,
+        columns=['Cage_ID','Notes','DAR_ID','Mice_count','Sticker'])
+sack_df.to_csv('sack_csv')
 
 
 # Adding a query for finding breeder cages and the age of litters andor pups
@@ -94,5 +97,7 @@ weaning_data = get_weaning_dates()
 wean_tbl = pandas.DataFrame(weaning_data,
     columns=['Cage', 'Sticker','DoBirth','Early wean', 'Late wean','Sexual maturity'])
 wean_tbl = wean_tbl.set_index('Cage')
+
+tattoos = colony.models.Mouse.objects.filter()
 
 
