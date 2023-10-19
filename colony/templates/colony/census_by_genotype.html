@@ -17,6 +17,7 @@ body
     font-size: 10;
 }
 </style>
+
 <form method="post">
     {% csrf_token %}
     <p style="font-size: 14;">
@@ -114,7 +115,7 @@ See also:
                         {% endif %}   
                         <br>
                         {# Third line: type of cage #}
-                        {{ cage.type_of_cage }}: 
+                        {{ cage.type_of_cage }}:
                         {{ cage.printable_relevant_genesets }}
                     </td>
                 {% endif %}
@@ -198,7 +199,7 @@ See also:
             {# If there are fewer mice in the cage than there are lines #}
             {# of cage detail in the first column, then add empty rows here #}
             {# because the mouse_set iteration will have finished too soon. #}
-            {# Then we always have 3 rows of 8 columns #}
+            {# Then we always have 3 rows of 13 columns #}
             {% if cage.n_mice == 0 %}
                 {# Special case of an empty cage #}
                 {# We always want to display the name, needs, notes, and sack link #}
@@ -219,13 +220,13 @@ See also:
                             </a>
                         {% endif %}   
                         <br>
-                        {# Third line: cage type #}
+                        {# Third line: type of cage #}
                         {{ cage.type_of_cage }}: 
                         {{ cage.printable_relevant_genesets }}
                     </td>                
                     
-                    {# six empty spots #}
-                    <td /><td /><td /><td /><td /><td />
+                    {# nine empty spots #}
+                    <td /><td /><td /><td /><td /><td /><td /><td /><td />
 
                     {# auto needs and special requests #}
                     <td style="width:150px;">
@@ -254,8 +255,4 @@ See also:
         {% endfor %} {# for cage in object.list #}
     {% endfor %}
 </table>
-    
-    
-    
-    
     
