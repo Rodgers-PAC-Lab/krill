@@ -342,13 +342,14 @@ def census_by_genotype(request, census_filter_form, proprietor,
         qs = qs.filter(location=location)
 
     # Now select related
+    # I used to also prefetch_related on mouse_set__genotype but this
+    # stopped working    
     qs = qs.prefetch_related('mouse_set').\
         prefetch_related('specialrequest_set').\
         prefetch_related('specialrequest_set__requester').\
         prefetch_related('specialrequest_set__requestee').\
         prefetch_related('mouse_set__litter').\
         prefetch_related('mouse_set__user').\
-        prefetch_related('mouse_set__genotype').\
         prefetch_related('litter__mouse_set').\
         prefetch_related('litter__father__mousegene_set').\
         prefetch_related('litter__mother__mousegene_set').\
@@ -359,7 +360,7 @@ def census_by_genotype(request, census_filter_form, proprietor,
         select_related('litter', 'litter__father', 'litter__mother', 
             'litter__mother__cage', # for contains_mother_of_this_litter
             'proprietor', 'litter__proprietor')
-    
+
     # Extract relevant genesets
     relevant_genesets = [cage.relevant_genesets for cage in qs.all()]
     unique_relevant_genesets = []
