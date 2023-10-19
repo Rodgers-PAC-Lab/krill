@@ -704,6 +704,11 @@ class Mouse(models.Model):
         help_text='(optional) sharpie markings on tail',
         )
     
+    # Toe number (or string ie "3,4", "3+4", etc, but try to encourage comma)
+    toe_clipped = models.CharField(max_length=20, blank=True,
+        help_text='(optional) comma-separated list of clipped toe numbers',
+        )
+    
     # Notes field
     notes = models.CharField(max_length=200, blank=True,
         help_text='(optional) custom notes about this mouse')    
