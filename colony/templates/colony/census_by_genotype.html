@@ -17,6 +17,7 @@ body
     font-size: 10;
 }
 </style>
+
 <form method="post">
     {% csrf_token %}
     <p style="font-size: 14;">
@@ -70,13 +71,16 @@ See also:
     <tr>
         <th>cage</th>
         <th>mouse</th>
+        <th>id</th>
         <th>sex</th>
+        <th>strain</th>
         <th>genotype</th>
         <th>pure</th>
-        <th>DOB</th>
+        <th>dob</th>
         <th>age</th>
         <th>mouse notes</th>
         <th>auto needs</th>
+        <th>sticker</th>
         <th>cage notes</th>
         <th>make defunct</th>
     </tr>
@@ -111,7 +115,7 @@ See also:
                         {% endif %}   
                         <br>
                         {# Third line: type of cage #}
-                        {{ cage.type_of_cage }}: 
+                        {{ cage.type_of_cage }}:
                         {{ cage.printable_relevant_genesets }}
                     </td>
                 {% endif %}
@@ -140,19 +144,16 @@ See also:
                     {% if mouse.user %}[{{ mouse.user }}]{% endif %}
                 </td>
                 
-                {# print sex, genotype, dob, notes #}
+                {# print sex, strain, genotype, pure, dob, notes #}
+                <td>{{ mouse.identify_by }}</td>
                 <td>{{ mouse.get_sex_display }}</td>
                 <td>
-                    {% if mouse.litter %}
-                        {% url 'colony:add_genotyping_info' mouse.litter.pk as add_genotyping_url %} 
-                        <a href="{{ add_genotyping_url }}"> 
-                            {{ mouse.genotype }} 
-                        </a>
-                    {% else %}
-                        {{ mouse.genotype }}
-                    {% endif %}
-                </td>
-                <td>{% if mouse.pure_breeder %}y{%endif%}</td>
+                    {{ mouse.strain_description }}
+                </td>            
+                <td>
+                    {{ mouse.genotype }}
+                </td>            
+                <td>{% if mouse.pure_breeder %}y{%endif%}</td>            
                 <td style="width:30px;">{{ mouse.dob|date:"m-d" }}</td>
                 <td>{% if mouse.age %} {{ mouse.age }} {% endif %}</td>
                 <td style="width:200px;">{% if mouse.notes %} {{ mouse.notes }} {% endif %}</td>
@@ -166,6 +167,15 @@ See also:
                     <td />
                 {% endif %}
                 
+                {# sticker: one td with rowspan 3 #}
+                {% if forloop.counter0 == 0 %}
+                    <td style="width:150px;" rowspan="3">
+                        {{ cage.sticker }}
+                    </td>
+                {% elif forlooop.counter0 >= 3 %}
+                    <td />
+                {% endif %}
+            
                 {# cage notes: one td with rowspan 3 #}
                 {% if forloop.counter0 == 0 %}
                     <td style="width:150px;" rowspan="3">
@@ -189,7 +199,7 @@ See also:
             {# If there are fewer mice in the cage than there are lines #}
             {# of cage detail in the first column, then add empty rows here #}
             {# because the mouse_set iteration will have finished too soon. #}
-            {# Then we always have 3 rows of 8 columns #}
+            {# Then we always have 3 rows of 13 columns #}
             {% if cage.n_mice == 0 %}
                 {# Special case of an empty cage #}
                 {# We always want to display the name, needs, notes, and sack link #}
@@ -210,13 +220,13 @@ See also:
                             </a>
                         {% endif %}   
                         <br>
-                        {# Third line: cage type #}
+                        {# Third line: type of cage #}
                         {{ cage.type_of_cage }}: 
                         {{ cage.printable_relevant_genesets }}
                     </td>                
                     
-                    {# six empty spots #}
-                    <td /><td /><td /><td /><td /><td />
+                    {# nine empty spots #}
+                    <td /><td /><td /><td /><td /><td /><td /><td /><td />
 
                     {# auto needs and special requests #}
                     <td style="width:150px;">
@@ -245,8 +255,4 @@ See also:
         {% endfor %} {# for cage in object.list #}
     {% endfor %}
 </table>
-    
-    
-    
-    
     

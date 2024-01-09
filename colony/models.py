@@ -704,6 +704,11 @@ class Mouse(models.Model):
         help_text='(optional) sharpie markings on tail',
         )
     
+    # Toe number (or string ie "3,4", "3+4", etc, but try to encourage comma)
+    toe_clipped = models.CharField(max_length=20, blank=True,
+        help_text='(optional) comma-separated list of clipped toe numbers',
+        )
+    
     # Notes field
     notes = models.CharField(max_length=200, blank=True,
         help_text='(optional) custom notes about this mouse')    
@@ -961,10 +966,19 @@ class Mouse(models.Model):
         """Return information about tattoo or tail markings, if any"""
         res = ''
         if len(self.tail_tattoo) > 0:
-            res += 'tat_{}'.format(self.tail_tattoo)
+            if len(res) > 0:
+                res += ' '
+            res += 'tat={}'.format(self.tail_tattoo)
         
         if len(self.tail_sharpie) > 0:
-            res += 'mark_{}'.format(self.tail_sharpie)
+            if len(res) > 0:
+                res += ' '
+            res += 'mark={}'.format(self.tail_sharpie)
+        
+        if len(self.toe_clipped) > 0:
+            if len(res) > 0:
+                res += ' '
+            res += 'toe={}'.format(self.toe_clipped)
         
         return res
 
