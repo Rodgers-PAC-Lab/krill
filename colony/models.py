@@ -943,7 +943,7 @@ class Mouse(models.Model):
         if age is not None:
             res += 'P%d ' % age
         
-        # Always add straing
+        # Always add strain
         res += str(self.strain_description) + ' '
         
         # Always add genotype

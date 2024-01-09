@@ -288,34 +288,59 @@ class CageAdmin(admin.ModelAdmin):
     selection, as opposed to individually going to each mouse page.
     """
     # Columns in the list page
-    list_display = ('name', 'rack_spot', 'proprietor', 
-        'target_genotype', 'link_to_mice', 
-        'auto_needs_message', 'notes',)
+    list_display = (
+        'name', 
+        'sticker',
+        #'rack_spot', 
+        'proprietor', 
+        'target_genotype', 
+        'link_to_mice', 
+        'auto_needs_message', 
+        'notes',
+        )
     
     # The ones that are editable
-    list_editable = ('notes', 'rack_spot',)
+    list_editable = (
+        'notes', 
+        # 'rack_spot',
+        )
     
     # This allows filtering by proprietor name and defunctness
     # Also filter by genotype of contained mice
-    list_filter = ('proprietor__name', DefunctFilter, 
-        'mouse__mousegene__gene_name', 'location',)
+    list_filter = (
+        'proprietor__name', 
+        DefunctFilter, 
+        #'mouse__mousegene__gene_name', 
+        'litter__target_genotype', 
+        'mouse__mousestrain__strain_key__name',
+        'location',
+        )
     
     # Allow searching cages by mouse info
     # Searching by litter__target_genotype allows us to include relevant
     # breeding cages even if the father is out of the picture.
-    search_fields = ('name', 
-        'mouse__name', 'litter__target_genotype', 
+    search_fields = (
+        'name', 
+        'mouse__name', 
+        'litter__target_genotype', 
         'mouse__mousegene__gene_name__name',
+        'mouse__mousestrain__strain_key__name',
         'dar_id',
+        'sticker',
         )
     
     # Sorting in the list page
     ordering = ('defunct', 'name',)
     
     # The readonly fields
-    readonly_fields = ('infos', 'target_genotype', 
-        'link_to_mice', 'auto_needs_message', #'litter__target_genotype',
-        'target_genotype')
+    readonly_fields = (
+        'infos', 
+        'target_genotype', 
+        'link_to_mice', 
+        'auto_needs_message', 
+        #'litter__target_genotype',
+        'target_genotype',
+        )
     
     # Litter is an inline
     inlines = [LitterInline, SpecialRequestInline]
@@ -401,8 +426,19 @@ class MouseAdmin(admin.ModelAdmin):
     """Mouse administration: list view and individual admin page"""
     ## List view for mice
     # The columns that show up
-    list_display = ('name', 'user', 'dob', 'age', 'sacked', 'sex', 'cage', 
-        'genotype', 'notes',)
+    list_display = (
+        'name', 
+        'cage', 
+        'user', 
+        'pure_breeder', 
+        'sacked', 
+        'strain_description',
+        'genotype', 
+        'sex', 
+        'dob', 
+        'age', 
+        'notes',
+        )
     list_editable = ('notes',)
     readonly_fields = ('info', 'age', 'dob', 'mother', 'father', 'sacked', 
         'link_to_mother', 'link_to_father', 'link_to_progeny',
@@ -410,10 +446,22 @@ class MouseAdmin(admin.ModelAdmin):
         'genotype',)
 
     # How to filter and search
-    list_filter = ['cage__proprietor', 'user', 'pure_breeder', SackFilter, 
-        'mousegene__gene_name',
+    list_filter = [
+        'cage__proprietor', 
+        'user', 
+        'pure_breeder', 
+        SackFilter, 
+        'mousestrain__strain_key__name',
+        'mousegene__gene_name__name',
+        'sex',
     ]
-    search_fields = ('name', 'mousegene__gene_name__name')
+    search_fields = (
+        'name',
+        'cage__name',
+        #'cage__sticker', # this doesn't work and I don't know why
+        'mousestrain__strain_key__name',
+        'mousegene__gene_name__name',
+        )
     
     # How it is sorted by default
     ordering = ('name',)
