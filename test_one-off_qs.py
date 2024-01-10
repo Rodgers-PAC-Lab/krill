@@ -58,6 +58,8 @@ def find_sac_requests():
         cage_autoneeds = cage.auto_needs_message()
         if 'sack' in cage_autoneeds.lower():
             sack_list.append(cage.name)
+        if 'sac' in cage_autoneeds.lower():
+            sack_list.append(cage.name)
     return sack_list
 
 sack_list = find_sac_requests()
@@ -67,6 +69,13 @@ sack_cagedata = []
 for x in cages_toSack:
     results=mice_in_cage(x)
     sack_cagedata.append(results)
+sack_df = pandas.DataFrame(sack_cagedata,
+        columns=['Cage_ID','Notes','DAR_ID','Mice_count','Sticker'])
+micect = sum(sack_df['Mice_count'])
+cagect = sack_df['Cage_ID'].count()
+sack_df.to_csv('sack_csv')
+print('total mice: ',micect)
+print ('Cages: ', cagect)
 
 
 # Adding a query for finding breeder cages and the age of litters andor pups
@@ -94,5 +103,7 @@ weaning_data = get_weaning_dates()
 wean_tbl = pandas.DataFrame(weaning_data,
     columns=['Cage', 'Sticker','DoBirth','Early wean', 'Late wean','Sexual maturity'])
 wean_tbl = wean_tbl.set_index('Cage')
+
+tattoos = colony.models.Mouse.objects.exclude(tail_tattoo = "")
 
 

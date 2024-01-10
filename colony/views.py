@@ -523,13 +523,29 @@ def make_mating_cage(request):
             )
             cage.save()
 
+            # Get the dob of the mother's last litter to use as the mating date for the new cage.
+            prev_litters = colony.models.Litter.objects.filter(mother=mother)
+            if prev_litters.exists():
+                # Excludes mothers with no previous litters at all
+                if prev_litters.filter(dob__isnull=False).filter(father=father).exists():
+                    # If the previous litter was from the same parents,
+                    # assume the mating date is dob of the previous litter
+                    previous_dob = prev_litters.filter(dob__isnull=False).filter(father=father).latest("dob").dob
+                    date_mated = previous_dob
+                else:
+                    date_mated = datetime.date.today()
+            #           print("catch 1")
+            else:
+                # If there are no previous litters, date_mated is today.
+                date_mated = datetime.date.today()
+
             # Create the litter
             litter = Litter(
                 breeding_cage=cage,
                 proprietor=proprietor,
                 father=father,
                 mother=mother,
-                date_mated=datetime.date.today(),
+                date_mated= date_mated,
             )
             
             # Put mice in this cage and save everything
