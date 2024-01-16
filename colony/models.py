@@ -1398,7 +1398,7 @@ class Litter(models.Model):
             self.needs_wean,
         ]
         today = datetime.date.today()
-        
+        checked_date = self.date_checked
         # Iterate over needs methods
         for meth in meth_l:
             meth_res = meth()
@@ -1408,7 +1408,13 @@ class Litter(models.Model):
                 continue
             if meth_res['trigger'] > today:
                 continue
-            
+            # If pups have been checked in the last 3 days, update target date
+            if meth_res['trigger'] <= today and meth == self.needs_pup_check:
+                if today <= checked_date + datetime.timedelta(days=3):
+                    new_target = checked_date + datetime.timedelta(days=3)
+                    full_message_s = '%s on %s' % (meth_res['message'], new_target.strftime('%m/%d'))
+                    results_s_l.append(full_message_s)
+                    continue
             # Form the message
             target_date_s = meth_res['target'].strftime('%m/%d')
             full_message_s = '%s on %s' % (meth_res['message'], target_date_s)
