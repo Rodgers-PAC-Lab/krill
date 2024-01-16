@@ -18,7 +18,7 @@ previous_dob = cakes_litters.filter(dob__isnull=False).latest("dob").dob
 
 
 mother = colony.models.Mouse.objects.filter(name="fakemom")[0]
-father = colony.models.Mouse.objects.filter(name="fakedad")[0]
+father = colony.models.Mouse.objects.filter(name="fakedad2")[0]
 prev_litters = colony.models.Litter.objects.filter(mother=mother)
 def get_mating_date(mother,father):
     if prev_litters.exists():
@@ -35,4 +35,80 @@ def get_mating_date(mother,father):
         # If there are no previous litters, date_mated is today.
         date_mated = datetime.date.today()
     return date_mated
-if mom has previous litters and they have a dob and previous dad is same as current dad:
+
+
+fakelitters = colony.models.Litter.objects.filter(mother=mother)
+
+fakecage = colony.models.Cage.objects.filter(name='fakebreed3').get()
+testfake = colony.models.Litter.objects.filter(breeding_cage=fakecage).get()
+
+
+def needs_pup_check(self):
+    """Returns information about when pup check is needed.
+
+    If the litter does not have a date mated: returns None
+    Otherwise: Like all need_* methods, returns dict with
+        trigger, target, and warn dates; as well as a message.
+    """
+    if not self.date_mated or self.dob:
+        return None
+
+    reference_date = self.date_mated
+    checked_date = self.date_checked
+    trigger = reference_date + datetime.timedelta(days=20)
+    target = reference_date + datetime.timedelta(days=25)
+    warn = reference_date + datetime.timedelta(days=35)
+    if target <= checked_date:
+        target = checked_date + datetime.timedelta(days=3)
+
+
+    return {'message': 'pup check',
+            'trigger': trigger, 'target': target, 'warn': warn}
+def auto_needs_message(self):
+    """Generates an HTML string with all of the litter auto-needs.
+
+    Iterates through all of the needs_* methods and generates
+    an HTML string with all of them. Displayed in census view.
+    """
+    results_s_l = []
+    meth_l = [
+        self.needs_date_mated,
+        self.needs_pup_check,
+        self.needs_wean,
+    ]
+    today = datetime.date.today()
+    checked_date = self.date_checked
+    # Iterate over needs methods
+    for meth in meth_l:
+        meth_res = meth()
+        print(meth)
+        # Continue if no result or not triggered
+        if meth_res is None:
+            continue
+        if meth_res['trigger'] > today:
+            continue
+
+        # Form the message
+        target_date_s = meth_res['target'].strftime('%m/%d')
+        full_message_s = '%s on %s' % (meth_res['message'], target_date_s)
+
+        # Append with warn tags
+        if meth_res['warn'] <= today:
+            results_s_l.append('<b>' + full_message_s + '</b>')
+        else:
+            results_s_l.append(full_message_s)
+
+    result_s = '<br />'.join(results_s_l)
+    return result_s
+
+
+auto_needs_message.allow_tags = True
+
+
+meth_l = [
+        testfake.needs_date_mated,
+        testfake.needs_pup_check,
+        testfake.needs_wean,
+    ]
+today = datetime.date.today()
+checked_date = testfake.date_checked
