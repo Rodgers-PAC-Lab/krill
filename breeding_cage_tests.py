@@ -54,9 +54,13 @@ def needs_pup_check(self):
         return None
 
     reference_date = self.date_mated
+    checked_date = self.date_checked
     trigger = reference_date + datetime.timedelta(days=20)
     target = reference_date + datetime.timedelta(days=25)
     warn = reference_date + datetime.timedelta(days=35)
+    if target <= checked_date:
+        target = checked_date + datetime.timedelta(days=3)
+
 
     return {'message': 'pup check',
             'trigger': trigger, 'target': target, 'warn': warn}
@@ -83,10 +87,6 @@ def auto_needs_message(self):
             continue
         if meth_res['trigger'] > today:
             continue
-        # Continue if pups have been checked in the last 3 days
-        if meth_res['trigger']<= today and meth == self.needs_pup_check:
-            if today <= checked_date + datetime.timedelta(days=3):
-                continue
 
         # Form the message
         target_date_s = meth_res['target'].strftime('%m/%d')
@@ -112,18 +112,3 @@ meth_l = [
     ]
 today = datetime.date.today()
 checked_date = testfake.date_checked
-# Iterate over needs methods
-for meth in meth_l:
-    meth_res = meth()
-    print(meth)
-    # Continue if no result or not triggered
-    if meth_res is None:
-        continue
-    if meth_res['trigger'] > today:
-        continue
-    # Continue if pups have been checked in the last 3 days
-    if meth_res['trigger']<= today and meth == testfake.needs_pup_check:
-        print("outer conditional met")
-        if today <= checked_date +datetime.timedelta(days=3):
-            print("inner met")
-            continue

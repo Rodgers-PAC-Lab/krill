@@ -1323,10 +1323,14 @@ class Litter(models.Model):
             return None
         
         reference_date = self.date_mated
+        checked_date = self.date_checked
         trigger = reference_date + datetime.timedelta(days=20)
         target = reference_date + datetime.timedelta(days=25)
         warn = reference_date + datetime.timedelta(days=35)
-        
+
+        if target <= checked_date:
+            target = checked_date + datetime.timedelta(days=3)
+
         return {'message': 'pup check',
             'trigger': trigger, 'target': target, 'warn': warn}
 
@@ -1408,13 +1412,6 @@ class Litter(models.Model):
                 continue
             if meth_res['trigger'] > today:
                 continue
-            # If pups have been checked in the last 3 days, update target date
-            if meth_res['trigger'] <= today and meth == self.needs_pup_check:
-                if today <= checked_date + datetime.timedelta(days=3):
-                    new_target = checked_date + datetime.timedelta(days=3)
-                    full_message_s = '%s on %s' % (meth_res['message'], new_target.strftime('%m/%d'))
-                    results_s_l.append(full_message_s)
-                    continue
             # Form the message
             target_date_s = meth_res['target'].strftime('%m/%d')
             full_message_s = '%s on %s' % (meth_res['message'], target_date_s)
