@@ -1327,9 +1327,10 @@ class Litter(models.Model):
         trigger = reference_date + datetime.timedelta(days=20)
         target = reference_date + datetime.timedelta(days=25)
         warn = reference_date + datetime.timedelta(days=35)
-
-        if target <= checked_date:
-            target = checked_date + datetime.timedelta(days=3)
+        if self.date_checked is not None:
+            checked_date = self.date_checked
+            if target <= checked_date:
+                target = checked_date + datetime.timedelta(days=3)
 
         return {'message': 'pup check',
             'trigger': trigger, 'target': target, 'warn': warn}

@@ -20,6 +20,13 @@ previous_dob = cakes_litters.filter(dob__isnull=False).latest("dob").dob
 mother = colony.models.Mouse.objects.filter(name="fakemom")[0]
 father = colony.models.Mouse.objects.filter(name="fakedad2")[0]
 prev_litters = colony.models.Litter.objects.filter(mother=mother)
+fakelitters = colony.models.Litter.objects.filter(mother=mother)
+fakecage = colony.models.Cage.objects.filter(name='fakebreed3').get()
+testfake = colony.models.Litter.objects.filter(breeding_cage=fakecage).get()
+not_checked = colony.models.Litter.objects.filter(date_checked = None)
+unchecked_unborn = not_checked.filter(dob=None)
+sample_unchecked = unchecked_unborn[0]
+today = datetime.date.today()
 def get_mating_date(mother,father):
     if prev_litters.exists():
         # Excludes mothers with no previous litters at all
@@ -37,12 +44,6 @@ def get_mating_date(mother,father):
     return date_mated
 
 
-fakelitters = colony.models.Litter.objects.filter(mother=mother)
-
-fakecage = colony.models.Cage.objects.filter(name='fakebreed3').get()
-testfake = colony.models.Litter.objects.filter(breeding_cage=fakecage).get()
-
-
 def needs_pup_check(self):
     """Returns information about when pup check is needed.
 
@@ -54,13 +55,13 @@ def needs_pup_check(self):
         return None
 
     reference_date = self.date_mated
-    checked_date = self.date_checked
     trigger = reference_date + datetime.timedelta(days=20)
     target = reference_date + datetime.timedelta(days=25)
     warn = reference_date + datetime.timedelta(days=35)
-    if target <= checked_date:
-        target = checked_date + datetime.timedelta(days=3)
-
+    if self.date_checked is not None:
+        checked_date = self.date_checked
+        if target <= checked_date:
+            target = checked_date + datetime.timedelta(days=3)
 
     return {'message': 'pup check',
             'trigger': trigger, 'target': target, 'warn': warn}
@@ -110,5 +111,10 @@ meth_l = [
         testfake.needs_pup_check,
         testfake.needs_wean,
     ]
-today = datetime.date.today()
+
 checked_date = testfake.date_checked
+
+not_checked = colony.models.Litter.objects.filter(date_checked = None)
+
+if not testfake.date_mated or testfake.dob:
+    print("Escaped early")
