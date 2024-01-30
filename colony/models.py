@@ -1348,8 +1348,8 @@ class Litter(models.Model):
             return None
         reference_date = self.dob
         trigger = reference_date + datetime.timedelta(days=0)
-        target = reference_date + datetime.timedelta(days=7)
-        warn = reference_date + datetime.timedelta(days=14)
+        target = reference_date + datetime.timedelta(days=5)
+        warn = reference_date + datetime.timedelta(days=7)
         
         return {'message': 'toe clip',
             'trigger': trigger, 'target': target, 'warn': warn}
