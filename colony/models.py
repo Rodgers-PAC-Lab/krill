@@ -1344,7 +1344,8 @@ class Litter(models.Model):
         """        
         if not self.dob or self.date_toeclipped:
             return None
-        
+        if self.target_genotype == 'pure WT x pure WT':
+            return None
         reference_date = self.dob
         trigger = reference_date + datetime.timedelta(days=0)
         target = reference_date + datetime.timedelta(days=7)
@@ -1401,6 +1402,7 @@ class Litter(models.Model):
             self.needs_date_mated,
             self.needs_pup_check,
             self.needs_wean,
+            self.needs_toe_clip
         ]
         today = datetime.date.today()
         checked_date = self.date_checked
