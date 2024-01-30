@@ -1344,11 +1344,12 @@ class Litter(models.Model):
         """        
         if not self.dob or self.date_toeclipped:
             return None
-        
+        if self.target_genotype == 'pure WT x pure WT':
+            return None
         reference_date = self.dob
         trigger = reference_date + datetime.timedelta(days=0)
-        target = reference_date + datetime.timedelta(days=7)
-        warn = reference_date + datetime.timedelta(days=14)
+        target = reference_date + datetime.timedelta(days=5)
+        warn = reference_date + datetime.timedelta(days=7)
         
         return {'message': 'toe clip',
             'trigger': trigger, 'target': target, 'warn': warn}
@@ -1401,6 +1402,7 @@ class Litter(models.Model):
             self.needs_date_mated,
             self.needs_pup_check,
             self.needs_wean,
+            self.needs_toe_clip
         ]
         today = datetime.date.today()
         checked_date = self.date_checked
