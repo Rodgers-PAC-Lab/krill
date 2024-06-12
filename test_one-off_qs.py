@@ -105,5 +105,10 @@ wean_tbl = pandas.DataFrame(weaning_data,
 wean_tbl = wean_tbl.set_index('Cage')
 
 tattoos = colony.models.Mouse.objects.exclude(tail_tattoo = "")
-
-
+current = int(tattoos[0].tail_tattoo)
+for mouse in tattoos:
+    new = int(mouse.tail_tattoo)
+    if new > current:
+        current = new
+# Check one mouse tattoo:
+check = colony.models.Mouse.objects.filter(tail_tattoo='134')
