@@ -920,7 +920,7 @@ def post_set_genotyping_info(request, litter):
     # check whether it's valid:
     if genotyping_form.is_valid():
         # process the data in form.cleaned_data as required
-        gene_name = form.cleaned_data['gene_name']
+        gene_name = genotyping_form.cleaned_data['gene_name']
         for mouse in litter.mouse_set.all():
             result = genotyping_form.cleaned_data['result_%s' % mouse.name]
             
