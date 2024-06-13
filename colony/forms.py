@@ -156,8 +156,38 @@ class SetMouseSexForm(forms.Form):
                 label="Sex of mouse %s" % mouse.name,
                 choices=choices,
                 #~ widget=HorizontalRadioSelect,
-            )    
+            )
 
+
+class SetMouseToesForm(forms.Form):
+    """Form to set mouse clipped toes on litter management page"""
+
+    # Dynamically add one results for each pup
+    def __init__(self, *args, **kwargs):
+        litter = kwargs.pop('litter')
+        super(SetMouseToesForm, self).__init__(*args, **kwargs)
+
+        # Reorder the choices in order more likely to be clicked
+        choicesold = [
+            (2, '?'),
+            (0, 'male'),
+            (1, 'female'),
+        ]
+        # choices = ['1','2','3','4','7','8','9','10']
+        choices = [(10,'10'),
+                   (1,'1'),
+                   (2,'2'),
+                   (3,'3'),
+                   (4,'4')]
+
+        # Add a field for each mouse
+        # Ordering by pk makes this work for litters bigger than 10
+        for mouse in litter.mouse_set.order_by('pk').all():
+            self.fields['toe_clipped_%s' % mouse.name] = forms.ChoiceField(
+                label="Toe clipped on mouse %s" % mouse.name,
+                choices=choices,
+                # ~ widget=HorizontalRadioSelect,
+            )
 class ChangeNumberOfPupsForm(forms.Form):
     number_of_pups = forms.IntegerField(
         label='Number of pups',

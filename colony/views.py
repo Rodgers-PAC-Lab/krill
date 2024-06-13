@@ -13,7 +13,7 @@ from .models import (Mouse, Cage, Litter, generate_cage_name,
     HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype,
     Strain, MouseStrain)
 from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
-    ChangeNumberOfPupsForm, CensusFilterForm, WeanForm, SetMouseSexForm)
+    ChangeNumberOfPupsForm, CensusFilterForm, WeanForm, SetMouseSexForm,SetMouseToesForm)
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
@@ -826,16 +826,20 @@ def add_genotyping_information(request, litter_id):
         initial={}, litter=litter, prefix='set_sex',
     )
     genotyping_form = AddGenotypingInfoForm(initial={}, litter=litter,
-        prefix='add_genotyping_info')    
+        prefix='add_genotyping_info')
+    set_toes_form = SetMouseToesForm(
+        initial={}, litter=litter, prefix='set_toes',
+    )
     
     
     ## Depends on the request method
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
+        print(request.POST)
         ## A POST, so determine which button was pressed
         if 'change_number_of_pups' in request.POST:
             # Need to redo all forms in order to change number of pups
-            genotyping_form, change_number_of_pups_form, set_sex_form = (
+            genotyping_form, change_number_of_pups_form, set_sex_form, set_toes_form = (
                 post_change_number_of_pups(request, litter))
         
         elif 'set_genotyping_info' in request.POST:
@@ -845,6 +849,9 @@ def add_genotyping_information(request, litter_id):
         elif 'set_sex' in request.POST:
             # For this we only need to redo the set sex form
             set_sex_form = post_set_sex(request, litter)
+        elif 'set_toes' in request.POST:
+            # For this we only need to redo the set toe form
+            set_toes_form = post_set_toes(request, litter)
 
         else:
             # A POST without clicking any submit button
@@ -863,6 +870,7 @@ def add_genotyping_information(request, litter_id):
         'form': genotyping_form, 
         'change_number_of_pups_form': change_number_of_pups_form,
         'set_sex_form': set_sex_form,
+        'set_toes_form': set_toes_form,
         'litter': litter}
 
     return render(request, 'colony/add_genotyping_info.html', render_kwargs)
@@ -904,9 +912,12 @@ def post_change_number_of_pups(request, litter):
             litter=litter, prefix='add_genotyping_info') 
         set_sex_form = SetMouseSexForm(
             initial={}, litter=litter, prefix='set_sex',
-        )    
+        )
+        set_toes_form = SetMouseToesForm(
+            initial={}, litter=litter, prefix='set_toes',
+        )
     
-    return genotyping_form, change_number_of_pups_form, set_sex_form
+    return genotyping_form, change_number_of_pups_form, set_sex_form,set_toes_form
 
 def post_set_genotyping_info(request, litter):
     """Called when POST with set_genotyping_info.
@@ -920,7 +931,7 @@ def post_set_genotyping_info(request, litter):
     # check whether it's valid:
     if genotyping_form.is_valid():
         # process the data in form.cleaned_data as required
-        gene_name = form.cleaned_data['gene_name']
+        gene_name = genotyping_form.cleaned_data['gene_name']
         for mouse in litter.mouse_set.all():
             result = genotyping_form.cleaned_data['result_%s' % mouse.name]
             
@@ -964,10 +975,33 @@ def post_set_sex(request, litter):
         # Set the sex of each submitted mouse
         for mouse in litter.mouse_set.all():
             sex = set_sex_form.cleaned_data['sex_%s' % mouse.name]
+            print(sex)
             mouse.sex = sex
             mouse.save()
     
     return set_sex_form
+
+
+def post_set_toes(request, litter):
+    """Called when POST with set sex.
+
+    Sets the sex and generates the form.
+    """
+    ## We are setting the sex of the mice
+    # create a form instance and populate it with data from the request:
+    set_toes_form = SetMouseToesForm(request.POST,
+                                   initial={}, litter=litter, prefix='set_toes')
+
+    # Process if valid
+    if set_toes_form.is_valid():
+        # Set the sex of each submitted mouse
+        for mouse in litter.mouse_set.all():
+            toe = set_toes_form.cleaned_data['toe_clipped_%s' % mouse.name]
+            print(toe)
+            mouse.toe_clipped = toe
+            mouse.save()
+
+    return set_toes_form
 
 def add_pups_to_litter(litter, new_number_of_pups):
     """Calculates strains and genotypes, and adds pups to litter"""
