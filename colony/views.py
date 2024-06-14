@@ -13,7 +13,7 @@ from .models import (Mouse, Cage, Litter, generate_cage_name,
     HistoricalCage, HistoricalMouse, MouseGene, Gene, Genotype,
     Strain, MouseStrain)
 from .forms import (MatingCageForm, SackForm, AddGenotypingInfoForm,
-    ChangeNumberOfPupsForm, CensusFilterForm, WeanForm, SetMouseSexForm,SetMouseToesForm)
+    ChangeNumberOfPupsForm, CensusFilterForm, WeanForm, SetMouseSexForm, SetMouseToesForm)
 from simple_history.models import HistoricalRecords
 from itertools import chain
 
@@ -838,7 +838,7 @@ def add_genotyping_information(request, litter_id):
         ## A POST, so determine which button was pressed
         if 'change_number_of_pups' in request.POST:
             # Need to redo all forms in order to change number of pups
-            genotyping_form, change_number_of_pups_form, set_sex_form,set_toes_form = (
+            genotyping_form, change_number_of_pups_form, set_sex_form, set_toes_form = (
                 post_change_number_of_pups(request, litter))
         
         elif 'set_genotyping_info' in request.POST:
