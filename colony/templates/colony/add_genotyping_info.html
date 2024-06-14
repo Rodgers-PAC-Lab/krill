@@ -89,8 +89,12 @@ body
     {{ set_sex_form.as_p }}
     
     <input type="submit" name="set_sex" value="Set sex" />
-    
-
+        <br />
+ <h2>Set the toe clipped for each mouse</h2>
+-    {{ set_toes_form.as_p }}
+-
+-    <input type="submit" name="set_toes" value="Set toe clipped" />
+        <br />
     <h2>Wean the litter</h2>
     <p>
         <a href="/colony/wean/{{ litter.breeding_cage.pk }}">
