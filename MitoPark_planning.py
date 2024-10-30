@@ -13,8 +13,10 @@ Lucas_cages = colony.models.Cage.objects.filter(proprietor_id=8)
 # M1123_mice=colony.models.Mouse.objects.filter(cage=M_1123)
 
 
+# This does not work
+# Cre_Tflox_cages = colony.models.Cage.objects.filter(relevant_genesets=[('DAT-Ires-Cre', 'Tfam-flox')])
+# FAD_cages = colony.models.Cage.objects.filter(relevant_genesets=["5xFAD"])
 
-Cre_Tflox_cages = colony.models.Cage.objects.filter(relevant_genesets=[('DAT-Ires-Cre', 'Tfam-flox')])
 # qs = colony.models.Cage.objects.filter(defunct=False)
 # attributes = qs.__dict__
 
@@ -43,6 +45,7 @@ for mouse in Living_mice:
         if "DAT-Ires-Cre" in mouses_geneset or 'Tfam-flox' in mouses_geneset:
             all_MPgene_mice.append([mouse,mouse.genotype])
 all_MPgene_mice = pandas.DataFrame(all_MPgene_mice,columns=['Mouse','genotype'])
+
 MPgene_mice_l = []
 for mouse in all_MPgene_mice['Mouse']:
     Cre_zygosity = 'NA'
