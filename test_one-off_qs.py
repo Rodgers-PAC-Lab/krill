@@ -24,7 +24,7 @@
 #   RIGHT NOW, THIS IS NOT ACTUAL FUNCTIONING CODE!!!
 # Instead, follow these steps in a terminal:
 # Go to inner krill directory
-# Activate kirll conda env
+# Activate krill conda env
 # python manage.py shell
 # THEN you can paste the following.
 
@@ -71,9 +71,10 @@ for x in cages_toSack:
     sack_cagedata.append(results)
 sack_df = pandas.DataFrame(sack_cagedata,
         columns=['Cage_ID','Notes','DAR_ID','Mice_count','Sticker'])
+sack_df['DAR_ID']
 micect = sum(sack_df['Mice_count'])
 cagect = sack_df['Cage_ID'].count()
-sack_df.to_csv('sack_csv')
+sack_df.to_csv('sack_csv.csv')
 print('total mice: ',micect)
 print ('Cages: ', cagect)
 
@@ -104,6 +105,12 @@ wean_tbl = pandas.DataFrame(weaning_data,
     columns=['Cage', 'Sticker','DoBirth','Early wean', 'Late wean','Sexual maturity'])
 wean_tbl = wean_tbl.set_index('Cage')
 
+import numpy as np
 tattoos = colony.models.Mouse.objects.exclude(tail_tattoo = "")
-
+tattoos_l = []
+for mouse in tattoos:
+    tattoos_l.append(int(mouse.tail_tattoo))
+tattoos_arr = np.array(tattoos_l)
+tattoos_arr = np.sort(tattoos_arr)
+last_tattoo = tattoos_arr[-1]
 

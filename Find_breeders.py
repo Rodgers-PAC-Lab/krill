@@ -61,25 +61,30 @@ for mouse in all_mice:
     msex = mouse.sex
     m_age = mouse.age()
     m_cage = mouse.cage
+    m_notes = mouse.notes
     if m_cage is not None:
         m_csticker = m_cage.sticker
+        cage_notes = m_cage.notes
     else:
         m_csticker = "No sticker"
+        cage_notes = "No cage"
     if mgenotype=="DAT-Ires-Cre(+/-); Tfam-flox(+/+)" and msex==0:
-        MP_breeders_l.append([mouse, msex, m_age,
-            mgenotype, "MitoPark father", m_cage, m_csticker])
+        MP_breeders_l.append([mouse, msex, m_age, mgenotype, m_notes,
+            "MitoPark father", m_cage, m_csticker, cage_notes])
     elif mgenotype=="Tfam-flox(+/+)" and msex==1:
-        MP_breeders_l.append([mouse, msex, m_age,
-            mgenotype, "Tfam +/+ mother", m_cage, m_csticker,])
+        MP_breeders_l.append([mouse, msex, m_age, mgenotype, m_notes,
+            "Tfam +/+ mother", m_cage, m_csticker, cage_notes])
 MP_breeding_df = pandas.DataFrame(MP_breeders_l)
 MP_breeding_df = MP_breeding_df.rename(columns={
     0 : "mouse_id",
     1 : "sex",
     2 : "age",
     3 : "genotype",
-    4 : "notes",
-    5 : "cage",
-    6 : "sticker",
+    4 : "mouse_notes",
+    5 : "breeding_notes",
+    6 : "cage",
+    7 : "sticker",
+    8 : "cage_notes"
 })
 MP_breeding_df = MP_breeding_df.set_index('mouse_id')
 MP_breeding_df = MP_breeding_df.sort_values('sex')
