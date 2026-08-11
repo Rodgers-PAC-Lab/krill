@@ -70,10 +70,10 @@ for mouse in all_mice:
         cage_notes = "No cage"
     if mgenotype=="DAT-Ires-Cre(+/-); Tfam-flox(+/+)" and msex==0:
         MP_breeders_l.append([mouse, msex, m_age, mgenotype, m_notes,
-            "MitoPark father", m_cage, m_csticker, cage_notes])
+            mouse.toe_clipped, m_cage, m_csticker, cage_notes])
     elif mgenotype=="Tfam-flox(+/+)" and msex==1:
         MP_breeders_l.append([mouse, msex, m_age, mgenotype, m_notes,
-            "Tfam +/+ mother", m_cage, m_csticker, cage_notes])
+            mouse.toe_clipped, m_cage, m_csticker, cage_notes])
 MP_breeding_df = pandas.DataFrame(MP_breeders_l)
 MP_breeding_df = MP_breeding_df.rename(columns={
     0 : "mouse_id",
@@ -81,7 +81,7 @@ MP_breeding_df = MP_breeding_df.rename(columns={
     2 : "age",
     3 : "genotype",
     4 : "mouse_notes",
-    5 : "breeding_notes",
+    5 : "toe_clipped",
     6 : "cage",
     7 : "sticker",
     8 : "cage_notes"
